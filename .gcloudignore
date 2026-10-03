@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.vscode
+docs
+training
+**/node_modules
+**/.angular
+frontend/dist
+backend/target

@@ -1,0 +1,9 @@
+.git
+.github
+docs
+training
+**/node_modules
+**/.angular
+frontend/dist
+backend/target
+backend/.mvn/wrapper/maven-wrapper.jar

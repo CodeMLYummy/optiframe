@@ -1,0 +1,15 @@
+// Forwards the custom domains to Cloud Run. Deploy: cd deploy/worker && npx wrangler deploy
+{
+  "name": "optiframe-proxy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "routes": [
+    { "pattern": "optiframe.app", "custom_domain": true },
+    { "pattern": "optiframe.net", "custom_domain": true },
+    { "pattern": "optiframe.ca", "custom_domain": true }
+  ],
+  "vars": {
+    "PRIMARY_HOST": "optiframe.app",
+    "ORIGIN": "https://optiframe-6vimt6bvrq-nn.a.run.app"
+  }
+}
