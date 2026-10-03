@@ -1,0 +1,177 @@
+package ca.optiframe.api.vision;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfDouble;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import ca.optiframe.api.api.dto.Eye;
+import ca.optiframe.api.api.dto.LensContour;
+import ca.optiframe.api.api.dto.MeasureResponse;
+import ca.optiframe.api.config.OptiframeProperties;
+import ca.optiframe.api.sheet.SheetLayout;
+import ca.optiframe.api.vision.MeasurementException.Code;
+
+/** Photo to lens contour: rectify, segment, measure. */
+@Service
+public class MeasurementService {
+
+	private static final Logger log = LoggerFactory.getLogger(MeasurementService.class);
+	private static final Scalar GREEN = new Scalar(0, 200, 0);
+	private static final Scalar RED = new Scalar(0, 0, 255);
+	private static final Scalar BLUE = new Scalar(255, 120, 0);
+
+	private final SheetLayout layout;
+	private final OptiframeProperties props;
+	private final Rectifier rectifier;
+	private final ClassicalSegmenter classical;
+	private final OnnxSegmenter onnx;
+	private final ContourMeasurer measurer;
+
+	public MeasurementService(SheetLayout layout, OptiframeProperties props, Rectifier rectifier,
+			ClassicalSegmenter classical, OnnxSegmenter onnx, ContourMeasurer measurer) {
+		this.layout = layout;
+		this.props = props;
+		this.rectifier = rectifier;
+		this.classical = classical;
+		this.onnx = onnx;
+		this.measurer = measurer;
+	}
+
+	/**
+	 * @param method "auto" (model if available), "classical" or "onnx"
+	 */
+	public MeasureResponse measure(byte[] imageBytes, Eye eye, String method) {
+		long start = System.currentTimeMillis();
+		Mat photo = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.IMREAD_COLOR);
+		if (photo.empty()) {
+			throw new MeasurementException(Code.IMAGE_UNREADABLE, "Image illisible. Utilisez une photo JPEG ou PNG.");
+		}
+
+		RectifiedSheet sheet = rectifier.rectify(photo);
+		double ppm = sheet.pxPerMm();
+
+		double sharpness = markerSharpness(sheet);
+		if (sharpness < props.minSharpness()) {
+			throw new MeasurementException(Code.PHOTO_BLURRY,
+					"Photo floue. Tenez le téléphone immobile et touchez l'écran pour faire la mise au point.");
+		}
+
+		SheetLayout.Rect w = layout.lensWindow();
+		Rect roi = new Rect((int) Math.round(w.xMm() * ppm), (int) Math.round(w.yMm() * ppm),
+				(int) Math.round(w.widthMm() * ppm), (int) Math.round(w.heightMm() * ppm));
+		Mat window = new Mat(sheet.image(), roi).clone();
+
+		LensSegmenter segmenter = pick(method);
+		Mat mask = segmenter.segment(window, ppm);
+		if (Core.countNonZero(mask) == 0) {
+			throw new MeasurementException(Code.LENS_NOT_FOUND,
+					"Verre introuvable. Placez-le au centre du cadre, sur le fond éclairé.");
+		}
+		Rect lensBox = Imgproc.boundingRect(mask);
+		if (lensBox.x <= 1 || lensBox.y <= 1 || lensBox.br().x >= roi.width - 1 || lensBox.br().y >= roi.height - 1) {
+			throw new MeasurementException(Code.LENS_OUT_OF_WINDOW,
+					"Le verre dépasse du cadre. Centrez-le dans le rectangle de la feuille.");
+		}
+
+		ContourMeasurer.Measurement m = measurer.measure(mask, ppm, eye, props.edgeBiasMm());
+		saveForDataset(window, mask);
+
+		List<MeasureResponse.Step> steps = List.of(
+				new MeasureResponse.Step("1. Marqueurs détectés", DebugImages.toDataUrl(markersOverlay(photo, sheet))),
+				new MeasureResponse.Step("2. Feuille redressée", DebugImages.toDataUrl(rectifiedOverlay(sheet, roi))),
+				new MeasureResponse.Step("3. Contour du verre", DebugImages.toDataUrl(contourOverlay(window, m))));
+
+		long elapsed = System.currentTimeMillis() - start;
+		LensContour c = m.contour();
+		log.info("Measured {} with {}: A={} B={} mm ({} markers, err {} mm, {} ms)", eye, segmenter.name(),
+				String.format("%.2f", c.aMm()), String.format("%.2f", c.bMm()), sheet.markerIds().size(),
+				String.format("%.3f", sheet.reprojectionErrorMm()), elapsed);
+		return new MeasureResponse(c, segmenter.name(), ppm, sheet.markerIds().size(), sheet.reprojectionErrorMm(),
+				sharpness, m.rotatedAMm(), m.rotatedBMm(), steps, elapsed);
+	}
+
+	private LensSegmenter pick(String method) {
+		return switch (method) {
+			case "classical" -> classical;
+			default -> onnx.available() ? onnx : classical;
+		};
+	}
+
+	/** Variance of the Laplacian over the detected markers: they are sharp black and white squares in every photo. */
+	private double markerSharpness(RectifiedSheet sheet) {
+		double ppm = sheet.pxPerMm();
+		double sum = 0;
+		for (int id : sheet.markerIds()) {
+			SheetLayout.Marker marker = layout.markers().stream().filter(x -> x.id() == id).findFirst().orElseThrow();
+			int s = (int) Math.round(layout.markerSizeMm() * ppm);
+			Mat region = new Mat(sheet.image(),
+					new Rect((int) Math.round(marker.xMm() * ppm), (int) Math.round(marker.yMm() * ppm), s, s));
+			Mat gray = new Mat();
+			Imgproc.cvtColor(region, gray, Imgproc.COLOR_BGR2GRAY);
+			Mat lap = new Mat();
+			Imgproc.Laplacian(gray, lap, CvType.CV_64F);
+			MatOfDouble mean = new MatOfDouble();
+			MatOfDouble std = new MatOfDouble();
+			Core.meanStdDev(lap, mean, std);
+			sum += std.get(0, 0)[0] * std.get(0, 0)[0];
+		}
+		return sum / sheet.markerIds().size();
+	}
+
+	private static Mat markersOverlay(Mat photo, RectifiedSheet sheet) {
+		Mat out = photo.clone();
+		int thickness = Math.max(3, photo.cols() / 300);
+		Imgproc.polylines(out, sheet.markerQuads(), true, GREEN, thickness);
+		return out;
+	}
+
+	private static Mat rectifiedOverlay(RectifiedSheet sheet, Rect roi) {
+		Mat out = sheet.image().clone();
+		Imgproc.rectangle(out, roi.tl(), roi.br(), BLUE, 6);
+		return out;
+	}
+
+	private static Mat contourOverlay(Mat window, ContourMeasurer.Measurement m) {
+		Mat out = window.clone();
+		Imgproc.polylines(out, List.of(m.pixelContour()), true, RED, 3);
+		Rect box = Imgproc.boundingRect(m.pixelContour());
+		Imgproc.rectangle(out, box.tl(), box.br(), BLUE, 2);
+		LensContour c = m.contour();
+		String label = String.format("A %.1f  B %.1f mm", c.aMm(), c.bMm());
+		Imgproc.putText(out, label, new Point(20, 60), Imgproc.FONT_HERSHEY_SIMPLEX, 1.8, RED, 4);
+		return out;
+	}
+
+	private void saveForDataset(Mat window, Mat mask) {
+		String dir = props.datasetDir();
+		if (dir == null || dir.isBlank()) {
+			return;
+		}
+		try {
+			Path root = Path.of(dir);
+			Files.createDirectories(root.resolve("images"));
+			Files.createDirectories(root.resolve("masks"));
+			String name = System.currentTimeMillis() + ".png";
+			Imgcodecs.imwrite(root.resolve("images").resolve(name).toString(), window);
+			Imgcodecs.imwrite(root.resolve("masks").resolve(name).toString(), mask);
+		}
+		catch (Exception e) {
+			log.warn("Could not save dataset sample", e);
+		}
+	}
+
+}
