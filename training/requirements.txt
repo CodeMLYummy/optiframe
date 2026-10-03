@@ -1,0 +1,7 @@
+opencv-contrib-python>=4.9
+numpy
+matplotlib
+torch
+segmentation-models-pytorch
+albumentations
+onnx
