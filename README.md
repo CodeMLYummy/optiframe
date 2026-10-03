@@ -2,7 +2,7 @@
 
 Du verre de lunettes recyclé à la monture imprimée en 3D. Défi CodeML 2026, Santé Numérique Sans Frontières.
 
-- **Application :** `https://optiframe-<id>.northamerica-northeast1.run.app` (à compléter après le premier déploiement)
+- **Application :** https://optiframe.app
 - **Précision visée :** 0,5 mm sur A, B et le pont, selon la norme ISO 12870 (le jury accorde le maximum à 1 mm). Voir [Validation](docs/validation.md).
 
 ```mermaid

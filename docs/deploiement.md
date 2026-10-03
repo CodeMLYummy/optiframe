@@ -31,10 +31,19 @@ Pour appliquer tout de suite, sans reconstruire l'image (reporter aussi les vale
 gcloud run services update optiframe --region=northamerica-northeast1 --min-instances=0 --max-instances=1
 ```
 
+#### Domaines
+
+`optiframe.app` est l'adresse principale ; `optiframe.ca` et `optiframe.net` y redirigent (301). Les trois zones sont sur Cloudflare et pointent vers le Worker `optiframe-proxy` (`deploy/worker/`), qui relaie les requêtes vers l'adresse Cloud Run, `https://optiframe-6vimt6bvrq-nn.a.run.app`. Si cette adresse change, mettre à jour `ORIGIN` dans `wrangler.jsonc` puis :
+
+```bash
+cd deploy/worker && npx wrangler deploy
+```
+
 | Variable | Où | Rôle |
 |---|---|---|
 | `_REGION` | substitution Cloud Build | Région |
 | `_MIN_INSTANCES`, `_MAX_INSTANCES`, `_CONCURRENCY`, `_CPU`, `_MEMORY` | substitutions Cloud Build | Taille du service Cloud Run |
 | `_API_URL` | substitution Cloud Build | URL de l'API si elle est séparée (vide : même adresse) |
+| `PRIMARY_HOST`, `ORIGIN` | `deploy/worker/wrangler.jsonc` | Domaine principal, adresse Cloud Run relayée |
 | `OPTIFRAME_CORS_ORIGINS` | Cloud Run | Origines autorisées si l'app est servie ailleurs |
 | `OPTIFRAME_MODEL_PATH` | Cloud Run | Chemin du modèle ONNX |
