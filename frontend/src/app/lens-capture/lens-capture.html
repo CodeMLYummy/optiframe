@@ -1,0 +1,37 @@
+<section class="card">
+  <h2>{{ title() }}</h2>
+
+  <div class="actions">
+    <label class="button primary" [class.disabled]="busy()">
+      📷 Prendre une photo
+      <input type="file" accept="image/*" capture="environment" (change)="onFile($event)" [disabled]="busy()" hidden />
+    </label>
+    <label class="button" [class.disabled]="busy()">
+      Importer
+      <input type="file" accept="image/*" (change)="onFile($event)" [disabled]="busy()" hidden />
+    </label>
+  </div>
+
+  @if (busy()) {
+    <p class="status">Analyse de la photo…</p>
+  }
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (slot(); as s) {
+    <dl class="measures">
+      <div><dt>A</dt><dd>{{ s.contour.aMm | number: '1.1-1' }} mm</dd></div>
+      <div><dt>B</dt><dd>{{ s.contour.bMm | number: '1.1-1' }} mm</dd></div>
+      <div><dt>Périmètre</dt><dd>{{ s.contour.perimeterMm | number: '1.0-0' }} mm</dd></div>
+    </dl>
+    @if (controlImage(); as img) {
+      <img class="control" [src]="img" alt="Image de contrôle : contour détecté" />
+    } @else {
+      <p class="status">Verre de test (ellipse 50 × 36 mm)</p>
+    }
+    <button class="button" (click)="downloadSvg()">Contour SVG 1:1</button>
+  } @else {
+    <button class="link" (click)="useTestLens()">Utiliser un verre de test</button>
+  }
+</section>

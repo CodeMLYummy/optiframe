@@ -1,0 +1,71 @@
+<section class="card intro">
+  <p>
+    Posez le verre, face bombée vers le haut, au centre de la
+    <a href="feuille-optiframe.pdf" target="_blank">feuille de référence</a> (imprimée à 100 %), sur un fond
+    éclairé. Côté nasal vers le centre de la monture. Cadrez toute la feuille.
+  </p>
+</section>
+
+<app-lens-capture eye="R" />
+<app-lens-capture eye="L" />
+
+<section class="card">
+  <h2>Monture</h2>
+  @if (!store.pd().perEye) {
+    <label class="field">
+      Écart pupillaire du patient (PD, mm)
+      <input type="number" inputmode="decimal" min="40" max="80" step="0.5" placeholder="ex. 63"
+        [value]="store.pd().totalMm ?? ''" (input)="setPd('totalMm', $event)" />
+    </label>
+  } @else {
+    <div class="pd-split">
+      <label class="field">
+        PD droit (OD)
+        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" placeholder="ex. 31.5"
+          [value]="store.pd().rightMm ?? ''" (input)="setPd('rightMm', $event)" />
+      </label>
+      <label class="field">
+        PD gauche (OG)
+        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" placeholder="ex. 31.5"
+          [value]="store.pd().leftMm ?? ''" (input)="setPd('leftMm', $event)" />
+      </label>
+    </div>
+  }
+  <label class="check">
+    <input type="checkbox" [checked]="store.pd().perEye" (change)="setPerEye($event)" />
+    PD par œil
+  </label>
+
+  @if (placement(); as p) {
+    <p class="status">
+      @if (usesPd()) {
+        Pont calculé : <strong>{{ p.bridgeMm | number: '1.1-1' }} mm</strong>
+      } @else {
+        Sans PD : pont standard de {{ defaultBridgeMm }} mm.
+      }
+    </p>
+  }
+  @if (bridgeWarning(); as warning) {
+    <p class="error" role="alert">{{ warning }}</p>
+  }
+
+  <button class="button primary wide" [disabled]="!canGenerate()" (click)="generate()">
+    {{ generating() ? 'Génération…' : 'Générer la monture' }}
+  </button>
+  @if (!store.bothMeasured()) {
+    <p class="status">Mesurez les deux verres d'abord.</p>
+  }
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (frame(); as f) {
+    <app-frame-viewer [geometry]="f.geometry" />
+    <p class="status">{{ f.triangles }} triangles · {{ f.volumeMm3 / 1000 | number: '1.1-1' }} cm³ de filament</p>
+    <button class="button primary wide" (click)="downloadStl()">Télécharger monture.stl</button>
+  }
+</section>
+
+@if (hasSteps()) {
+  <p class="center"><a routerLink="/pas-a-pas">Voir le pas à pas</a></p>
+}
