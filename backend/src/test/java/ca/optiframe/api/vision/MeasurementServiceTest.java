@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 
+import java.nio.ByteBuffer;
+import java.util.zip.CRC32;
+
 import org.junit.jupiter.api.Test;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -63,6 +66,36 @@ class MeasurementServiceTest {
 				.isInstanceOf(MeasurementException.class)
 				.extracting(e -> ((MeasurementException) e).code())
 				.isEqualTo(MeasurementException.Code.MARKERS_NOT_FOUND);
+	}
+
+	@Test
+	void rejectsOtherFormatsBeforeDecoding() {
+		MatOfByte bmp = new MatOfByte();
+		Imgcodecs.imencode(".bmp", new Mat(100, 100, CvType.CV_8UC3, new Scalar(200, 200, 200)), bmp);
+
+		assertThatThrownBy(() -> service.measure(bmp.toArray(), Eye.L, "auto"))
+				.isInstanceOf(MeasurementException.class)
+				.extracting(e -> ((MeasurementException) e).code())
+				.isEqualTo(MeasurementException.Code.IMAGE_UNREADABLE);
+	}
+
+	@Test
+	void rejectsHugePngBeforeDecoding() {
+		// Signature + IHDR declaring 40000 x 40000 px RGB: what a decompression bomb starts with.
+		byte[] ihdr = { 'I', 'H', 'D', 'R', 0, 0, (byte) 0x9c, 0x40, 0, 0, (byte) 0x9c, 0x40, 8, 2, 0, 0, 0 };
+		CRC32 crc = new CRC32();
+		crc.update(ihdr);
+		byte[] png = ByteBuffer.allocate(8 + 4 + ihdr.length + 4)
+				.put(new byte[] { (byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n' })
+				.putInt(13)
+				.put(ihdr)
+				.putInt((int) crc.getValue())
+				.array();
+
+		assertThatThrownBy(() -> service.measure(png, Eye.L, "auto"))
+				.isInstanceOf(MeasurementException.class)
+				.extracting(e -> ((MeasurementException) e).code())
+				.isEqualTo(MeasurementException.Code.IMAGE_UNREADABLE);
 	}
 
 	/** Sheet seen exactly from above at TRUE_PPM, with a lens whose dark refraction rim ends at its true edge. */

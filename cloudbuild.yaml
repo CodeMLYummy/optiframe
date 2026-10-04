@@ -35,6 +35,7 @@ steps:
       - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
       - --region=${_REGION}
       - --allow-unauthenticated
+      - --service-account=${_SERVICE}-run@$PROJECT_ID.iam.gserviceaccount.com
       - --memory=${_MEMORY}
       - --cpu=${_CPU}
       - --concurrency=${_CONCURRENCY}

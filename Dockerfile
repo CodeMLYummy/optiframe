@@ -19,5 +19,11 @@ FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=api /api/target/optiframe-api-*.jar app.jar
 COPY backend/models models
+# Second guard behind the Java header check: OpenCV refuses to decode bigger images.
+ENV OPENCV_IO_MAX_IMAGE_PIXELS=30000000
+# OpenCV loads its native lib into the temp dir, so it needs a writable home but nothing else.
+RUN useradd --system --create-home --uid 10001 app
+USER app
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]
+# Images live in native memory (OpenCV Mats), outside the heap: leave them room.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=50", "-jar", "app.jar"]

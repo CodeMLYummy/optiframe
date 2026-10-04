@@ -1,8 +1,16 @@
 package ca.optiframe.api.vision;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -33,6 +41,8 @@ public class MeasurementService {
 	private static final Scalar GREEN = new Scalar(0, 200, 0);
 	private static final Scalar RED = new Scalar(0, 0, 255);
 	private static final Scalar BLUE = new Scalar(255, 120, 0);
+	/** 30 MP: above any phone photo (the app sends at most 4000 px on the long side), about 90 MB once decoded. */
+	private static final long MAX_PIXELS = 30_000_000;
 
 	private final SheetLayout layout;
 	private final OptiframeProperties props;
@@ -56,6 +66,7 @@ public class MeasurementService {
 	 */
 	public MeasureResponse measure(byte[] imageBytes, Eye eye, String method) {
 		long start = System.currentTimeMillis();
+		checkImageHeader(imageBytes);
 		Mat photo = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.IMREAD_COLOR);
 		if (photo.empty()) {
 			throw new MeasurementException(Code.IMAGE_UNREADABLE, "Image illisible. Utilisez une photo JPEG ou PNG.");
@@ -102,6 +113,35 @@ public class MeasurementService {
 				String.format("%.3f", sheet.reprojectionErrorMm()), elapsed);
 		return new MeasureResponse(c, segmenter.name(), ppm, sheet.markerIds().size(), sheet.reprojectionErrorMm(),
 				sharpness, m.rotatedAMm(), m.rotatedBMm(), steps, elapsed);
+	}
+
+	/**
+	 * Reads only the header (pure Java) before the native decoder sees the bytes: JPEG or PNG only, and a pixel
+	 * count that fits in memory. A few-MB PNG can declare 30000 x 30000 px and decode to gigabytes.
+	 */
+	private static void checkImageHeader(byte[] imageBytes) {
+		try (ImageInputStream in = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
+			Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+			if (readers.hasNext()) {
+				ImageReader reader = readers.next();
+				try {
+					reader.setInput(in, true, true);
+					String format = reader.getFormatName().toLowerCase(Locale.ROOT);
+					if ((format.equals("jpeg") || format.equals("png"))
+							&& (long) reader.getWidth(0) * reader.getHeight(0) <= MAX_PIXELS) {
+						return;
+					}
+				}
+				finally {
+					reader.dispose();
+				}
+			}
+		}
+		catch (IOException | RuntimeException e) {
+			// Falls through to the rejection below.
+		}
+		throw new MeasurementException(Code.IMAGE_UNREADABLE,
+				"Image illisible ou trop grande. Utilisez une photo JPEG ou PNG.");
 	}
 
 	private LensSegmenter pick(String method) {

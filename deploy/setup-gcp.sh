@@ -18,3 +18,9 @@ for role in roles/run.admin roles/iam.serviceAccountUser roles/artifactregistry.
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="serviceAccount:${BUILD_SA}" --role="$role" --condition=None >/dev/null
 done
+
+# The service runs as its own account with no roles: the default compute account is often a project Editor,
+# and a compromised container would get its token from the metadata server.
+RUN_SA="optiframe-run@${PROJECT_ID}.iam.gserviceaccount.com"
+gcloud iam service-accounts describe "$RUN_SA" >/dev/null 2>&1 ||
+  gcloud iam service-accounts create optiframe-run --display-name="OptiFrame Cloud Run runtime"
