@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T00:00:00Z",
+  "title": "Design System: OptiFrame",
+  "extensions": {
+    "colorMeta": {
+      "wall": {
+        "role": "neutral",
+        "displayName": "Steel Wall",
+        "cssVar": "--wall",
+        "canonical": "oklch(91.4% 0.007 248)",
+        "tonalRamp": [
+          "#090b0e",
+          "#212427",
+          "#404346",
+          "#606467",
+          "#83878a",
+          "#a7abaf",
+          "#caced2",
+          "#ebeff3"
+        ]
+      },
+      "wall-dark": {
+        "role": "neutral",
+        "displayName": "Steel Wall (dark)",
+        "cssVar": "--wall"
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Lit Panel",
+        "cssVar": "--panel",
+        "canonical": "oklch(98.7% 0.004 106)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#242422",
+          "#424240",
+          "#636361",
+          "#868684",
+          "#ababa8",
+          "#cececb",
+          "#efefec"
+        ]
+      },
+      "panel-dark": {
+        "role": "neutral",
+        "displayName": "Lit Panel (dark)",
+        "cssVar": "--panel"
+      },
+      "panel-2": {
+        "role": "neutral",
+        "displayName": "Panel Shade",
+        "cssVar": "--panel-2"
+      },
+      "panel-2-dark": {
+        "role": "neutral",
+        "displayName": "Panel Shade (dark)",
+        "cssVar": "--panel-2"
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Optotype Ink",
+        "cssVar": "--ink",
+        "canonical": "oklch(19.0% 0.005 248)",
+        "tonalRamp": [
+          "#090b0d",
+          "#222426",
+          "#404345",
+          "#616366",
+          "#848689",
+          "#a8abae",
+          "#cbced1",
+          "#eceff2"
+        ]
+      },
+      "ink-dark": {
+        "role": "primary",
+        "displayName": "Optotype Ink (dark)",
+        "cssVar": "--ink"
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "cssVar": "--ink-2"
+      },
+      "ink-2-dark": {
+        "role": "neutral",
+        "displayName": "Ink 2 (dark)",
+        "cssVar": "--ink-2"
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "cssVar": "--ink-3"
+      },
+      "ink-3-dark": {
+        "role": "neutral",
+        "displayName": "Ink 3 (dark)",
+        "cssVar": "--ink-3"
+      },
+      "steel": {
+        "role": "neutral",
+        "displayName": "Steel",
+        "cssVar": "--steel",
+        "canonical": "oklch(70.2% 0.010 243)",
+        "tonalRamp": [
+          "#080c0f",
+          "#202529",
+          "#3e4347",
+          "#5e6469",
+          "#81878c",
+          "#a6acb1",
+          "#c8cfd4",
+          "#e9eff5"
+        ]
+      },
+      "steel-dark": {
+        "role": "neutral",
+        "displayName": "Steel (dark)",
+        "cssVar": "--steel"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "cssVar": "--rule"
+      },
+      "rule-dark": {
+        "role": "neutral",
+        "displayName": "Hairline (dark)",
+        "cssVar": "--rule"
+      },
+      "snellen-red": {
+        "role": "secondary",
+        "displayName": "Snellen Red",
+        "cssVar": "--red",
+        "canonical": "oklch(53.2% 0.176 29)",
+        "tonalRamp": [
+          "#220000",
+          "#4d0000",
+          "#800606",
+          "#b2271f",
+          "#dc5144",
+          "#fc8272",
+          "#ffbab0",
+          "#ffe9e5"
+        ]
+      },
+      "snellen-red-dark": {
+        "role": "secondary",
+        "displayName": "Snellen Red (dark)",
+        "cssVar": "--red"
+      },
+      "snellen-green": {
+        "role": "secondary",
+        "displayName": "Snellen Green",
+        "cssVar": "--green",
+        "canonical": "oklch(49.0% 0.109 155)",
+        "tonalRamp": [
+          "#001103",
+          "#002d15",
+          "#01502b",
+          "#1f7547",
+          "#499969",
+          "#6fbf8c",
+          "#92e3af",
+          "#c7fed8"
+        ]
+      },
+      "snellen-green-dark": {
+        "role": "secondary",
+        "displayName": "Snellen Green (dark)",
+        "cssVar": "--green"
+      },
+      "amber": {
+        "role": "tertiary",
+        "displayName": "Clinic Amber",
+        "cssVar": "--amber",
+        "canonical": "oklch(49.4% 0.109 67)",
+        "tonalRamp": [
+          "#180600",
+          "#371d00",
+          "#603800",
+          "#8c5503",
+          "#b27836",
+          "#d99d5c",
+          "#fec07e",
+          "#ffebd7"
+        ]
+      },
+      "amber-dark": {
+        "role": "tertiary",
+        "displayName": "Clinic Amber (dark)",
+        "cssVar": "--amber"
+      },
+      "on-ink": {
+        "role": "neutral",
+        "displayName": "On Ink",
+        "cssVar": "--on-ink"
+      },
+      "on-ink-dark": {
+        "role": "neutral",
+        "displayName": "On Ink (dark)",
+        "cssVar": "--on-ink"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Chart Line",
+        "purpose": "Welcome chart lines only, uppercase, five decreasing sizes (line 1 shown)."
+      },
+      "numeral": {
+        "displayName": "Measurement Numeral",
+        "purpose": "A and B readouts inside registration corners."
+      },
+      "headline": {
+        "displayName": "Step Title",
+        "purpose": "One per step, may carry an OD/OG plate."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "Sections within a step, optional ink-3 ordinal."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Instructions; leads in ink-2 at 52ch max."
+      },
+      "body-small": {
+        "displayName": "Small",
+        "purpose": "Captions, row descriptions, prompts, verified mark."
+      },
+      "label": {
+        "displayName": "Measurement Key",
+        "purpose": "Single-letter keys (A, B) above numerals."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel-lift",
+        "value": "0 1px 2px rgb(18 20 22 / 0.05), 0 16px 40px -20px rgb(18 20 22 / 0.22)",
+        "purpose": "Chart panel on the steel wall, light theme. The only elevation."
+      },
+      {
+        "name": "panel-glow-dark",
+        "value": "0 0 0 1px rgb(236 238 233 / 0.07) inset, 0 1px 0 rgb(236 238 233 / 0.1) inset, 0 -12px 60px -24px rgb(196 206 214 / 0.16), 0 28px 56px -28px rgb(0 0 0 / 0.8)",
+        "purpose": "Chart panel in the dimmed room: backlit glow."
+      },
+      {
+        "name": "input-focus",
+        "value": "0 0 0 1px var(--ink)",
+        "purpose": "Doubles the ink border of a focused input."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "The single easing for every transition."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Hover, border and background changes."
+      },
+      {
+        "name": "select",
+        "value": "200ms",
+        "purpose": "Segmented option and viewfinder fills."
+      },
+      {
+        "name": "ladder-color",
+        "value": "300ms",
+        "purpose": "Ladder line color change."
+      },
+      {
+        "name": "rule-slide",
+        "value": "500ms",
+        "purpose": "Snellen red rule sliding to the next step."
+      },
+      {
+        "name": "step-out",
+        "value": "160ms fade",
+        "purpose": "View transition, leaving step."
+      },
+      {
+        "name": "step-in",
+        "value": "320ms fade + 10px rise + 2px blur clear",
+        "purpose": "View transition, entering step."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "rail",
+        "value": "960px"
+      }
+    ],
+    "focus": {
+      "value": "outline: 2px solid var(--ink); outline-offset: 2px",
+      "purpose": "Universal focus-visible ring."
+    },
+    "icons": {
+      "set": "Lucide (ISC), inlined",
+      "strokeWidth": 1.75,
+      "defaultSize": "1.25em",
+      "color": "currentColor"
+    },
+    "themes": {
+      "mechanism": "Tokens on :root; dark via prefers-color-scheme on :root:not([data-theme='light']) and explicit :root[data-theme='dark']; choice system/light/dark persisted in localStorage 'optiframe.theme'; meta theme-color follows --wall.",
+      "darkKeys": "*-dark color tokens"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one next action per step, in the sticky action bar.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Continuer <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn{font-family:'Archivo Variable',system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 18px;border:1px solid var(--steel,#9aa0a5);border-radius:var(--radius,8px);background:transparent;color:var(--ink,#121416);font-size:1rem;font-weight:600;line-height:1.2;cursor:pointer;transition:background-color .15s cubic-bezier(.22,1,.36,1),border-color .15s cubic-bezier(.22,1,.36,1),transform .1s cubic-bezier(.22,1,.36,1)}.ds-btn:hover{background:var(--panel-2,#f0f1ed);border-color:var(--ink-3,#686f76)}.ds-btn:active{transform:translateY(1px)}.ds-btn:focus-visible{outline:2px solid var(--ink,#121416);outline-offset:2px}.ds-btn-primary{background:var(--ink,#121416);border-color:var(--ink,#121416);color:var(--on-ink,#fbfbf8)}.ds-btn-primary:hover{background:color-mix(in oklab,var(--ink,#121416) 84%,var(--panel,#fbfbf8));border-color:var(--ink,#121416)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined default for non-primary actions (new photo, import).",
+      "html": "<button class=\"ds-btn2\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\"/><circle cx=\"12\" cy=\"13\" r=\"3\"/></svg>Nouvelle photo</button>",
+      "css": ".ds-btn2{font-family:'Archivo Variable',system-ui,sans-serif;display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:1px solid var(--steel,#9aa0a5);border-radius:var(--radius,8px);background:transparent;color:var(--ink,#121416);font-size:1rem;font-weight:600;cursor:pointer;transition:background-color .15s cubic-bezier(.22,1,.36,1),border-color .15s cubic-bezier(.22,1,.36,1)}.ds-btn2:hover{background:var(--panel-2,#f0f1ed);border-color:var(--ink-3,#686f76)}.ds-btn2:active{transform:translateY(1px)}.ds-btn2:focus-visible{outline:2px solid var(--ink,#121416);outline-offset:2px}"
+    },
+    {
+      "name": "Measurement Input",
+      "kind": "input",
+      "refersTo": "input-measure",
+      "description": "Recessed numeric field with unit inside (PD, print scale).",
+      "html": "<label class=\"ds-field\">Écart pupillaire<span class=\"ds-input\"><input inputmode=\"decimal\" placeholder=\"63,0\"><span class=\"ds-unit\">mm</span></span></label>",
+      "css": ".ds-field{font-family:'Archivo Variable',system-ui,sans-serif;display:grid;gap:8px;font-size:.9rem;font-weight:550;color:var(--ink-2,#4b5258)}.ds-input{position:relative;display:flex;align-items:center}.ds-input input{width:100%;min-height:52px;padding:0 52px 0 14px;border:1px solid var(--rule,#d8dbd5);border-radius:var(--radius,8px);background:var(--panel-2,#f0f1ed);color:var(--ink,#121416);font:550 1.2rem/1.2 'Archivo Variable',system-ui,sans-serif;font-stretch:112%;font-variant-numeric:tabular-nums;caret-color:var(--red,#bd3329);transition:border-color .15s cubic-bezier(.22,1,.36,1)}.ds-input input::placeholder{color:var(--ink-3,#686f76);font-weight:400}.ds-input input:hover{border-color:var(--steel,#9aa0a5)}.ds-input input:focus{border-color:var(--ink,#121416);outline:none;box-shadow:0 0 0 1px var(--ink,#121416)}.ds-unit{position:absolute;right:14px;color:var(--ink-3,#686f76);font-weight:500;pointer-events:none}"
+    },
+    {
+      "name": "Segmented Choice",
+      "kind": "chip",
+      "refersTo": "segmented-option-selected",
+      "description": "Radio-backed choice (Letter/A4, PD mode).",
+      "html": "<div class=\"ds-seg\"><label><input type=\"radio\" name=\"ds-p\" checked>Letter</label><label><input type=\"radio\" name=\"ds-p\">A4</label></div>",
+      "css": ".ds-seg{font-family:'Archivo Variable',system-ui,sans-serif;display:grid;grid-auto-columns:1fr;grid-auto-flow:column;gap:4px;padding:4px;border:1px solid var(--rule,#d8dbd5);border-radius:12px;background:var(--panel-2,#f0f1ed)}.ds-seg label{display:grid;place-items:center;min-height:44px;padding:0 10px;border-radius:8px;color:var(--ink-2,#4b5258);font-size:.95rem;font-weight:550;cursor:pointer;transition:background-color .2s cubic-bezier(.22,1,.36,1),color .2s cubic-bezier(.22,1,.36,1)}.ds-seg label:hover{color:var(--ink,#121416)}.ds-seg label:has(input:checked){background:var(--ink,#121416);color:var(--on-ink,#fbfbf8)}.ds-seg label:has(input:focus-visible){outline:2px solid var(--ink,#121416);outline-offset:2px}.ds-seg input{position:absolute;opacity:0;pointer-events:none}"
+    },
+    {
+      "name": "Chart Ladder",
+      "kind": "nav",
+      "refersTo": "chart-panel",
+      "description": "Five step numbers in decreasing size with the sliding Snellen red rule under the current line.",
+      "html": "<ol class=\"ds-ladder\" style=\"--i:1\"><li class=\"read\"><a href=\"#\">1</a></li><li class=\"cur\"><a href=\"#\">2</a></li><li class=\"open\"><a href=\"#\">3</a></li><li class=\"open\"><a href=\"#\">4</a></li><li class=\"open\"><a href=\"#\">5</a></li><li class=\"ds-rule\" aria-hidden=\"true\"></li></ol>",
+      "css": ".ds-ladder{font-family:'Archivo Variable',system-ui,sans-serif;position:relative;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;margin:0;padding:0;list-style:none;border-bottom:1px solid var(--rule,#d8dbd5);background:var(--wall,#dfe3e7)}.ds-ladder a{display:flex;justify-content:center;align-items:flex-end;min-height:48px;padding-bottom:8px;text-decoration:none;font-stretch:125%;font-weight:700;line-height:1;color:var(--ink-3,#686f76);transition:color .3s cubic-bezier(.22,1,.36,1)}.ds-ladder li:nth-child(1) a{font-size:1.55rem}.ds-ladder li:nth-child(2) a{font-size:1.32rem}.ds-ladder li:nth-child(3) a{font-size:1.14rem}.ds-ladder li:nth-child(4) a{font-size:1rem}.ds-ladder li:nth-child(5) a{font-size:.88rem}.ds-ladder .read a{color:var(--ink-2,#4b5258)}.ds-ladder .cur a{color:var(--ink,#121416)}.ds-ladder .open a{font-weight:500}.ds-ladder a:hover{color:var(--ink,#121416)}.ds-ladder a:focus-visible{outline:2px solid var(--ink,#121416);outline-offset:2px}.ds-rule{position:absolute;left:0;bottom:-1px;width:20%;height:3px;background:var(--red,#bd3329);transform:translateX(calc(var(--i,0)*100%));transition:transform .5s cubic-bezier(.22,1,.36,1)}"
+    },
+    {
+      "name": "Measurement Readout",
+      "kind": "custom",
+      "refersTo": "name-plate",
+      "description": "A x B numerals inside registration corners, with the verified mark above.",
+      "html": "<div class=\"ds-wrap\"><span class=\"ds-ver\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m16 9-5.5 5.5L8 12\"/></svg>Verre mesuré</span><div class=\"ds-reg\"><div class=\"ds-ro\"><div><span class=\"k\">A</span><span class=\"v\">50,0</span></div><span class=\"x\">×</span><div><span class=\"k\">B</span><span class=\"v\">36,0</span></div><span class=\"u\">mm</span></div></div></div>",
+      "css": ".ds-wrap{font-family:'Archivo Variable',system-ui,sans-serif;display:grid;gap:18px;color:var(--ink,#121416)}.ds-ver{justify-self:start;display:inline-flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:2px solid var(--green,#1b7244);color:var(--green,#1b7244);font-size:.875rem;font-weight:650}.ds-reg{--c:var(--ink-3,#686f76);--l:14px;--w:1.5px;padding:10px;background:linear-gradient(var(--c),var(--c)) top left/var(--l) var(--w),linear-gradient(var(--c),var(--c)) top left/var(--w) var(--l),linear-gradient(var(--c),var(--c)) top right/var(--l) var(--w),linear-gradient(var(--c),var(--c)) top right/var(--w) var(--l),linear-gradient(var(--c),var(--c)) bottom left/var(--l) var(--w),linear-gradient(var(--c),var(--c)) bottom left/var(--w) var(--l),linear-gradient(var(--c),var(--c)) bottom right/var(--l) var(--w),linear-gradient(var(--c),var(--c)) bottom right/var(--w) var(--l);background-repeat:no-repeat}.ds-ro{display:flex;align-items:flex-end;gap:4px 14px;padding:16px 14px 14px}.ds-ro div{display:grid;gap:2px}.ds-ro .k{color:var(--ink-3,#686f76);font-size:.8rem;font-stretch:125%;font-weight:700;letter-spacing:.08em}.ds-ro .v{font-size:3rem;font-stretch:125%;font-weight:650;line-height:.95;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.ds-ro .x{padding-bottom:.35em;color:var(--ink-3,#686f76);font-size:1.6rem}.ds-ro .u{padding-bottom:.3em;color:var(--ink-2,#4b5258);font-size:1.1rem;font-weight:550}"
+    },
+    {
+      "name": "Note",
+      "kind": "card",
+      "refersTo": "note",
+      "description": "Recessed inline message; error and warn variants tint the panel.",
+      "html": "<div class=\"ds-note\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/></svg><span>Verre de test (ellipse 50 × 36 mm)</span></div><div class=\"ds-note ds-err\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg><span>Feuille introuvable : photographiez toute la feuille.</span></div>",
+      "css": ".ds-note{font-family:'Archivo Variable',system-ui,sans-serif;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;padding:12px 14px;border-radius:8px;background:var(--panel-2,#f0f1ed);color:var(--ink,#121416);font-size:.95rem;line-height:1.45}.ds-note svg{flex:none;margin-top:1px;color:var(--ink-2,#4b5258)}.ds-err{background:color-mix(in oklab,var(--red,#bd3329) 10%,var(--panel,#fbfbf8))}.ds-err svg{color:var(--red,#bd3329)}"
+    },
+    {
+      "name": "Row",
+      "kind": "custom",
+      "refersTo": "chart-panel",
+      "description": "Ruled open row for downloads and checks.",
+      "html": "<div class=\"ds-rows\"><button class=\"ds-row\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg><span><span class=\"t\">monture.stl</span><span class=\"d\">Face avant, prête à imprimer</span></span><svg class=\"e\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg></button></div>",
+      "css": ".ds-rows{font-family:'Archivo Variable',system-ui,sans-serif;display:grid;border-top:1px solid var(--rule,#d8dbd5)}.ds-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;width:100%;min-height:64px;padding:12px 4px;border:0;border-bottom:1px solid var(--rule,#d8dbd5);background:none;color:var(--ink,#121416);font:inherit;text-align:start;cursor:pointer;transition:background-color .15s cubic-bezier(.22,1,.36,1)}.ds-row:hover{background:var(--panel-2,#f0f1ed)}.ds-row:focus-visible{outline:2px solid var(--ink,#121416);outline-offset:2px}.ds-row>svg:first-child{color:var(--ink-2,#4b5258)}.ds-row .t{display:block;font-weight:600}.ds-row .d{display:block;color:var(--ink-2,#4b5258);font-size:.875rem}.ds-row .e{color:var(--ink-3,#686f76)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chart Room",
+    "overview": "OptiFrame is read like a backlit acuity chart in an exam room. A lit, faintly warm panel sits on a cool steel wall; everything on it is printed in optotype-black ink; steel hairlines rule it into lines. The procedure is a five-line chart read one line at a time: the line being read is underlined in Snellen red, lines already read dim to grey, and a verified result is underlined in Snellen green. The dark theme is the same room with the lights down: a near-black wall and a panel that still glows.\n\nDensity is calm and one-handed. Each step owns one panel, one expanded-width title, one primary action pinned in a sticky bar at the thumb. Measurements are the loudest thing on any screen: big expanded tabular numerals framed by registration corners, the same corners printed on the reference sheet the user photographs. Archivo's width axis carries the hierarchy: expanded (125%) for step titles, chart lines, numerals and name plates; normal width for reading.\n\nThe system rejects the generic card-stack wizard with a blue progress bar. Progress is the chart ladder, not a bar; color is signal, not decoration.",
+    "keyCharacteristics": [
+      "Lit panel on a steel wall; one soft panel shadow, everything else flat and ruled by hairlines.",
+      "Optotype-black ink as the only fill for primary actions and selected states.",
+      "Snellen red marks where you are (and what is wrong); Snellen green marks what is verified.",
+      "Expanded Archivo for titles and numbers; tabular figures wherever a number lives.",
+      "Registration corners frame anything measured.",
+      "Light and dark themes from one token set; system default with a remembered user override."
+    ],
+    "rules": [
+      {
+        "name": "The One Red Line Rule",
+        "body": "Snellen red appears once per screen as the current-step rule, and otherwise only to flag an error. It is never a fill, a button, or decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Green Means Checked Rule",
+        "body": "Snellen green is reserved for a result that has been measured or verified. Never use it for a generic success-looking button or accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Owns Action Rule",
+        "body": "The only filled control is ink on panel (primary button, selected option). There is no brand-blue or accent-colored button.",
+        "section": "colors"
+      },
+      {
+        "name": "The Width Carries Rank Rule",
+        "body": "Hierarchy is expressed with Archivo's width axis plus size, not with extra families or colors. Expanded is for titles, chart lines, numerals and plates; body stays at normal width.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Everywhere Rule",
+        "body": "Every number (measurements, step numbers, ordinals, facts, input values) uses tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Lit Panel Rule",
+        "body": "Only the chart panel carries a shadow. Components on it are flat; separate them with hairlines (rule) or the panel-2 recess.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** put every step on the lit panel with one expanded headline, hairline-separated sections, and a sticky action bar holding Back (48px square) and one ink primary.",
+      "**Do** frame every measurement or control image with registration corners and set its numbers in expanded tabular Archivo.",
+      "**Do** use Snellen red only for the current-step rule and for errors, and Snellen green only for verified results.",
+      "**Do** use panel-2 recesses and 1px hairlines to group content on the panel.",
+      "**Do** keep touch targets at 44px minimum and primary controls at 48px.",
+      "**Do** define every color through the theme tokens so light and dark (system, light, dark override) stay in step.",
+      "**Do** use inlined Lucide icons at 1.75 stroke in currentColor."
+    ],
+    "donts": [
+      "**Don't** build progress as a colored progress bar or a stack of cards; progress is the chart ladder with the sliding red rule.",
+      "**Don't** add shadows to components on the panel; only the chart panel is lifted.",
+      "**Don't** fill buttons or chips with red, green, amber or any brand hue; filled means ink.",
+      "**Don't** introduce a second typeface or use proportional figures for numbers.",
+      "**Don't** spread uppercase tracking beyond the welcome chart lines and OD/OG plates (no small-caps labels above headings).",
+      "**Don't** use emoji or text glyphs as icons."
+    ]
+  }
+}

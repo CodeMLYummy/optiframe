@@ -21,6 +21,7 @@
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
     "@angular/service-worker": "^22.1.0",
+    "@fontsource-variable/archivo": "^5.3.0",
     "@mediapipe/tasks-vision": "^1.0.1",
     "manifold-3d": "^3.5.4",
     "rxjs": "~7.8.0",

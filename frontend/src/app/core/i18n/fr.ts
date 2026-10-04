@@ -14,8 +14,8 @@ export const fr = {
   'sheet.printHint':
     "Imprimez à 100 %, puis mesurez 10 cases du damier (en ligne droite) : {mm} mm attendus. Beaucoup d'imprimantes réduisent un peu la feuille ; indiquez ce que vous mesurez.",
   'sheet.sizeMode': "Taille d'impression",
-  'sheet.modeSquares': 'Longueur de 10 cases',
-  'sheet.modePercent': "Échelle d'impression",
+  'sheet.modeSquares': '10 cases (mm)',
+  'sheet.modePercent': 'Échelle (%)',
   'sheet.squaresLabel': 'Longueur mesurée de 10 cases (mm)',
   'sheet.percentLabel': "Échelle d'impression (%)",
   'sheet.scaleUsed': 'Échelle utilisée pour les mesures : {percent} %',
@@ -29,7 +29,7 @@ export const fr = {
 
   'lens.R': 'Verre droit (OD)',
   'lens.L': 'Verre gauche (OG)',
-  'lens.takePhoto': '📷 Prendre une photo',
+  'lens.takePhoto': 'Prendre une photo',
   'lens.import': 'Importer',
   'lens.analyzing': 'Analyse de la photo…',
   'lens.perimeter': 'Périmètre',
@@ -37,10 +37,10 @@ export const fr = {
   'lens.testLens': 'Verre de test (ellipse 50 × 36 mm)',
   'lens.useTestLens': 'Utiliser un verre de test',
   'lens.badScale':
-    "Taille d'impression de la feuille invalide : vérifiez la longueur des 10 cases (en haut).",
+    "Taille d'impression de la feuille invalide : vérifiez la longueur des 10 cases à l'étape Feuille.",
   'lens.takesSpread': '{n} photos de ce verre : écart A {a} mm, B {b} mm',
-  'lens.takesOk': '✓ cohérent',
-  'lens.takesWarn': '⚠ plus de {mm} mm : reprenez la photo',
+  'lens.takesOk': 'cohérent',
+  'lens.takesWarn': 'plus de {mm} mm : reprenez la photo',
   'lens.take': 'A {a} × B {b} mm',
   'lens.takeUsed': ' (utilisée)',
   'lens.clearTakes': 'Nouveau verre : oublier ces photos',
@@ -74,7 +74,7 @@ export const fr = {
   'frame.downloadFront': 'Télécharger monture.stl',
   'frame.downloadTemples': 'Télécharger branches.stl',
   'frame.templesHint':
-    'Branches de {mm} mm, à imprimer à plat. Fixez chaque branche à son tenon avec un trombone ou un bout de filament de 1,75 mm : serré dans le tenon, libre dans la fourche.',
+    'Fixez chaque branche à son tenon avec un trombone ou un bout de filament de 1,75 mm : serré dans le tenon, libre dans la fourche.',
 
   'fit.title': 'Vérification : verres et monture',
   'fit.intro':
@@ -106,7 +106,7 @@ export const fr = {
     'Le suivi du visage ne fonctionne pas sur ce navigateur. Essayez Chrome ou Safari à jour.',
 
   'steps.link': 'Voir le pas à pas',
-  'steps.back': '← Retour',
+  'steps.back': 'Retour',
   'steps.details':
     "{markers} marqueurs · écart d'ajustement {error} mm · {ppm} px/mm · {method} · {ms} ms",
   'steps.none': "Aucune photo mesurée pour l'instant.",
@@ -129,6 +129,73 @@ export const fr = {
     'Le verre dépasse du cadre. Centrez-le dans le rectangle de la feuille.',
   'error.PRINT_SCALE_INVALID':
     "Échelle d'impression invalide. Mesurez 10 cases de la feuille : elles doivent faire entre 120 et 180 mm.",
+  'app.home': 'Accueil OptiFrame',
+  'app.themeSystem': 'Thème : automatique (système)',
+  'app.themeLight': 'Thème : clair',
+  'app.themeDark': 'Thème : sombre',
+
+  'nav.steps': 'Étapes',
+  'nav.step': 'Étape {n} sur {total} : {name}',
+  'nav.back': 'Retour',
+  'nav.next': 'Continuer',
+  'nav.start': 'Commencer',
+  'nav.resume': 'Reprendre',
+  'nav.toFiles': 'Fichiers',
+
+  'step.sheet': 'Feuille',
+  'step.right': 'Verre droit',
+  'step.left': 'Verre gauche',
+  'step.frame': 'Monture',
+  'step.files': 'Fichiers',
+
+  'block.sheet': "Indiquez une taille d'impression valide pour continuer.",
+  'block.right': 'Mesurez le verre droit pour continuer.',
+  'block.left': 'Mesurez le verre gauche pour continuer.',
+  'block.frame': 'Générez la monture pour continuer.',
+
+  'welcome.title': 'Du verre recyclé au fichier à imprimer, en cinq étapes',
+  'welcome.chart': 'Les cinq étapes, à lire de haut en bas',
+  'welcome.need': 'Il vous faut',
+  'welcome.needSheet': 'La feuille de référence, imprimée (étape 1)',
+  'welcome.needLight': 'Un fond éclairé : fenêtre, ou écran blanc',
+  'welcome.needLenses': 'Les deux verres, propres et secs',
+
+  'sheet.lead':
+    "La feuille donne l'échelle de chaque mesure. Imprimez-la, puis indiquez sa taille réelle.",
+  'sheet.print': 'Imprimer',
+  'sheet.measure': 'Mesurer la feuille imprimée',
+  'sheet.place': 'Poser le verre',
+
+  'lens.leadR':
+    'Posez le verre droit sur la feuille, face bombée vers le haut, puis photographiez toute la feuille.',
+  'lens.leadL':
+    'Même chose avec le verre gauche : verre au centre du cadre, toute la feuille dans la photo.',
+  'lens.retake': 'Nouvelle photo',
+  'lens.result': 'Mesure',
+  'lens.coherence': 'Stabilité de la mesure',
+
+  'frame.lead': "Indiquez l'écart pupillaire du patient, puis générez la monture.",
+  'frame.viewerHint': 'Faites glisser pour tourner la monture.',
+  'frame.ready': 'Monture prête',
+
+  'files.lead':
+    'Téléchargez les fichiers à imprimer. Les vérifications plus bas sont facultatives.',
+  'files.print3d': 'Impression 3D',
+  'files.frontDesc': 'Face de la monture · {cm3} cm³ de filament',
+  'files.templesDesc': 'Deux branches de {mm} mm, à imprimer à plat',
+  'files.pairDesc': 'Contours 1:1 des deux verres, à imprimer à 100 %',
+  'files.paper': 'Papier',
+  'files.checks': 'Vérifications facultatives',
+  'files.fitDesc': 'Contour mesuré superposé au cercle de la monture',
+  'files.faceDesc': 'Monture à taille réelle sur le visage',
+  'files.stepsDesc': 'Ce que le programme a fait, étape par étape',
+  'files.needFrame': "Générez d'abord la monture à l'étape 4.",
+  'files.goFrame': "Aller à l'étape Monture",
+
+  'lens.measured': 'Verre mesuré',
+  'steps.lead':
+    'Chaque photo passe par trois étapes : repérage des marqueurs, redressement de la feuille, puis détection du contour du verre. Les chiffres disent avec quelle précision chaque étape a réussi.',
+  'steps.title': 'Processus de mesure',
 };
 
 export type MessageKey = keyof typeof fr;

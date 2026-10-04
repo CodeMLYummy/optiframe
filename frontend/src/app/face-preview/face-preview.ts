@@ -15,6 +15,7 @@ import type { Vec2 } from 'manifold-3d';
 import { FacePlacement, placeOnFace } from '../core/face-fit';
 import { MessageKey } from '../core/i18n/fr';
 import { I18n } from '../core/i18n/i18n';
+import { Icon } from '../ui/icon';
 
 type Mode = 'idle' | 'loading' | 'live' | 'photo';
 
@@ -27,28 +28,44 @@ const SMOOTHING = 0.4;
  */
 @Component({
   selector: 'app-face-preview',
+  imports: [Icon],
   template: `
     <div class="actions">
-      <button class="button primary" [disabled]="mode() === 'loading'" (click)="startCamera()">
-        {{ i18n.t('face.tryOn') }}
-      </button>
-      <label class="button" [class.disabled]="mode() === 'loading'">
+      @if (mode() !== 'live') {
+        <button class="btn primary" [disabled]="mode() === 'loading'" (click)="startCamera()">
+          <app-icon
+            [name]="mode() === 'loading' ? 'loader' : 'camera'"
+            [class.spin]="mode() === 'loading'"
+          />
+          {{ i18n.t('face.tryOn') }}
+        </button>
+      } @else {
+        <button class="btn primary" (click)="stop()">
+          <app-icon name="x" />
+          {{ i18n.t('face.stop') }}
+        </button>
+      }
+      <label class="btn" [class.disabled]="mode() === 'loading'">
+        <app-icon name="image-up" />
         {{ i18n.t('face.importSelfie') }}
         <input
           type="file"
           accept="image/*"
           (change)="onPhoto($event)"
           [disabled]="mode() === 'loading'"
-          hidden
+          class="visually-hidden"
         />
       </label>
     </div>
-    <p class="status">{{ i18n.t('face.privacy') }}</p>
+    <p class="small muted">{{ i18n.t('face.privacy') }}</p>
     @if (mode() === 'loading') {
-      <p class="status">{{ i18n.t('face.loading') }}</p>
+      <p class="small muted" role="status">{{ i18n.t('face.loading') }}</p>
     }
     @if (error(); as key) {
-      <p class="error" role="alert">{{ i18n.t(key) }}</p>
+      <p class="note error" role="alert">
+        <app-icon name="alert" />
+        <span>{{ i18n.t(key) }}</span>
+      </p>
     }
 
     <div
@@ -75,27 +92,38 @@ const SMOOTHING = 0.4;
 
     @if (mode() === 'live' || mode() === 'photo') {
       @if (placement(); as p) {
-        <p class="status">
+        <p class="small muted num">
           {{ i18n.t('face.scale', { pd: i18n.num(p.pdMm, '1.0-0') }) }}
           @if (pdMm(); as pd) {
             {{ i18n.t('face.framePd', { pd: i18n.num(pd) }) }}
           }
-          <button class="link" (click)="usePd.emit(p.pdMm)">{{ i18n.t('face.usePd') }}</button>
         </p>
+        <button class="btn" (click)="usePd.emit(p.pdMm)">{{ i18n.t('face.usePd') }}</button>
       } @else if (mode() === 'live') {
-        <p class="status">{{ i18n.t('face.position') }}</p>
-      }
-      @if (mode() === 'live') {
-        <button class="button wide" (click)="stop()">{{ i18n.t('face.stop') }}</button>
+        <p class="note">
+          <app-icon name="scan-face" />
+          <span>{{ i18n.t('face.position') }}</span>
+        </p>
       }
     }
   `,
   styles: `
+    :host {
+      display: grid;
+      gap: 14px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .actions .btn {
+      flex: 1;
+    }
     .stage {
       position: relative;
-      border-radius: 12px;
+      border-radius: 6px;
       overflow: hidden;
-      margin: 8px 0;
       background: #000;
     }
     .stage.mirror {

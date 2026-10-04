@@ -1,0 +1,145 @@
+{
+  "title": "Choose the visual world for OptiFrame",
+  "question": "The roll assigned the Chart Room. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Chart Room",
+      "kicker": "THE ROLL",
+      "lineage": "Backlit ETDRS acuity charts and the darkened exam room",
+      "thesis": "Each step is the next line of the chart: read it, act, and the line above dims.",
+      "palette": ["#f6f7f4", "#111315", "#8b9096", "#c3352b", "#0f1214"],
+      "materials": ["backlit light-box panel", "optotype-black ink", "brushed steel frame"],
+      "viewport": "Phone shell: thin steel top bar (OptiFrame, language, theme), a lit panel holding the current step as one chart line with its number in the margin, a big geometric A × B readout, and one primary action pinned to the thumb zone.",
+      "risk": "The eye chart is the obvious optics image; it only works if the type and ladder are disciplined, never decorative letters.",
+      "raised": [
+        {
+          "from": "challenger-split-flap",
+          "raise": "Every measurement sits in fixed tabular digit cells, so a retake changes digits, never layout."
+        },
+        {
+          "from": "challenger-annual",
+          "raise": "Photos and control images are framed by registration crosshairs, echoing the printed sheet's markers."
+        },
+        {
+          "from": "challenger-transit",
+          "raise": "One ink owns the active step; done and upcoming steps stay quiet."
+        },
+        {
+          "from": "challenger-goods",
+          "raise": "OD and OG each own fixed name-plate furniture that never moves between steps."
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "Rx Card",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "The optician's prescription and lab job ticket",
+      "thesis": "The session fills in a prescription card row by row: OD, OG, PD, frame.",
+      "palette": ["#fbfaf7", "#1c2430", "#2f5d8a", "#d8dde3"],
+      "materials": ["ruled form", "carbonless copy blue", "rubber-stamp numerals"],
+      "viewport": "A ruled card with OD/OG rows filling as each lens is measured; the current field is the only active cell, primary action below.",
+      "risk": "Familiar: forms-as-UI is where most runs in this category land.",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "challenger-pass",
+      "label": "Lens Pass",
+      "verdict": "competitive",
+      "lineage": "Boarding pass and live gate board",
+      "thesis": "Each lens travels on its own segmented pass; the board shows where the pair stands.",
+      "palette": ["#f4f5f6", "#15181c", "#e0a100", "#5a6470"],
+      "materials": ["perforated pass segments", "scannable block", "gate board rows"],
+      "viewport": "Two stacked passes (OD, OG) with A, B, perimeter segments; a slim board of steps on top; a changed value holds its alert colour until seen.",
+      "case": "Fuses cleanly: per-lens cards are very clear; loses on audience, travel is foreign to clinics.",
+      "risk": "Can read as a travel-app costume if the perforations become decoration.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board.webp"
+    },
+    {
+      "id": "challenger-orienteering",
+      "label": "Course Card",
+      "verdict": "competitive",
+      "lineage": "Orienteering map and control descriptions",
+      "thesis": "The flow is a course: numbered controls punched in order, the active leg in purple.",
+      "palette": ["#ffffff", "#7a1fa2", "#b5651d", "#2b7bb9"],
+      "materials": ["contour linework", "control circles", "punch marks"],
+      "viewport": "A control-description table as the step list, the active control in purple with its instructions open, punched controls ticked.",
+      "case": "Holds clarity: punched controls map exactly to guided steps; loses on audience identification.",
+      "risk": "Purple-on-white with contour texture can feel like a sports app.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map.webp"
+    },
+    {
+      "id": "challenger-annual",
+      "label": "Plate Section",
+      "verdict": "declined",
+      "lineage": "Design annual plate pages",
+      "thesis": "Results as printed plates with registration furniture.",
+      "palette": ["#f5f4f6", "#16181a", "#dcddf3", "#c9c7c4"],
+      "materials": ["uncoated stock", "registration crosshairs", "hairlines"],
+      "viewport": "Measured lens as a plate, credits row of A, B, perimeter.",
+      "case": "Fuses poorly: an editorial showcase, not a working tool.",
+      "risk": "Reads as a portfolio, not a field tool.",
+      "kept": "Registration crosshairs framing every photo and control image.",
+      "hero": "https://impeccable.style/worlds/cards/design-annual-s-plate-section-hero.webp"
+    },
+    {
+      "id": "challenger-split-flap",
+      "label": "Split-Flap Board",
+      "verdict": "declined",
+      "lineage": "Rail concourse departure boards",
+      "thesis": "Measurements flip in like departures.",
+      "palette": ["#101010", "#f2f2f2", "#f0a020", "#8a2a22"],
+      "materials": ["matte flaps", "steel frame"],
+      "viewport": "A board of lens rows with flipping digits.",
+      "case": "Fuses poorly: spectacle over a calm measuring task.",
+      "risk": "Novelty motion distracts from precision.",
+      "kept": "Fixed tabular digit cells for every measurement.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+    },
+    {
+      "id": "challenger-transit",
+      "label": "Transit Diagram",
+      "verdict": "declined",
+      "lineage": "Enamel metro maps",
+      "thesis": "The flow as a rail line with stations.",
+      "palette": ["#14213d", "#f4f1ea", "#d62828", "#2a6fdb"],
+      "materials": ["enamel", "porcelain ticks"],
+      "viewport": "Steps as stations on one coloured line.",
+      "case": "Fuses poorly: a stepper drawn as a metro line is a cliché.",
+      "risk": "Generic stepper wearing a map.",
+      "kept": "One ink owns the active step.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram-hero.webp"
+    },
+    {
+      "id": "challenger-goods",
+      "label": "Character Catalog",
+      "verdict": "declined",
+      "lineage": "Character goods catalogs",
+      "thesis": "Lenses as a cast of named characters.",
+      "palette": ["#fde2e4", "#cde8f6", "#ffffff", "#ff6f91"],
+      "materials": ["pastel grounds", "keylines"],
+      "viewport": "A roster grid of lens cards.",
+      "case": "Fuses poorly: playful tone undermines clinical trust.",
+      "risk": "Toy-like in a medical context.",
+      "kept": "Each lens owns fixed name-plate furniture.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-character-goods-catalog-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": false },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A clean mobile wizard: progress bar, cards, primary button, done well.",
+    "palette": ["#ffffff", "#111827", "#2563eb", "#f3f4f6"],
+    "materials": ["clean cards", "line icons"],
+    "viewport": "Progress bar on top, one card per step, sticky Next button.",
+    "risk": "Indistinguishable from any other wizard by design.",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

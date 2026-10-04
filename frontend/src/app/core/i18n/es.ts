@@ -12,8 +12,8 @@ export const es: Messages = {
   'sheet.printHint':
     'Imprima al 100 % y mida 10 casillas del damero en línea recta: se esperan {mm} mm. Muchas impresoras reducen un poco la hoja; indique lo que mide.',
   'sheet.sizeMode': 'Tamaño impreso',
-  'sheet.modeSquares': 'Longitud de 10 casillas',
-  'sheet.modePercent': 'Escala de impresión',
+  'sheet.modeSquares': '10 casillas (mm)',
+  'sheet.modePercent': 'Escala (%)',
   'sheet.squaresLabel': 'Longitud medida de 10 casillas (mm)',
   'sheet.percentLabel': 'Escala de impresión (%)',
   'sheet.scaleUsed': 'Escala usada para las medidas: {percent} %',
@@ -27,7 +27,7 @@ export const es: Messages = {
 
   'lens.R': 'Lente derecha (OD)',
   'lens.L': 'Lente izquierda (OI)',
-  'lens.takePhoto': '📷 Tomar una foto',
+  'lens.takePhoto': 'Tomar una foto',
   'lens.import': 'Importar',
   'lens.analyzing': 'Analizando la foto…',
   'lens.perimeter': 'Perímetro',
@@ -35,10 +35,10 @@ export const es: Messages = {
   'lens.testLens': 'Lente de prueba (elipse de 50 × 36 mm)',
   'lens.useTestLens': 'Usar una lente de prueba',
   'lens.badScale':
-    'Tamaño de impresión de la hoja no válido: revise la longitud de las 10 casillas (arriba).',
+    'Tamaño de impresión de la hoja no válido: revise la longitud de las 10 casillas en el paso Hoja.',
   'lens.takesSpread': '{n} fotos de esta lente: diferencia A {a} mm, B {b} mm',
-  'lens.takesOk': '✓ coherente',
-  'lens.takesWarn': '⚠ más de {mm} mm: repita la foto',
+  'lens.takesOk': 'coherente',
+  'lens.takesWarn': 'más de {mm} mm: repita la foto',
   'lens.take': 'A {a} × B {b} mm',
   'lens.takeUsed': ' (usada)',
   'lens.clearTakes': 'Lente nueva: olvidar estas fotos',
@@ -72,7 +72,7 @@ export const es: Messages = {
   'frame.downloadFront': 'Descargar monture.stl',
   'frame.downloadTemples': 'Descargar branches.stl',
   'frame.templesHint':
-    'Patillas de {mm} mm, para imprimir en plano. Fije cada patilla a su soporte con un clip o un trozo de filamento de 1,75 mm: ajustado en el soporte, libre en la horquilla.',
+    'Fije cada patilla a su soporte con un clip o un trozo de filamento de 1,75 mm: ajustado en el soporte, libre en la horquilla.',
 
   'fit.title': 'Verificación: lentes y montura',
   'fit.intro':
@@ -104,7 +104,7 @@ export const es: Messages = {
     'El seguimiento del rostro no funciona en este navegador. Pruebe Chrome o Safari actualizados.',
 
   'steps.link': 'Ver paso a paso',
-  'steps.back': '← Volver',
+  'steps.back': 'Volver',
   'steps.details':
     '{markers} marcadores · error de ajuste {error} mm · {ppm} px/mm · {method} · {ms} ms',
   'steps.none': 'Todavía no hay ninguna foto medida.',
@@ -127,4 +127,69 @@ export const es: Messages = {
   'error.LENS_OUT_OF_WINDOW': 'La lente sobresale del marco. Céntrela en el rectángulo de la hoja.',
   'error.PRINT_SCALE_INVALID':
     'Escala de impresión no válida. Mida 10 casillas de la hoja: deben medir entre 120 y 180 mm.',
+  'app.home': 'Inicio de OptiFrame',
+  'app.themeSystem': 'Tema: automático (sistema)',
+  'app.themeLight': 'Tema: claro',
+  'app.themeDark': 'Tema: oscuro',
+
+  'nav.steps': 'Pasos',
+  'nav.step': 'Paso {n} de {total}: {name}',
+  'nav.back': 'Volver',
+  'nav.next': 'Continuar',
+  'nav.start': 'Empezar',
+  'nav.resume': 'Reanudar',
+  'nav.toFiles': 'Archivos',
+
+  'step.sheet': 'Hoja',
+  'step.right': 'Lente derecha',
+  'step.left': 'Lente izquierda',
+  'step.frame': 'Montura',
+  'step.files': 'Archivos',
+
+  'block.sheet': 'Indique un tamaño de impresión válido para continuar.',
+  'block.right': 'Mida la lente derecha para continuar.',
+  'block.left': 'Mida la lente izquierda para continuar.',
+  'block.frame': 'Genere la montura para continuar.',
+
+  'welcome.title': 'De la lente reciclada al archivo listo para imprimir, en cinco pasos',
+  'welcome.chart': 'Los cinco pasos, de arriba abajo',
+  'welcome.need': 'Necesita',
+  'welcome.needSheet': 'La hoja de referencia, impresa (paso 1)',
+  'welcome.needLight': 'Un fondo iluminado: una ventana o una pantalla blanca',
+  'welcome.needLenses': 'Las dos lentes, limpias y secas',
+
+  'sheet.lead': 'La hoja da la escala de cada medida. Imprímala y luego indique su tamaño real.',
+  'sheet.print': 'Imprimir',
+  'sheet.measure': 'Medir la hoja impresa',
+  'sheet.place': 'Colocar la lente',
+
+  'lens.leadR':
+    'Coloque la lente derecha sobre la hoja, cara convexa hacia arriba, y fotografíe toda la hoja.',
+  'lens.leadL':
+    'Lo mismo con la lente izquierda: lente en el centro del marco, toda la hoja en la foto.',
+  'lens.retake': 'Nueva foto',
+  'lens.result': 'Medida',
+  'lens.coherence': 'Estabilidad de la medida',
+
+  'frame.lead': 'Indique la distancia pupilar del paciente y genere la montura.',
+  'frame.viewerHint': 'Arrastre para girar la montura.',
+  'frame.ready': 'Montura lista',
+
+  'files.lead': 'Descargue los archivos para imprimir. Las verificaciones de abajo son opcionales.',
+  'files.print3d': 'Impresión 3D',
+  'files.frontDesc': 'Frente de la montura · {cm3} cm³ de filamento',
+  'files.templesDesc': 'Dos patillas de {mm} mm, impresas en plano',
+  'files.pairDesc': 'Contornos 1:1 de las dos lentes, imprimir al 100 %',
+  'files.paper': 'Papel',
+  'files.checks': 'Verificaciones opcionales',
+  'files.fitDesc': 'Contorno medido sobre el aro de la montura',
+  'files.faceDesc': 'La montura a tamaño real sobre el rostro',
+  'files.stepsDesc': 'Lo que hizo el programa, paso a paso',
+  'files.needFrame': 'Genere primero la montura en el paso 4.',
+  'files.goFrame': 'Ir al paso Montura',
+
+  'lens.measured': 'Lente medida',
+  'steps.lead':
+    'Cada foto pasa por tres etapas: localizar los marcadores, enderezar la hoja y trazar el contorno de la lente. Las cifras indican con qué precisión funcionó cada etapa.',
+  'steps.title': 'Proceso de medida',
 };

@@ -11,7 +11,6 @@ import {
 import {
   AmbientLight,
   BufferGeometry,
-  Color,
   DirectionalLight,
   Mesh,
   MeshStandardMaterial,
@@ -21,6 +20,8 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+import { Theme } from '../core/theme';
+
 /** 3D preview, seen from the front of the glasses (+z). */
 @Component({
   selector: 'app-frame-viewer',
@@ -29,8 +30,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     :host {
       display: block;
       aspect-ratio: 4 / 3;
-      border-radius: 12px;
+      border-radius: 4px;
       overflow: hidden;
+      background: var(--panel-2);
     }
     canvas {
       width: 100%;
@@ -46,15 +48,15 @@ export class FrameViewer {
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(35, 4 / 3, 1, 2000);
-  private readonly mesh = new Mesh(
-    new BufferGeometry(),
-    new MeshStandardMaterial({ color: 0x3b6ea8, roughness: 0.6 }),
-  );
+  private readonly material = new MeshStandardMaterial({ roughness: 0.55 });
+  private readonly mesh = new Mesh(new BufferGeometry(), this.material);
+  private readonly theme = inject(Theme);
   private renderer?: WebGLRenderer;
   private controls?: OrbitControls;
 
   constructor() {
-    this.scene.background = new Color(0xeef1f5);
+    // Filament colour: dark on the light panel, pale in the dark room. The canvas is transparent over the panel.
+    effect(() => this.material.color.set(this.theme.dark() ? 0xd6d9d3 : 0x2a2f34));
     this.scene.add(new AmbientLight(0xffffff, 1.2), this.mesh);
     const sun = new DirectionalLight(0xffffff, 2);
     sun.position.set(80, 120, 200);
@@ -77,7 +79,7 @@ export class FrameViewer {
 
   private init(): void {
     const canvas = this.canvas().nativeElement;
-    this.renderer = new WebGLRenderer({ canvas, antialias: true });
+    this.renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;

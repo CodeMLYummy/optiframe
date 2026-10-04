@@ -7,12 +7,12 @@ import { lensPairSvg } from '../../core/exports';
 import { I18n } from '../../core/i18n/i18n';
 import { ellipseContour } from '../../core/lens';
 import { SessionStore } from '../../core/session.store';
-import { Home } from './home';
+import { FilesStep } from './files-step';
 
-describe('Home lens pair export', () => {
+describe('Files step lens pair export', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Home],
+      imports: [FilesStep],
       providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
     // The test browser reports English: the texts below are the French ones.
@@ -40,7 +40,7 @@ describe('Home lens pair export', () => {
       expect(this.download).toBe('contours-paire.svg');
       expect(this.href).toBe('blob:lens-pair');
     });
-    const fixture = TestBed.createComponent(Home);
+    const fixture = TestBed.createComponent(FilesStep);
     const store = TestBed.inject(SessionStore);
     await fixture.whenStable();
     const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(

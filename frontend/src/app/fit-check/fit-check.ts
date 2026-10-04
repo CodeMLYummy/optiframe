@@ -24,7 +24,7 @@ const FIT_TOLERANCE_MM = 0.1;
   selector: 'app-fit-check',
   template: `
     @for (f of fits(); track f.title) {
-      <figure>
+      <figure class="reg">
         <svg
           [attr.viewBox]="f.viewBox"
           role="img"
@@ -50,50 +50,54 @@ const FIT_TOLERANCE_MM = 0.1;
         </figcaption>
       </figure>
     }
-    <p class="status legend">
+    <p class="legend">
       <span class="key contour"></span> {{ i18n.t('fit.keyContour') }}
       <span class="key groove"></span> {{ i18n.t('fit.keyGroove') }} <span class="key lip"></span>
       {{ i18n.t('fit.keyLip') }}
     </p>
   `,
   styles: `
-    figure {
-      margin: 0 0 12px;
+    :host {
+      display: grid;
+      gap: 20px;
     }
     svg {
+      display: block;
       width: 100%;
-      max-height: 220px;
-      background: var(--surface-2);
-      border-radius: 8px;
+      max-height: 240px;
+      background: var(--panel-2);
+      border-radius: 4px;
     }
     path {
       fill: none;
       vector-effect: non-scaling-stroke;
     }
     .contour {
-      stroke: var(--text);
+      stroke: var(--ink);
       stroke-width: 2;
     }
     .groove {
-      stroke: var(--accent);
+      stroke: var(--green);
       stroke-width: 2;
       stroke-dasharray: 6 4;
     }
     .lip {
-      stroke: var(--warn);
+      stroke: var(--amber);
       stroke-width: 1.5;
     }
     figcaption {
       display: grid;
-      gap: 2px;
+      gap: 4px;
       font-size: 0.9rem;
-      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
     }
     .legend {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 4px 8px;
+      color: var(--ink-2);
+      font-size: 0.875rem;
     }
     .key {
       display: inline-block;
@@ -101,14 +105,14 @@ const FIT_TOLERANCE_MM = 0.1;
       border-top: 2px solid;
     }
     .key.contour {
-      border-color: var(--text);
+      border-color: var(--ink);
     }
     .key.groove {
-      border-color: var(--accent);
+      border-color: var(--green);
       border-top-style: dashed;
     }
     .key.lip {
-      border-color: var(--warn);
+      border-color: var(--amber);
     }
   `,
 })

@@ -6,10 +6,11 @@ import { Eye, ellipseContour } from '../core/lens';
 import { MeasureService } from '../core/measure.service';
 import { SessionStore } from '../core/session.store';
 import { SheetSettings } from '../core/sheet-settings';
+import { Icon } from '../ui/icon';
 
 @Component({
   selector: 'app-lens-capture',
-  imports: [],
+  imports: [Icon],
   templateUrl: './lens-capture.html',
   styleUrl: './lens-capture.css',
 })
@@ -28,7 +29,6 @@ export class LensCapture {
     this.failure() ? this.i18n.error(this.failure()) : null,
   );
   protected readonly slot = computed(() => this.store.lenses()[this.eye()]);
-  protected readonly title = computed(() => this.i18n.t(this.eye() === 'R' ? 'lens.R' : 'lens.L'));
   protected readonly controlImage = computed(
     () => this.slot()?.response?.steps.at(-1)?.imageDataUrl,
   );
@@ -38,6 +38,10 @@ export class LensCapture {
     this.takes().length >= 2 ? spread(this.takes()) : null,
   );
   protected readonly tolerance = JURY_TOLERANCE_MM;
+  protected readonly stable = computed(() => {
+    const sp = this.spread();
+    return !!sp && sp.aMm <= this.tolerance && sp.bMm <= this.tolerance;
+  });
 
   protected clearTakes(): void {
     this.store.clearTakes(this.eye());

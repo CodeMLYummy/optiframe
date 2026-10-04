@@ -35,7 +35,7 @@
                 "output": "/face/wasm"
               }
             ],
-            "styles": ["src/styles.css"],
+            "styles": ["node_modules/@fontsource-variable/archivo/wdth.css", "src/styles.css"],
             "externalDependencies": ["node:module", "node:fs", "node:path", "node:url"]
           },
           "configurations": {
@@ -48,8 +48,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "6kB",
+                  "maximumError": "10kB"
                 }
               ],
               "outputHashing": "all",

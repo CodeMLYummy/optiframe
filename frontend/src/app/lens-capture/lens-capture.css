@@ -1,39 +1,104 @@
-.actions {
-  display: flex;
-  gap: 8px;
-}
-.actions .primary {
-  flex: 1;
-}
-.measures {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin: 12px 0;
-}
-.measures div {
-  background: var(--surface-2);
-  border-radius: 8px;
-  padding: 8px;
-  text-align: center;
-}
-dt {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-dd {
-  margin: 0;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.control {
-  width: 100%;
-  border-radius: 8px;
-  margin-bottom: 8px;
+.result {
+  gap: 18px;
 }
 
-.takes ol {
-  margin: 0.25rem 0 0.5rem;
-  padding-left: 1.5rem;
+.result .verified {
+  justify-self: start;
+}
+
+.measure {
+  display: grid;
+  gap: 14px;
+  padding: 16px 14px 14px;
+}
+
+.viewfinder {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 36px 20px 28px;
+  border-radius: 6px;
+  background-color: var(--panel-2);
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease);
+}
+
+.viewfinder:hover {
+  background-color: color-mix(in oklab, var(--panel-2) 80%, var(--steel));
+}
+
+.viewfinder:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.viewfinder.disabled {
+  pointer-events: none;
+}
+
+.sheet {
+  width: min(70%, 240px);
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.2;
+}
+
+.sheet .marks {
+  fill: var(--ink-3);
+  stroke: none;
+}
+
+.sheet .window {
+  stroke-dasharray: 3 3;
+}
+
+.sheet .lens {
+  stroke: var(--ink);
+  stroke-width: 1.6;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.buttons .btn {
+  flex: 1;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.takes {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-2);
   font-size: 0.9rem;
+}
+
+.takes li {
+  display: flex;
+  gap: 12px;
+}
+
+.takes .i {
+  width: 1.2em;
+  color: var(--ink-3);
+}
+
+.takes .used {
+  color: var(--ink);
+  font-weight: 600;
 }

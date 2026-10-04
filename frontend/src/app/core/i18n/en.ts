@@ -12,8 +12,8 @@ export const en: Messages = {
   'sheet.printHint':
     'Print at 100 %, then measure 10 squares of the checkerboard in a straight line: {mm} mm expected. Many printers shrink the sheet a little; enter what you measure.',
   'sheet.sizeMode': 'Printed size',
-  'sheet.modeSquares': 'Length of 10 squares',
-  'sheet.modePercent': 'Print scale',
+  'sheet.modeSquares': '10 squares (mm)',
+  'sheet.modePercent': 'Scale (%)',
   'sheet.squaresLabel': 'Measured length of 10 squares (mm)',
   'sheet.percentLabel': 'Print scale (%)',
   'sheet.scaleUsed': 'Scale used for the measurements: {percent} %',
@@ -27,7 +27,7 @@ export const en: Messages = {
 
   'lens.R': 'Right lens (OD)',
   'lens.L': 'Left lens (OS)',
-  'lens.takePhoto': '📷 Take a photo',
+  'lens.takePhoto': 'Take a photo',
   'lens.import': 'Import',
   'lens.analyzing': 'Analyzing the photo…',
   'lens.perimeter': 'Perimeter',
@@ -35,10 +35,10 @@ export const en: Messages = {
   'lens.testLens': 'Test lens (50 × 36 mm ellipse)',
   'lens.useTestLens': 'Use a test lens',
   'lens.badScale':
-    'Invalid printed size for the sheet: check the length of 10 squares (at the top).',
+    'Invalid printed size for the sheet: check the length of 10 squares in the Sheet step.',
   'lens.takesSpread': '{n} photos of this lens: A differs by {a} mm, B by {b} mm',
-  'lens.takesOk': '✓ consistent',
-  'lens.takesWarn': '⚠ more than {mm} mm: take the photo again',
+  'lens.takesOk': 'consistent',
+  'lens.takesWarn': 'more than {mm} mm: take the photo again',
   'lens.take': 'A {a} × B {b} mm',
   'lens.takeUsed': ' (used)',
   'lens.clearTakes': 'New lens: forget these photos',
@@ -72,7 +72,7 @@ export const en: Messages = {
   'frame.downloadFront': 'Download monture.stl',
   'frame.downloadTemples': 'Download branches.stl',
   'frame.templesHint':
-    '{mm} mm temples, printed flat. Attach each temple to its lug with a paper clip or a piece of 1.75 mm filament: tight in the lug, free in the fork.',
+    'Attach each temple to its lug with a paper clip or a piece of 1.75 mm filament: tight in the lug, free in the fork.',
 
   'fit.title': 'Check: lenses and frame',
   'fit.intro':
@@ -103,7 +103,7 @@ export const en: Messages = {
     'Face tracking does not work in this browser. Try an up-to-date Chrome or Safari.',
 
   'steps.link': 'See each step',
-  'steps.back': '← Back',
+  'steps.back': 'Back',
   'steps.details': '{markers} markers · fit error {error} mm · {ppm} px/mm · {method} · {ms} ms',
   'steps.none': 'No photo measured yet.',
   'steps.1': '1. Detected markers',
@@ -124,4 +124,69 @@ export const en: Messages = {
   'error.LENS_OUT_OF_WINDOW': 'The lens goes past the frame. Center it in the sheet’s rectangle.',
   'error.PRINT_SCALE_INVALID':
     'Invalid print scale. Measure 10 squares of the sheet: they must be between 120 and 180 mm.',
+  'app.home': 'OptiFrame home',
+  'app.themeSystem': 'Theme: automatic (system)',
+  'app.themeLight': 'Theme: light',
+  'app.themeDark': 'Theme: dark',
+
+  'nav.steps': 'Steps',
+  'nav.step': 'Step {n} of {total}: {name}',
+  'nav.back': 'Back',
+  'nav.next': 'Continue',
+  'nav.start': 'Start',
+  'nav.resume': 'Resume',
+  'nav.toFiles': 'Files',
+
+  'step.sheet': 'Sheet',
+  'step.right': 'Right lens',
+  'step.left': 'Left lens',
+  'step.frame': 'Frame',
+  'step.files': 'Files',
+
+  'block.sheet': 'Enter a valid printed size to continue.',
+  'block.right': 'Measure the right lens to continue.',
+  'block.left': 'Measure the left lens to continue.',
+  'block.frame': 'Generate the frame to continue.',
+
+  'welcome.title': 'From a recycled lens to a print-ready file, in five steps',
+  'welcome.chart': 'The five steps, read from top to bottom',
+  'welcome.need': 'You will need',
+  'welcome.needSheet': 'The reference sheet, printed (step 1)',
+  'welcome.needLight': 'A lit background: a window, or a white screen',
+  'welcome.needLenses': 'Both lenses, clean and dry',
+
+  'sheet.lead':
+    'The sheet gives the scale of every measurement. Print it, then enter its real size.',
+  'sheet.print': 'Print',
+  'sheet.measure': 'Measure the printed sheet',
+  'sheet.place': 'Place the lens',
+
+  'lens.leadR': 'Lay the right lens on the sheet, convex side up, then photograph the whole sheet.',
+  'lens.leadL':
+    'Same for the left lens: lens in the middle of the frame, whole sheet in the photo.',
+  'lens.retake': 'New photo',
+  'lens.result': 'Measurement',
+  'lens.coherence': 'Measurement stability',
+
+  'frame.lead': 'Enter the patient’s pupillary distance, then generate the frame.',
+  'frame.viewerHint': 'Drag to rotate the frame.',
+  'frame.ready': 'Frame ready',
+
+  'files.lead': 'Download the files to print. The checks below are optional.',
+  'files.print3d': '3D printing',
+  'files.frontDesc': 'Frame front · {cm3} cm³ of filament',
+  'files.templesDesc': 'Two {mm} mm temples, printed flat',
+  'files.pairDesc': '1:1 outlines of both lenses, print at 100 %',
+  'files.paper': 'Paper',
+  'files.checks': 'Optional checks',
+  'files.fitDesc': 'Measured outline over the frame rim',
+  'files.faceDesc': 'The frame at true size on a face',
+  'files.stepsDesc': 'What the program did, step by step',
+  'files.needFrame': 'Generate the frame in step 4 first.',
+  'files.goFrame': 'Go to the Frame step',
+
+  'lens.measured': 'Lens measured',
+  'steps.lead':
+    'Each photo goes through three stages: finding the markers, straightening the sheet, then tracing the lens outline. The figures show how precisely each stage worked.',
+  'steps.title': 'Measurement process',
 };

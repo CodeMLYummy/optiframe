@@ -1,22 +1,23 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 import { MessageKey } from '../../core/i18n/fr';
 import { I18n } from '../../core/i18n/i18n';
 import { SessionStore } from '../../core/session.store';
+import { Icon } from '../../ui/icon';
 
 /** Intermediate images of each measurement: markers, rectified sheet, contour. */
 @Component({
   selector: 'app-steps',
-  imports: [RouterLink],
+  imports: [Icon],
   template: `
-    <p>
-      <a routerLink="/">{{ i18n.t('steps.back') }}</a>
-    </p>
+    <header class="step-head">
+      <h2>{{ i18n.t('steps.title') }}</h2>
+      <p class="lead">{{ i18n.t('steps.lead') }}</p>
+    </header>
     @for (item of measured(); track item.eye) {
-      <section class="card">
-        <h2>{{ i18n.t(item.eye === 'R' ? 'lens.R' : 'lens.L') }}</h2>
-        <p class="status">
+      <section class="section">
+        <h3>{{ i18n.t(item.eye === 'R' ? 'lens.R' : 'lens.L') }}</h3>
+        <p class="small muted num">
           {{
             i18n.t('steps.details', {
               markers: item.r.markersFound,
@@ -28,18 +29,17 @@ import { SessionStore } from '../../core/session.store';
           }}
         </p>
         @for (step of item.r.steps; track step.label; let i = $index) {
-          <h3>{{ stepLabel(i, step.label) }}</h3>
-          <img [src]="step.imageDataUrl" [alt]="stepLabel(i, step.label)" />
+          <figure class="reg">
+            <img [src]="step.imageDataUrl" [alt]="stepLabel(i, step.label)" />
+            <figcaption>{{ stepLabel(i, step.label) }}</figcaption>
+          </figure>
         }
       </section>
     } @empty {
-      <p class="status">{{ i18n.t('steps.none') }}</p>
-    }
-  `,
-  styles: `
-    img {
-      width: 100%;
-      border-radius: 8px;
+      <p class="note">
+        <app-icon name="info" />
+        <span>{{ i18n.t('steps.none') }}</span>
+      </p>
     }
   `,
 })

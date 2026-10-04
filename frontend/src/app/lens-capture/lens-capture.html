@@ -1,80 +1,153 @@
-<section class="card">
-  <h2>{{ title() }}</h2>
+@if (slot(); as s) {
+  <section class="section result" [attr.aria-label]="i18n.t('lens.result')">
+    <p class="verified">
+      <app-icon name="circle-check" />
+      {{ i18n.t('lens.measured') }}
+    </p>
+    <div class="measure reg">
+      <div class="readout" aria-live="polite">
+        <div class="cell">
+          <span class="k">A</span>
+          <span class="v">{{ i18n.num(s.contour.aMm) }}</span>
+        </div>
+        <span class="times" aria-hidden="true">×</span>
+        <div class="cell">
+          <span class="k">B</span>
+          <span class="v">{{ i18n.num(s.contour.bMm) }}</span>
+        </div>
+        <span class="unit">mm</span>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt>{{ i18n.t('lens.perimeter') }}</dt>
+          <dd>{{ i18n.num(s.contour.perimeterMm, '1.0-0') }} mm</dd>
+        </div>
+      </dl>
+    </div>
+    @if (controlImage(); as img) {
+      <figure class="reg">
+        <img [src]="img" [alt]="i18n.t('lens.controlAlt')" />
+      </figure>
+    } @else {
+      <p class="note">
+        <app-icon name="info" />
+        <span>{{ i18n.t('lens.testLens') }}</span>
+      </p>
+    }
+  </section>
+}
 
-  <div class="actions">
-    <label class="button primary" [class.disabled]="busy()">
-      {{ i18n.t('lens.takePhoto') }}
+<section class="section capture">
+  @if (!slot()) {
+    <label class="viewfinder reg" [class.disabled]="busy()">
       <input
         type="file"
         accept="image/*"
         capture="environment"
         (change)="onFile($event)"
         [disabled]="busy()"
-        hidden
+        class="visually-hidden"
       />
+      <svg class="sheet" viewBox="0 0 120 80" aria-hidden="true">
+        <rect x="1" y="1" width="118" height="78" rx="3" />
+        <path class="marks" d="M8 8h8v8H8zM104 8h8v8h-8zM8 64h8v8H8zM104 64h8v8h-8z" />
+        <rect class="window" x="30" y="16" width="60" height="48" rx="2" />
+        <path
+          class="lens"
+          [attr.transform]="eye() === 'R' ? 'translate(120 0) scale(-1 1)' : null"
+          d="M44 33c0-5 3-8 9-8h14c6 0 9 3 8 9l-1 9c-1 6-4 9-10 9h-11c-6 0-9-3-9-9z"
+        />
+      </svg>
+      <span class="cta">
+        @if (busy()) {
+          <app-icon name="loader" class="spin" />
+          {{ i18n.t('lens.analyzing') }}
+        } @else {
+          <app-icon name="camera" />
+          {{ i18n.t('lens.takePhoto') }}
+        }
+      </span>
     </label>
-    <label class="button" [class.disabled]="busy()">
+  }
+  <div class="buttons">
+    @if (slot()) {
+      <label class="btn" [class.disabled]="busy()">
+        @if (busy()) {
+          <app-icon name="loader" class="spin" />
+          {{ i18n.t('lens.analyzing') }}
+        } @else {
+          <app-icon name="camera" />
+          {{ i18n.t('lens.retake') }}
+        }
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="onFile($event)"
+          [disabled]="busy()"
+          class="visually-hidden"
+        />
+      </label>
+    }
+    <label class="btn" [class.disabled]="busy()">
+      <app-icon name="image-up" />
       {{ i18n.t('lens.import') }}
-      <input type="file" accept="image/*" (change)="onFile($event)" [disabled]="busy()" hidden />
+      <input
+        type="file"
+        accept="image/*"
+        (change)="onFile($event)"
+        [disabled]="busy()"
+        class="visually-hidden"
+      />
     </label>
   </div>
 
-  @if (busy()) {
-    <p class="status">{{ i18n.t('lens.analyzing') }}</p>
-  }
   @if (error(); as message) {
-    <p class="error" role="alert">{{ message }}</p>
+    <p class="note error" role="alert">
+      <app-icon name="alert" />
+      <span>{{ message }}</span>
+    </p>
   }
+  @if (!slot()) {
+    <button class="text-btn small" type="button" (click)="useTestLens()">
+      {{ i18n.t('lens.useTestLens') }}
+    </button>
+  }
+</section>
 
-  @if (slot(); as s) {
-    <dl class="measures">
-      <div>
-        <dt>A</dt>
-        <dd>{{ i18n.num(s.contour.aMm) }} mm</dd>
-      </div>
-      <div>
-        <dt>B</dt>
-        <dd>{{ i18n.num(s.contour.bMm) }} mm</dd>
-      </div>
-      <div>
-        <dt>{{ i18n.t('lens.perimeter') }}</dt>
-        <dd>{{ i18n.num(s.contour.perimeterMm, '1.0-0') }} mm</dd>
-      </div>
-    </dl>
-    @if (controlImage(); as img) {
-      <img class="control" [src]="img" [alt]="i18n.t('lens.controlAlt')" />
-    } @else {
-      <p class="status">{{ i18n.t('lens.testLens') }}</p>
-    }
-    @if (spread(); as sp) {
-      <div class="takes">
-        <p
-          [class.ok]="sp.aMm <= tolerance && sp.bMm <= tolerance"
-          [class.warn]="sp.aMm > tolerance || sp.bMm > tolerance"
-        >
+@if (slot()) {
+  @if (spread(); as sp) {
+    <section class="section">
+      <h3>{{ i18n.t('lens.coherence') }}</h3>
+      <p class="note" [class.ok]="stable()" [class.warn]="!stable()">
+        <app-icon [name]="stable() ? 'circle-check' : 'alert'" />
+        <span>
           {{
             i18n.t('lens.takesSpread', { n: sp.takes, a: i18n.num(sp.aMm), b: i18n.num(sp.bMm) })
           }}
-          {{
-            sp.aMm <= tolerance && sp.bMm <= tolerance
-              ? i18n.t('lens.takesOk')
-              : i18n.t('lens.takesWarn', { mm: tolerance })
-          }}
-        </p>
-        <ol>
-          @for (t of takes(); track $index) {
-            <li>
-              {{ i18n.t('lens.take', { a: i18n.num(t.aMm), b: i18n.num(t.bMm) })
-              }}{{ $last ? i18n.t('lens.takeUsed') : '' }}
-            </li>
-          }
-        </ol>
-        <button class="link" (click)="clearTakes()">{{ i18n.t('lens.clearTakes') }}</button>
-      </div>
-    } @else if (takes().length === 1) {
-      <p class="status">{{ i18n.t('lens.secondTake') }}</p>
-    }
-  } @else {
-    <button class="link" (click)="useTestLens()">{{ i18n.t('lens.useTestLens') }}</button>
+          {{ stable() ? i18n.t('lens.takesOk') : i18n.t('lens.takesWarn', { mm: tolerance }) }}
+        </span>
+      </p>
+      <ol class="takes num">
+        @for (t of takes(); track $index) {
+          <li [class.used]="$last">
+            <span class="i">{{ $index + 1 }}</span>
+            {{ i18n.t('lens.take', { a: i18n.num(t.aMm), b: i18n.num(t.bMm) })
+            }}{{ $last ? i18n.t('lens.takeUsed') : '' }}
+          </li>
+        }
+      </ol>
+      <button class="text-btn small" type="button" (click)="clearTakes()">
+        <app-icon name="rotate-ccw" />
+        {{ i18n.t('lens.clearTakes') }}
+      </button>
+    </section>
+  } @else if (takes().length === 1) {
+    <section class="section">
+      <p class="note">
+        <app-icon name="info" />
+        <span>{{ i18n.t('lens.secondTake') }}</span>
+      </p>
+    </section>
   }
-</section>
+}

@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 
+import type { FrameResult } from './frame-generator';
 import { Eye, LensContour, MeasureResponse } from './lens';
 
 export interface LensSlot {
@@ -23,9 +24,12 @@ export class SessionStore {
   readonly bothMeasured = computed(() => !!this.lenses().L && !!this.lenses().R);
   /** Every photo measured for each lens in this session, oldest first, for the coherence between takes. */
   readonly takes = signal<Record<Eye, LensContour[]>>({ L: [], R: [] });
+  /** Frame generated from the current lenses and PD; cleared when either changes. */
+  readonly frame = signal<FrameResult | null>(null);
 
   set(eye: Eye, slot: LensSlot): void {
     this.lenses.update((l) => ({ ...l, [eye]: slot }));
+    this.frame.set(null);
     if (slot.response) {
       this.takes.update((t) => ({ ...t, [eye]: [...t[eye], slot.contour] }));
     }
