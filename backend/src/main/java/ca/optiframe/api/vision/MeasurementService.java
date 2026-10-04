@@ -98,7 +98,8 @@ public class MeasurementService {
 					"Le verre dépasse du cadre. Centrez-le dans le rectangle de la feuille.");
 		}
 
-		ContourMeasurer.Measurement m = measurer.measure(mask, ppm, eye, props.edgeBiasMm());
+		// The rectified image is in the sheet's nominal mm; a sheet printed smaller holds more pixels per real mm.
+		ContourMeasurer.Measurement m = measurer.measure(mask, ppm / props.printScale(), eye, props.edgeBiasMm());
 		saveForDataset(window, mask);
 
 		List<MeasureResponse.Step> steps = List.of(

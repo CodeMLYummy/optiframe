@@ -54,7 +54,7 @@ class CharucoMeasurementServiceTest {
 	@Test
 	void measuresEllipticLensOnTiltedPhoto() {
 		MatOfByte jpeg = new MatOfByte();
-		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36, 90, 0)), jpeg);
+		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(layout, 50, 36, 90, 0)), jpeg);
 
 		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
 
@@ -69,7 +69,7 @@ class CharucoMeasurementServiceTest {
 	void ignoresTheSoftShadowNextToTheLens() {
 		// Room light casts a shadow 25 grey levels deep, offset by 3 mm, with a 0.5 mm soft edge, like on real photos.
 		MatOfByte jpeg = new MatOfByte();
-		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36, 90, 25)), jpeg);
+		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(layout, 50, 36, 90, 25)), jpeg);
 
 		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
 
@@ -81,7 +81,7 @@ class CharucoMeasurementServiceTest {
 	void keepsAFaintRim() {
 		// A clear lens shows a lighter rim than a tinted one: 90 grey levels below the paper instead of 160.
 		MatOfByte jpeg = new MatOfByte();
-		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36, 160, 25)), jpeg);
+		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(layout, 50, 36, 160, 25)), jpeg);
 
 		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
 
@@ -115,7 +115,7 @@ class CharucoMeasurementServiceTest {
 	 * @param rimGray grey level of the rim (paper is 250)
 	 * @param shadowDepth how much darker the soft shadow offset towards the top-left is, 0 for none
 	 */
-	private Mat renderBoard(double aMm, double bMm, double rimGray, double shadowDepth) {
+	static Mat renderBoard(SheetLayout layout, double aMm, double bMm, double rimGray, double shadowDepth) {
 		SheetLayout.Charuco c = layout.charuco();
 		CharucoBoard board = new CharucoBoard(new Size(c.squaresX(), c.squaresY()), (float) c.squareMm(),
 				(float) c.markerMm(), Objdetect.getPredefinedDictionary(Objdetect.DICT_5X5_250));
@@ -154,7 +154,7 @@ class CharucoMeasurementServiceTest {
 	}
 
 	/** Perspective of a phone held above the table at an angle, on a dark table. */
-	private static Mat tiltedPhoto(Mat sheet) {
+	static Mat tiltedPhoto(Mat sheet) {
 		double w = sheet.cols(), h = sheet.rows();
 		MatOfPoint2f src = new MatOfPoint2f(new Point(0, 0), new Point(w, 0), new Point(w, h), new Point(0, h));
 		MatOfPoint2f dst = new MatOfPoint2f(new Point(420, 300), new Point(2580, 380), new Point(2800, 3700),

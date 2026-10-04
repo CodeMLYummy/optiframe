@@ -12,6 +12,7 @@ public record OptiframeProperties(
 		double maxReprojectionErrorMm,
 		double minSharpness,
 		double edgeBiasMm,
+		double printScale,
 		String modelPath,
 		int modelInputSize,
 		String datasetDir) {

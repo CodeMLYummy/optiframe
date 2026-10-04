@@ -147,7 +147,11 @@ public class Rectifier {
 	private Matches detectCharucoSheet(Mat gray) {
 		DetectorParameters params = new DetectorParameters();
 		params.set_cornerRefinementMethod(Objdetect.CORNER_REFINE_SUBPIX);
-		CharucoDetector detector = new CharucoDetector(board, new CharucoParameters(), params, new RefineParameters());
+		// After finding the board, look again for the markers it predicts but that were missed (glare, blur, the
+		// 1-column sides): 4 more of 54 caliper photos measured, accuracy unchanged (prototype v8).
+		CharucoParameters charucoParams = new CharucoParameters();
+		charucoParams.set_tryRefineMarkers(true);
+		CharucoDetector detector = new CharucoDetector(board, charucoParams, params, new RefineParameters());
 		Mat corners = new Mat();
 		Mat cornerIds = new Mat();
 		List<Mat> markerCorners = new ArrayList<>();

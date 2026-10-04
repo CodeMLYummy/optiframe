@@ -33,6 +33,7 @@ we recommend next. Started 2026-10-03 with the review of Richard's `lensDetectio
 | v5 | 10-04 | `prototypes/v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar dynamic programming) | ✅ 28 / 34 vs 7 for the backend; std < 1 mm per lens |
 | v7–v9 | 10-04 | `prototypes/v7_v8_v9_detector/` | Detector settings end to end: `minMarkers=1` / `tryRefineMarkers` / both | ➖ coverage +3–4 photos, accuracy unchanged; v8 best, v7/v9 trip the fold check |
 | v6 | 10-04 | `prototypes/v6_corner_overlay/` | Diagnostic overlay of the sub-pixel corner detection on all photos | Detection sharp; sheet not flat (~1.4 px inlier RMS); side columns found only 42–55 % |
+| v8 → A5 | 10-04 | `backend/.../Rectifier.java`, `MeasurementService.java`, `home.html` | `tryRefineMarkers`; `optiframe.print-scale` for a sheet printed off-size; alignment instruction in the app | ✅ 41 / 54 measured, MAE 0.82 mm, signed +0.02 mm, 25 within 1 mm (scale 0.9787 applied by the backend) |
 | v10 → A4 | 10-04 | `prototypes/v10_smooth_rim/` → `backend/.../ClassicalSegmenter.java` | Smooth refinement (second path search in a ±0.6 mm band, ≤ 1 px per 0.5°, outer bias) instead of the per-angle snap | ✅ outline ~25 % less jagged; bias −0.21 → +0.02 mm; photos within 1 mm 20 → 24 / 40; MAE 0.80 → 0.84 |
 | v5 → A3 | 10-04 | `backend/.../ClassicalSegmenter.java` | App: v5 replaces the threshold segmenter, plus a ±0.6 mm snap to the rim | ✅ 35 / 47 blank-window photos via `/api/measure` (was 11), ~0.3 s each |
 
@@ -259,6 +260,16 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
 - **Tests:** the synthetic lens (a drawn 0.5 mm rim, blurred and tilted) reads ~+0.35 mm with the
   refinement at every bias, so three tests use a 0.4 mm tolerance (`SYNTHETIC_TOLERANCE_MM`, explained in
   the code); the faint-rim test keeps 0.3 mm. Real lenses are unbiased against calipers.
+
+### v8 → A5 — app: marker refinement, print scale, alignment instruction
+- `Rectifier` sets `tryRefineMarkers` (prototype v8: more photos measured, accuracy unchanged).
+- The printer can't print the sheet at true size (97.87 % even at "100 %"), so `optiframe.print-scale`
+  (`OPTIFRAME_PRINT_SCALE`) = measured length of 10 squares ÷ 150 converts the measurement to real mm:
+  `MeasurementService` measures with `pxPerMm / printScale`. Default 1.0; test `PrintScaleTest`.
+- No rotation warning (dropped): the home page tells the user to align the lens on the horizontal ticks,
+  since A and B follow the sheet's axes and a rotated lens reads up to +2.5 mm on our photos.
+- Same 54 caliper photos via `/api/measure` with `OPTIFRAME_PRINT_SCALE=0.9787`: **41 measured, MAE
+  0.82 mm, signed +0.02 mm, 25 / 41 within 1 mm on A and B.**
 
 ## Lessons
 
