@@ -3,6 +3,7 @@ package ca.optiframe.api.api;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -66,6 +67,22 @@ class ApiErrorsTest {
 				.andExpect(status().isUnsupportedMediaType())
 				.andExpect(jsonPath("$.code").value("UNSUPPORTED_MEDIA_TYPE"))
 				.andExpect(jsonPath("$.message").value(containsString("multipart/form-data")));
+	}
+
+	@Test
+	void theDeployedAppMayCallTheApi() throws Exception {
+		// The worker forwards https://optiframe.app to the Cloud Run host: a cross-origin request for Spring.
+		mvc.perform(options("/api/measure").header("Origin", "https://optiframe.app")
+				.header("Access-Control-Request-Method", "POST"))
+				.andExpect(status().isOk())
+				.andExpect(header().string("Access-Control-Allow-Origin", "https://optiframe.app"));
+	}
+
+	@Test
+	void otherSitesMayNot() throws Exception {
+		mvc.perform(options("/api/measure").header("Origin", "https://example.com")
+				.header("Access-Control-Request-Method", "POST"))
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
