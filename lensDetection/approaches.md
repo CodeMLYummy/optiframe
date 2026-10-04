@@ -31,6 +31,7 @@ we recommend next. Started 2026-10-03 with the review of Richard's `lensDetectio
 | v3 → A2 | 10-04 | `prototypes/v3_segmenter_tuning/` → `backend/.../ClassicalSegmenter.java` (commit `a865b76`) | App: stop the classical segmenter leaking into the lens shadow | ✅ A spread 4.6 → 2.0 mm, B 57.2–57.7 mm (excl. steep shot) |
 | v4 | 10-04 | `prototypes/v5_polar_contour/seg_clear.py` | Clear lenses: close the rim ring, fill, open away cables | ❌ 3–10 / 34 (gaps, cables) |
 | v5 | 10-04 | `prototypes/v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar dynamic programming) | ✅ 28 / 34 vs 7 for the backend; std < 1 mm per lens |
+| v7–v9 | 10-04 | `prototypes/v7_v8_v9_detector/` | Detector settings end to end: `minMarkers=1` / `tryRefineMarkers` / both | ➖ coverage +3–4 photos, accuracy unchanged; v8 best, v7/v9 trip the fold check |
 | v6 | 10-04 | `prototypes/v6_corner_overlay/` | Diagnostic overlay of the sub-pixel corner detection on all photos | Detection sharp; sheet not flat (~1.4 px inlier RMS); side columns found only 42–55 % |
 | v5 → A3 | 10-04 | `backend/.../ClassicalSegmenter.java` | App: v5 replaces the threshold segmenter, plus a ±0.6 mm snap to the rim | ✅ 35 / 47 blank-window photos via `/api/measure` (was 11), ~0.3 s each |
 
@@ -224,6 +225,11 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
   a plane (paper curling off the screen, top corners), so the homography fits at ~1.4 px RMS on inliers
   (~0.13 mm) and rejects corners on 64 / 67 photos (blur, curl). The 1-column sides are weak: left 42 %,
   right 55 % of corners found vs 70–75 % for the top and bottom rows → a 3-square side border would help.
+- **v7–v9** (detector settings, full pipeline, 54 caliper photos): `minMarkers=1` raises side-column
+  detection to 65–71 % and corners used by ~50 %, `tryRefineMarkers` recovers missed markers. Measured
+  photos 37 → 40 (v7) / 41 (v8) / 40 (v9); MAE on the photos all variants measure is unchanged
+  (0.81–0.83 mm). More corners buy coverage, not precision. v7/v9 trip the 0.5 mm fold check, which
+  averages over RANSAC outliers too → adopt v8; make the fold check use inliers before trying v9 again.
 
 ## Lessons
 

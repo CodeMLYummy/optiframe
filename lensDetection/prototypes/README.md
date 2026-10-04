@@ -12,6 +12,7 @@ frozen as it was when its results were recorded; the reasoning and results are i
 | v3 | `v3_segmenter_tuning/` | Why does the backend's classical segmenter over-measure? | Shadow leak; fixed with Canny 40/100 + darker-than-mean 25 (ported to Java) |
 | SAM | `sam_eval/` | Can Segment Anything outline the lens? | Only with a box prompt (filled IoU 0.96–0.98); points and automatic mode fail |
 | v4 | `v5_polar_contour/seg_clear.py` (`v4`) | Clear lenses on the blank window: close the rim ring and fill it? | **No.** 3–10 / 34: the faint rim has gaps and cables touch it, so the fill fails or floods |
+| v7–v9 | `v7_v8_v9_detector/` | Do ChArUco detector settings (`minMarkers=1`, `tryRefineMarkers`, both) help end to end? | Coverage, not accuracy: measured 37 → 40 / 41 / 40 of 54; MAE on common photos unchanged (0.81–0.83 mm). v8 (`tryRefineMarkers`) best; v7/v9 trip the fold check |
 | v6 | `v6_corner_overlay/` | Diagnostic: how good is the sub-pixel ChArUco corner detection on every photo? | Detection is sharp (×8 insets) but the sheet isn't a plane: inlier RMS ~1.4 px, outliers on 64 / 67 photos (blur, curl); side columns found 42–55 % vs 70–75 % for top/bottom rows |
 | v5 | `v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar contour, dynamic programming)? | **Yes.** 28 / 34 blank windows (backend today: 7); lens 1 50.18 ± 0.99 × 31.33 ± 0.98, lens 2 51.51 ± 0.64 × 38.20 ± 0.48 mm; red lens within 0.8 mm of its colour mask |
 
@@ -119,6 +120,27 @@ outliers (red squares), board corners not found (red ×, at their fitted positio
 (magenta arrow ×20), the projected lens window, detected markers, ×8 insets of three corners, and a stats line
 (corners used / outliers / expected, inlier RMS, camera). Board per folder: the printed 12×17 sheet for
 `photos2`/`photos3`, the 8×6 screen board for `photos1`.
+
+## v7–v9 — ChArUco detector settings (`v7_v8_v9_detector/`)
+
+```bash
+.venv/bin/python prototypes/v7_v8_v9_detector/measure.py
+```
+
+Runs the full backend pipeline in Python (Rectifier rules incl. the 0.5 mm fold check, lens window, v5 with
+snap, ContourMeasurer's smoothed sheet-axis A × B) on the 54 blank-window photos with a caliper-measured lens,
+for four detector settings: base (today), v7 `minMarkers=1`, v8 `tryRefineMarkers`, v9 both. Scores raw and at
+the true print scale (73.4 / 75). Per-photo results in `results_v7_v9/measurements.csv`.
+
+| Variant | Measured | MAE (true scale) | Fold-check failures |
+|---|---|---|---|
+| base | 37 / 54 | 0.84 mm | 1 |
+| v7 | 40 / 54 | 0.80 mm | 2 |
+| v8 | 41 / 54 | 0.80 mm | 0 |
+| v9 | 40 / 54 | 0.81 mm | 2 |
+
+The fold check averages the error over all corners, RANSAC outliers included; single-marker corners (v7, v9)
+add outliers and trip it. On the 36 photos all variants measure, MAE is 0.81–0.83 mm for every setting.
 
 ## SAM evaluation (`sam_eval/`)
 
