@@ -5,9 +5,6 @@ training/*.onnx
 __pycache__/
 .venv/
 
-# The model is shipped with the Docker image; publish large weights as a release asset instead.
-backend/models/*.onnx
-
 .DS_Store
 .idea/
 .vscode/
