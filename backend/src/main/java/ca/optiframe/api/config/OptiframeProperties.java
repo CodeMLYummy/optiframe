@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("optiframe")
 public record OptiframeProperties(
 		List<String> corsOrigins,
+		String sheetLayout,
 		double pxPerMm,
 		double maxReprojectionErrorMm,
 		double minSharpness,

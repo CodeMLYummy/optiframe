@@ -27,8 +27,8 @@ import ca.optiframe.api.api.dto.Eye;
 import ca.optiframe.api.api.dto.MeasureResponse;
 import ca.optiframe.api.sheet.SheetLayout;
 
-/** End to end on a synthetic photo: printed sheet, backlit 50 x 36 mm lens, shot at an angle. */
-@SpringBootTest
+/** End to end on a synthetic photo: printed ArUco sheet, backlit 50 x 36 mm lens, shot at an angle. */
+@SpringBootTest(properties = "optiframe.sheet-layout=sheet-layout.json")
 class MeasurementServiceTest {
 
 	private static final double TRUE_PPM = 12;

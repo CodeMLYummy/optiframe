@@ -4,7 +4,7 @@
 flowchart TB
     PH[/"Téléphone, tenu de face<br/>à 30-40 cm, zoom ×2 si possible"/]
     LENS["Verre, face bombée vers le haut,<br/>au centre du cadre"]
-    SHEET["Feuille imprimée à 100 %<br/>8 marqueurs ArUco + règle de 100 mm"]
+    SHEET["Feuille imprimée à 100 %<br/>damier ChArUco autour d'un cadre blanc"]
     LIGHT["Écran blanc d'un portable<br/>ou fenêtre (lumière par-dessous)"]
     PH -. "photo de toute la feuille" .-> LENS
     LENS --- SHEET --- LIGHT
@@ -15,11 +15,15 @@ flowchart TB
     class LIGHT light
 ```
 
-1. Imprimer `frontend/public/feuille-optiframe.pdf` **à 100 %** et vérifier la règle de 100 mm au pied à coulisse.
+1. Imprimer `frontend/public/feuille-charuco-letter.pdf` (ou `-a4.pdf`) **à 100 %**, sans « ajuster à la page », et vérifier au pied à coulisse que 10 cases mesurent 150 mm.
 2. Poser la feuille sur l'écran blanc d'un portable (luminosité maximale) ou contre une fenêtre.
-3. Poser le verre au centre du cadre, horizontal entre les repères.
+3. Poser le verre au centre du cadre blanc, horizontal entre les repères.
 4. Photographier toute la feuille, de face.
 
-La disposition de la feuille est définie une seule fois dans `backend/src/main/resources/sheet-layout.json`. Le serveur et `training/make_sheet.py` lisent ce même fichier, donc la feuille imprimée et le détecteur restent toujours d'accord.
+Le damier (12 × 17 cases de 15 mm, `DICT_5X5_250`) est identique sur Letter et A4 : les positions sont en mm du damier, le serveur n'a pas besoin de connaître le format du papier. Ses coins sont détectés au sous-pixel (jusqu'à 68 points hors du cadre, contre 32 pour l'ancienne feuille à 8 marqueurs), même si une partie du damier sort de la photo.
+
+N'utiliser que la feuille à cadre blanc pour mesurer : les variantes Ronchi (`feuille-charuco-ronchi-*`, `feuille-ronchi-*`) servent à estimer la puissance du verre, leurs rayures empêchent la détection du contour.
+
+La disposition est définie une seule fois dans `backend/src/main/resources/sheet-layout-charuco.json`, lue par le serveur et par `training/make_charuco_sheet.py`, donc la feuille imprimée et le détecteur restent toujours d'accord. L'ancienne feuille A4 à 8 marqueurs ArUco (`sheet-layout.json`, `training/make_sheet.py`) reste disponible avec `OPTIFRAME_SHEET_LAYOUT=sheet-layout.json`.
 
 [← Retour au README](../README.md)

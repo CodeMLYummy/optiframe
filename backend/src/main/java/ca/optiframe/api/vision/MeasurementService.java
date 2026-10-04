@@ -108,9 +108,9 @@ public class MeasurementService {
 
 		long elapsed = System.currentTimeMillis() - start;
 		LensContour c = m.contour();
-		log.info("Measured {} with {}: A={} B={} mm ({} markers, err {} mm, {} ms)", eye, segmenter.name(),
+		log.info("Measured {} with {}: A={} B={} mm ({} markers, {} points, err {} mm, {} ms)", eye, segmenter.name(),
 				String.format("%.2f", c.aMm()), String.format("%.2f", c.bMm()), sheet.markerIds().size(),
-				String.format("%.3f", sheet.reprojectionErrorMm()), elapsed);
+				sheet.pointsUsed(), String.format("%.3f", sheet.reprojectionErrorMm()), elapsed);
 		return new MeasureResponse(c, segmenter.name(), ppm, sheet.markerIds().size(), sheet.reprojectionErrorMm(),
 				sharpness, m.rotatedAMm(), m.rotatedBMm(), steps, elapsed);
 	}
@@ -154,12 +154,16 @@ public class MeasurementService {
 	/** Variance of the Laplacian over the detected markers: they are sharp black and white squares in every photo. */
 	private double markerSharpness(RectifiedSheet sheet) {
 		double ppm = sheet.pxPerMm();
+		Rect bounds = new Rect(0, 0, sheet.image().cols(), sheet.image().rows());
 		double sum = 0;
-		for (int id : sheet.markerIds()) {
-			SheetLayout.Marker marker = layout.markers().stream().filter(x -> x.id() == id).findFirst().orElseThrow();
-			int s = (int) Math.round(layout.markerSizeMm() * ppm);
-			Mat region = new Mat(sheet.image(),
-					new Rect((int) Math.round(marker.xMm() * ppm), (int) Math.round(marker.yMm() * ppm), s, s));
+		int count = 0;
+		for (SheetLayout.Rect area : sheet.markerAreasMm()) {
+			Rect r = intersect(new Rect((int) Math.round(area.xMm() * ppm), (int) Math.round(area.yMm() * ppm),
+					(int) Math.round(area.widthMm() * ppm), (int) Math.round(area.heightMm() * ppm)), bounds);
+			if (r.area() == 0) {
+				continue;
+			}
+			Mat region = new Mat(sheet.image(), r);
 			Mat gray = new Mat();
 			Imgproc.cvtColor(region, gray, Imgproc.COLOR_BGR2GRAY);
 			Mat lap = new Mat();
@@ -168,8 +172,18 @@ public class MeasurementService {
 			MatOfDouble std = new MatOfDouble();
 			Core.meanStdDev(lap, mean, std);
 			sum += std.get(0, 0)[0] * std.get(0, 0)[0];
+			count++;
 		}
-		return sum / sheet.markerIds().size();
+		// No marker square in view (ChArUco corners alone can be enough for the homography): not judged blurry here.
+		return count == 0 ? Double.MAX_VALUE : sum / count;
+	}
+
+	private static Rect intersect(Rect a, Rect b) {
+		int x = Math.max(a.x, b.x);
+		int y = Math.max(a.y, b.y);
+		int w = Math.min(a.x + a.width, b.x + b.width) - x;
+		int h = Math.min(a.y + a.height, b.y + b.height) - y;
+		return w > 0 && h > 0 ? new Rect(x, y, w, h) : new Rect();
 	}
 
 	private static Mat markersOverlay(Mat photo, RectifiedSheet sheet) {
