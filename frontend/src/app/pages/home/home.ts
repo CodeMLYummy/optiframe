@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
-import { download, stlBlob } from '../../core/exports';
+import { download, lensPairSvg, stlBlob } from '../../core/exports';
 import { FrameResult, generateFrame } from '../../core/frame-generator';
 import {
   COMFORT_BRIDGE_MM,
@@ -120,5 +120,14 @@ export class Home {
     if (f) {
       download(stlBlob(f.printGeometry), 'monture.stl');
     }
+  }
+
+  protected downloadLensPairSvg(): void {
+    const { L, R } = this.store.lenses();
+    if (!L || !R) {
+      this.error.set("Mesurez les deux verres avant d'exporter leurs contours.");
+      return;
+    }
+    download(new Blob([lensPairSvg(R.contour, L.contour)], { type: 'image/svg+xml' }), 'contours-paire.svg');
   }
 }

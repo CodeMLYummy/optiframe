@@ -1,7 +1,6 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
-import { contourSvg, download } from '../core/exports';
 import { Eye, ellipseContour } from '../core/lens';
 import { MeasureService } from '../core/measure.service';
 import { SessionStore } from '../core/session.store';
@@ -53,12 +52,5 @@ export class LensCapture {
   protected useTestLens(): void {
     this.error.set(null);
     this.store.set(this.eye(), { contour: ellipseContour(this.eye()) });
-  }
-
-  protected downloadSvg(): void {
-    const slot = this.slot();
-    if (slot) {
-      download(new Blob([contourSvg(slot.contour)], { type: 'image/svg+xml' }), `contour-${this.eye()}.svg`);
-    }
   }
 }

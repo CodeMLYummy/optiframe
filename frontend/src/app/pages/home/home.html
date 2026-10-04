@@ -49,6 +49,20 @@
 <app-lens-capture eye="L" />
 
 <section class="card">
+  <h2>Contours des verres</h2>
+  <button class="button wide" [disabled]="!store.bothMeasured()" (click)="downloadLensPairSvg()">
+    Télécharger la paire en SVG 1:1
+  </button>
+  <p class="status">
+    Les deux contours sont réunis dans un seul fichier, à leur taille mesurée.
+    Imprimez à 100 %, sans ajuster à la page. L'espacement entre les verres ne représente pas le pont de la monture.
+  </p>
+  @if (!store.bothMeasured()) {
+    <p class="status">Mesurez les deux verres pour exporter la paire.</p>
+  }
+</section>
+
+<section class="card">
   <h2>Monture</h2>
   @if (!store.pd().perEye) {
     <label class="field">
