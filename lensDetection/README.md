@@ -29,9 +29,12 @@ uv run charuco 10 7 --square-mm 25 --marker-mm 18 --dictionary 4X4_50
 
 Press `Esc` to exit; `f` toggles fullscreen.
 The board is rendered using the display's reported physical width so its
-configured millimeter dimensions can be shown at scale. Verify that scale with
-a ruler; if the board cannot fit at that scale, the window reports the required
-pixel dimensions rather than silently shrinking it.
+configured millimeter dimensions can be shown at scale. On Linux, the active
+monitor's RandR geometry is preferred over Tk's whole-screen dimensions, which
+may be a synthetic 96-DPI value under Xwayland. Verify that scale with a ruler;
+monitor EDID dimensions can still be approximate. If the board cannot fit at
+that scale, the window reports the required pixel dimensions rather than
+silently shrinking it.
 
 # Glass edge detection
 
@@ -131,6 +134,28 @@ Exit status is 1 when less than `--min-coverage` (default 0.5) of the rim was
 measured, since the bridge would then be mostly a guess, and 2 on invalid input.
 Bridged gaps follow the ellipse-like interpolation, so wide gaps can cut inside
 or outside the real rim.
+
+## Boxing measurement
+
+`boxing` measures the lens with the boxing method: the closed contour is
+enclosed in the smallest rectangle whose sides are parallel to a horizontal
+datum line. The box width is the lens **length (A)** and its height the lens
+**width (B)**. Run it on a folder where `glass-edges` and `close-contour` have
+both written their results:
+
+```sh
+uv run boxing results/photo --image photo.jpg
+```
+
+The datum is the board's x axis (the board's top edge as printed), which is not
+necessarily horizontal in the photo. Use `--angle DEGREES` to tilt the datum
+for a lens whose horizontal is rotated on the board. Measurements are made on
+the board plane in millimeters from `closed.json`'s contour, so perspective is
+corrected. It writes `boxing.json` (A, B, A/B, box center, box corners and
+contact points in board millimeters) and `boxing_overlay.png` (green: lens,
+yellow: boxing rectangle and center, red: contact points, blue: A and B
+dimension arrows). Use `--output-dir` to write elsewhere. Exit status is 2 on
+invalid input.
 
 # Ronchi glass edge detection
 
