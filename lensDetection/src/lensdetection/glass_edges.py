@@ -3,6 +3,7 @@
 import argparse
 import json
 import math
+from datetime import datetime, timezone
 from pathlib import Path
 
 import cv2
@@ -278,7 +279,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path, help="Photo of glass over a ChArUco board")
     parser.add_argument("board", type=Path, help="JSON with the board's dimensions")
-    parser.add_argument("--output-dir", type=Path, default=Path("glass-edges"))
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path("results" + str(datetime.now()))
+    )
     parser.add_argument("--reference", type=Path, help="Optional photo without glass")
     parser.add_argument(
         "--threshold",
