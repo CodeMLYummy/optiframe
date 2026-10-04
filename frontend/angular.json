@@ -27,6 +27,11 @@
                 "glob": "manifold.wasm",
                 "input": "node_modules/manifold-3d",
                 "output": "/"
+              },
+              {
+                "glob": "vision_wasm*internal.{js,wasm}",
+                "input": "node_modules/@mediapipe/tasks-vision/wasm",
+                "output": "/face/wasm"
               }
             ],
             "styles": ["src/styles.css"],

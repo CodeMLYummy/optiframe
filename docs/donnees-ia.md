@@ -36,6 +36,7 @@ mindmap
     Vision
       OpenCV 4.9<br/>Apache 2.0
       ONNX Runtime<br/>MIT
+      MediaPipe Face Landmarker<br/>Apache 2.0, aperçu sur le visage
     IA
       segmentation_models_pytorch<br/>MIT
       timm MobileNetV3<br/>Apache 2.0

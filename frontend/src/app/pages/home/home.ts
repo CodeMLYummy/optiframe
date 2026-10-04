@@ -15,13 +15,14 @@ import {
 } from '../../core/pd';
 import { PdInput, SessionStore } from '../../core/session.store';
 import { NOMINAL_TEN_SQUARES_MM, Paper, SheetSettings, SizeMode } from '../../core/sheet-settings';
+import { FacePreview } from '../../face-preview/face-preview';
 import { FitCheck } from '../../fit-check/fit-check';
 import { FrameViewer } from '../../frame-viewer/frame-viewer';
 import { LensCapture } from '../../lens-capture/lens-capture';
 
 @Component({
   selector: 'app-home',
-  imports: [DecimalPipe, RouterLink, LensCapture, FrameViewer, FitCheck],
+  imports: [DecimalPipe, RouterLink, LensCapture, FrameViewer, FitCheck, FacePreview],
   templateUrl: './home.html',
 })
 export class Home {
@@ -133,6 +134,18 @@ export class Home {
   }
 
   protected readonly templeLengthMm = TEMPLE.lengthMm;
+
+  /** PD the generated frame uses, entered or from the standard bridge. */
+  protected readonly framePdMm = computed(() => {
+    const pd = this.placement()?.pd;
+    return pd ? pd.rightMm + pd.leftMm : null;
+  });
+
+  /** PD estimated on the face: replaces the entered one; the frame has to be generated again. */
+  protected applyFacePd(pdMm: number): void {
+    this.store.pd.set({ perEye: false, totalMm: Math.round(pdMm * 2) / 2, rightMm: null, leftMm: null });
+    this.frame.set(null);
+  }
 
   protected downloadTemplesStl(): void {
     const f = this.frame();

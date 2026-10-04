@@ -137,6 +137,10 @@
       </section>
     }
   }
+  <section class="card">
+    <h2>Aperçu sur le visage</h2>
+    <app-face-preview [outline]="f.frontOutline" [pdMm]="framePdMm()" (usePd)="applyFacePd($event)" />
+  </section>
 }
 
 @if (hasSteps()) {

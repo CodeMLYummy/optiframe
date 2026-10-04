@@ -70,6 +70,8 @@ export interface FrameResult {
    * front lip, for the contour/frame coherence check.
    */
   fit: { eye: LensContour['eye']; grooveMm: Vec2[]; lipMm: Vec2[] }[];
+  /** Front silhouette as seen from the front (rims, bridge, lugs, minus the lens openings), model coordinates. */
+  frontOutline: Vec2[][];
   /** Through holes of the printed part: 2 lens openings + 2 pin holes. */
   genus: number;
   triangles: number;
@@ -111,6 +113,7 @@ export async function generateFrame(
     const solids: Manifold[] = [];
     const holes: Manifold[] = [];
     const fit: FrameResult['fit'] = [];
+    const openings: CrossSection[] = [];
     const rims: CrossSection[] = [];
 
     for (const { lens, cx } of lenses) {
@@ -127,6 +130,7 @@ export async function generateFrame(
       holes.push(cut);
       const inLens = (c: CrossSection) => (c.toPolygons()[0] ?? []).map(([x, y]) => [x - cx, y] as Vec2);
       const lip = keep(outline.offset(-p.frontLipMm, 'Round'));
+      openings.push(lip);
       fit.push({ eye: lens.eye, grooveMm: inLens(keep(outline.offset(grooveOffset, 'Round'))), lipMm: inLens(lip) });
     }
 
@@ -144,7 +148,9 @@ export async function generateFrame(
 
     // Rims, bridge and the front of the hinge lugs are one 2D shape extruded once: separate solids flush with the
     // faces would share coplanar faces, which leave non-manifold edges once the STL's corners are welded.
-    solids.push(keep(keep(CrossSection.union([...rims, bridge, ...lugFootprints])).extrude(T)));
+    const front = keep(CrossSection.union([...rims, bridge, ...lugFootprints]));
+    solids.push(keep(front.extrude(T)));
+    const frontOutline = keep(front.subtract(keep(CrossSection.union(openings)))).toPolygons();
 
     // Hinge lugs on the temporal sides, sticking out of the back face, with a vertical pin hole. The part behind
     // the frame overlaps 0.5 mm into it and is inset by 0.01 mm, so none of its faces coincide with the frame's.
@@ -187,6 +193,7 @@ export async function generateFrame(
       previewGeometry: toGeometry(preview),
       templesPrintGeometry: toGeometry(templesPrint),
       fit,
+      frontOutline,
       genus: frame.genus(),
       triangles: frame.numTri(),
       volumeMm3: frame.volume(),
