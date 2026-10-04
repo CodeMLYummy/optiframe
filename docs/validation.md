@@ -39,7 +39,7 @@ xychart-beta
 | Feuille PDF rastérisée à 300 dpi, déformée en perspective                     | 52,0 × 37,9 mm | 52,2 × 38,1 mm                                                |
 | Monture STL à partir de deux vraies photos (`lens1` + `lens2`, voir plus bas) | 1 pièce fermée | 1 pièce étanche, chaque arête partagée par exactement 2 faces |
 
-Les mesures sont toutes environ 0,2 mm trop grandes : ce biais constant se corrige avec `optiframe.edge-bias-mm`. Sur de vrais verres, l'épaisseur du bord peut ajouter 0,3 à 0,5 mm : sans calibration, on dépasserait la norme.
+Les mesures sont toutes environ 0,2 mm trop grandes : ce biais constant se corrige avec `optiframe.edge-bias-mm` (réglé à −0,1 mm, voir plus bas). Sur de vrais verres, l'épaisseur du bord peut ajouter 0,3 à 0,5 mm : sans calibration, on dépasserait la norme.
 
 ### Photos réelles (verre teinté rouge, feuille ChArUco Letter rétroéclairée)
 
@@ -69,7 +69,15 @@ Valeurs au pied à coulisse : `lens1` 49,5 × 30,5 mm, `lens2` 51,4 × 38,4 mm, 
 | rouge     | 5      | 55,70 × 46,62        | 55,7 × 46,5          | 0,67 mm                      | 3 / 5                      |
 | **Total** | **40** |                      |                      | **0,84 mm** (biais +0,02 mm) | **24 / 40**                |
 
-- Sans biais : les erreurs restantes viennent de la prise de vue (verre tourné sur la feuille, prise très inclinée, double bord éclairé de côté), pas d'un décalage systématique ; `edge-bias-mm` reste à 0.
+- Méthode classique sans biais : les erreurs restantes viennent de la prise de vue (verre tourné sur la feuille, prise très inclinée, double bord éclairé de côté), pas d'un décalage systématique.
+- Calibration de `edge-bias-mm` (4 octobre, mêmes photos, A et B comparés au plus long et au plus court côté) : le modèle, utilisé par défaut, mesure +0,25 mm trop grand, la méthode classique +0,02 mm. Le réglage est commun aux deux méthodes ; on le règle pour le modèle à **−0,1 mm** (le contour est rétréci de 0,1 mm, A et B de 0,2 mm).
+
+| Méthode   | Photos | `edge-bias-mm` 0 : erreur moyenne (biais) | −0,1 mm : erreur moyenne (biais) | Photos à ≤ 1 mm (0 → −0,1) |
+| --------- | ------ | ----------------------------------------- | -------------------------------- | -------------------------- |
+| Modèle    | 45     | 0,80 mm (+0,25)                           | **0,77 mm (+0,05)**              | 28 → 29                    |
+| Classique | 41     | 0,82 mm (+0,02)                           | 0,85 mm (−0,17)                  | 25 → 22                    |
+
+- Le modèle a été entraîné sur une partie de ces photos : le gain est à confirmer sur une nouvelle série, feuille imprimée à 100 %.
 - Sur une feuille imprimée à 97,87 %, toutes les mesures sont 2,2 % trop grandes : vérifier que 10 cases mesurent 150 mm avant chaque démonstration.
 
 ### Photos réelles (deux verres transparents, `lensDetection/photos3/`)
