@@ -11,6 +11,8 @@ frozen as it was when its results were recorded; the reasoning and results are i
 | v2 | `v2_colour_charuco/` | Does the printed ChArUco sheet give reliable mm? (tinted lens, colour segmentation) | **Yes.** 11/14 photos, A 46.65 ± 0.77, B 56.69 ± 0.45 mm (same lens) |
 | v3 | `v3_segmenter_tuning/` | Why does the backend's classical segmenter over-measure? | Shadow leak; fixed with Canny 40/100 + darker-than-mean 25 (ported to Java) |
 | SAM | `sam_eval/` | Can Segment Anything outline the lens? | Only with a box prompt (filled IoU 0.96–0.98); points and automatic mode fail |
+| v4 | `v5_polar_contour/seg_clear.py` (`v4`) | Clear lenses on the blank window: close the rim ring and fill it? | **No.** 3–10 / 34: the faint rim has gaps and cables touch it, so the fill fails or floods |
+| v5 | `v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar contour, dynamic programming)? | **Yes.** 28 / 34 blank windows (backend today: 7); lens 1 50.18 ± 0.99 × 31.33 ± 0.98, lens 2 51.51 ± 0.64 × 38.20 ± 0.48 mm; red lens within 0.8 mm of its colour mask |
 
 ## Setup
 
@@ -77,6 +79,31 @@ cd backend && OPTIFRAME_DATASET_DIR=$PWD/../lensDetection/results_seg/dataset ./
 # 2. compare threshold variants
 cd lensDetection && .venv/bin/python prototypes/v3_segmenter_tuning/seg_lab.py
 ```
+
+## v5 — polar contour for clear lenses (`v5_polar_contour/`)
+
+```bash
+.venv/bin/python prototypes/v5_polar_contour/make_windows.py   # photos3 -> results_session3/windows/
+.venv/bin/python prototypes/v5_polar_contour/seg_clear.py      # table + overlays in results_session3/v5/
+```
+
+1. Rim map: black-hat + top-hat (~1.6 mm) answers to the thin rim, not to wide soft shadows; divided by
+   the photo's own background level (90th percentile), so backlit paper texture and smooth paper compare.
+2. Seed the centre at the median of the strongest line pixels.
+3. `warpPolar` around the centre: 720 angles (0.5°) × radius 0–45 mm (8 mm minimum), values capped at 6
+   so one glare spot can't outweigh a faint rim.
+4. Dynamic programming over two turns: the closed path r(θ) with the most rim evidence, ≤ 0.4 mm radius
+   change per 0.5°, and a cost of 0.4 per pixel of change (detours to cables must pay).
+5. Re-centre on the found loop, run once more; fill the loop as the mask.
+6. Refuse (lens not found) when the path sits on rim evidence along < 50 % of its length (`MIN_RIM`).
+
+`seg_clear.py` also keeps `v4` (ring fill) as the documented failed attempt, and runs the backend's current
+logic (`v3_segmenter_tuning/seg_lab.py`) for comparison. Remaining misses: 3 unlit warm-light photos (below
+the 50 % evidence rule), 1 degenerate rectification, 1 lens on the window edge, 1 striped window. Limits:
+star-shaped outlines only; on steep shots the path can take the lens's top edge (parallax).
+
+`photos3_labelling/` holds the one-off scripts that labelled and renamed `photos3` and wrote the
+`index.csv` files; they ran on the original camera names and are kept as a record, not to re-run.
 
 ## SAM evaluation (`sam_eval/`)
 

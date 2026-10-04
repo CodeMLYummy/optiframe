@@ -2,17 +2,18 @@
 
 What we tried to measure a spectacle lens outline from a phone photo, what worked, what didn't, and what
 we recommend next. Started 2026-10-03 with the review of Richard's `lensDetection/` package (commits
-`2262257`..`9ce9a4e`). Prototype scripts (v0–v3, SAM) are in [`prototypes/`](prototypes/README.md); A1–A2 are changes to the app backend.
+`2262257`..`9ce9a4e`). Prototype scripts (v0–v5, SAM) are in [`prototypes/`](prototypes/README.md); A1–A2 are changes to the app backend.
 
 ## Summary
 
-- **Where we are:** the app backend now reads the printed ChArUco sheet (Letter or A4) and measures a
-  tinted lens on real photos with an A/B spread of ~2 mm / ~0.8 mm (5 photos, handheld). The sheet →
-  mm part is solid (fit error 0.17–0.29 mm). The open risks are **clear lenses** (no real photos on
-  the blank sheet yet), **parallax on steep shots** (+4 mm), and **no caliper ground truth** yet.
-- **Recommendation:** keep the backlit blank-window ChArUco sheet as the capture setup; get caliper
-  values and clear-lens photos next; add a tilt check; then add SAM (box-prompted by the classical
-  pipeline) and/or a small model trained on synthetic + own photos for the "Données et IA" points.
+- **Where we are:** the app backend reads the printed ChArUco sheet (Letter or A4); the sheet → mm part
+  is solid (fit error 0.17–0.29 mm). On **clear lenses** (session 3, 119 photos) the backend's segmenter
+  measures only 7 of 34 blank-window photos; the **v5 polar-contour prototype measures 28 / 34** with
+  a standard deviation under 1 mm per lens, and keeps the red lens within 0.8 mm. Open risks: v5 isn't in the backend
+  yet, **parallax on steep shots**, and **no caliper ground truth** yet.
+- **Recommendation:** keep the backlit blank-window ChArUco sheet; port v5 into `ClassicalSegmenter`;
+  caliper the three lenses; add a tilt check; then add SAM (box-prompted by the classical pipeline)
+  and/or a small model trained on synthetic + own photos for the "Données et IA" points.
 - **What the jury scores** (`consignes.pdf`): A and B of two real lenses vs caliper, full 30 pts at
   ≤ 1 mm mean abs error, 0 at 4 mm.
 
@@ -27,6 +28,8 @@ we recommend next. Started 2026-10-03 with the review of Richard's `lensDetectio
 | v2 | 10-03 | `prototypes/v2_colour_charuco/` | New printed ChArUco sheet + tinted lens by colour | ✅ 11/14, A 46.65 ± 0.77, B 56.69 ± 0.45 mm |
 | A1 | 10-04 | `backend/.../Rectifier.java` (commit `c7382f8`) | App: read the ChArUco sheet (was: 8-marker A4 sheet only) | ✅ 11/14 rectified, fit error 0.17–0.29 mm |
 | v3 → A2 | 10-04 | `prototypes/v3_segmenter_tuning/` → `backend/.../ClassicalSegmenter.java` (commit `a865b76`) | App: stop the classical segmenter leaking into the lens shadow | ✅ A spread 4.6 → 2.0 mm, B 57.2–57.7 mm (excl. steep shot) |
+| v4 | 10-04 | `prototypes/v5_polar_contour/seg_clear.py` | Clear lenses: close the rim ring, fill, open away cables | ❌ 3–10 / 34 (gaps, cables) |
+| v5 | 10-04 | `prototypes/v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar dynamic programming) | ✅ 28 / 34 vs 7 for the backend; std < 1 mm per lens |
 
 ## Context
 
@@ -157,6 +160,34 @@ Letter paper (bottom markers end at 285 mm).
 - Tests: `ignoresTheSoftShadowNextToTheLens` (verified to **fail** on the old thresholds at 53.18 mm
   for a 50 mm lens) and `keepsAFaintRim` (a lighter, clear-lens-like rim still measures within 0.3 mm).
 
+### Session 3 — clear lenses (`photos3/`, 119 photos) → v4, v5
+Two clear lenses (`lens1` rounded rectangle, `lens2` rounder) on all three Letter sheets, lit from below
+or not, straight and steep (3–28° tilt), 1× and 1.58× zoom, portrait and landscape, with cables and other
+sheets in frame. Labels and per-photo results: `photos3/index.csv`.
+
+- **Backend (A2) on the 34 blank-window photos with a detected board: 7 measured.** The lens is clearly
+  visible in every failure. Causes: the rim of a clear lens is a faint ~1 px line, below the thresholds
+  raised for the shadow fix (A2); and in about half the photos a cable's shadow crosses the window.
+- **v4 — ring fill:** a thin-line filter (black-hat + top-hat ~1.6 mm) shows the rim well and ignores
+  wide shadows, but closing + filling the ring needs a closed ring. Faint rims have gaps (fill finds
+  nothing) and a cable touching the rim lets the fill flood the window. Fixed thresholds also flood on
+  backlit paper texture → thresholds scaled to each photo's background. Best: 10 / 34.
+- **v5 — polar contour:** unroll the rim map around the lens centre and pick, by dynamic programming,
+  the closed path r(θ) with the most rim evidence (≤ 0.4 mm radius change per 0.5°, cost per jump,
+  evidence capped against glare, refuse below 50 % rim coverage).
+
+  | | Backend (A2) | v5 |
+  |---|---|---|
+  | Blank windows measured | 7 / 34 | **28 / 34** |
+  | `lens1` long × short (min-area rectangle) | — | 50.18 ± 0.99 × 31.33 ± 0.98 mm (13) |
+  | `lens2` long × short | — | 51.51 ± 0.64 × 38.20 ± 0.48 mm (15) |
+  | Red lens vs colour mask (5 windows) | ~+0.5 mm, steep shot +4 mm | within 0.8 mm, steep shot included |
+
+  Spreads include steep and zoomed shots. Remaining misses: 3 unlit warm-light photos (rim evidence
+  < 50 %), 1 degenerate rectification, 1 lens touching the window edge, 1 striped window. On steep
+  shots (004540, 004546) the path can follow the lens's top edge (parallax).
+- **Ronchi windows and the Ronchi-only sheet:** still unusable for the outline (36 + 36 photos).
+
 ## Lessons
 
 - **The rim is the signal.** A low-power clear lens barely distorts what's behind it; every working
@@ -168,13 +199,19 @@ Letter paper (bottom markers end at 285 mm).
 - **Parallax is the biggest remaining error** on handheld photos: tilted shots add the lens side wall.
 - **Consistent ≠ accurate:** v2 is repeatable to < 1 mm, but without a caliper value we don't know
   the bias.
+- **Look for a closed path, not a closed ring.** On clear lenses the rim is faint and broken; methods
+  that need a closed ring (fill, holes) fail, while a path search with a smoothness rule (v5) bridges
+  gaps and ignores cables.
+- **One threshold doesn't fit every photo.** Backlit paper texture, smooth paper and warm unlit light
+  need thresholds scaled to each photo's background.
 
 ## Recommendations
 
 1. **Ground truth first:** caliper the red lens (A, B, longest and narrowest width) and check that 10
    printed squares measure 150 mm. Set `optiframe.edge-bias-mm` from the result.
-2. **Clear lenses on the blank-window sheet**, shot from straight above. This is what the jury will
-   test; re-tune `ClassicalSegmenter` with `prototypes/v3_segmenter_tuning/` if needed.
+2. **Port v5 into `ClassicalSegmenter`** (rim map + `warpPolar` + the DP loop, ~150 lines of Java), with
+   regression tests on a few `photos3` windows. Clear lenses are what the jury will test; today's
+   backend measures 7 / 34 of them, v5 28 / 34. Capture instruction: light the sheet from below.
 3. **Tilt check:** the homography gives the camera tilt; reject or warn above ~15° ("tenez le téléphone
    à plat"). Better later: model the rim height with a calibrated camera.
 4. **Better error message** when the Ronchi sheet is used: "use the blank-window sheet", not
@@ -188,7 +225,9 @@ Letter paper (bottom markers end at 285 mm).
 ## To do
 
 - [ ] Caliper the red lens; check 10 squares = 150 mm; set `edge-bias-mm`.
-- [ ] Photograph clear lenses on the blank-window sheet (straight down + a few tilted).
+- [x] Photograph clear lenses on the blank-window sheet (`photos3/`, 119 photos, 2 lenses).
+- [ ] Port v5 (polar contour) into `ClassicalSegmenter` + regression tests on `photos3` windows.
+- [ ] Caliper `lens1` and `lens2` (session 3) as well as the red lens.
 - [x] Commit the second photo session (`photos2/`, Git LFS), as camera originals.
 - [ ] Tilt check in `MeasurementService`.
 - [ ] Ronchi-sheet error message.
@@ -218,8 +257,8 @@ Black background, low-angle side light: the bevel glows, flat faces stay dark (c
 scanners). Needs a light rig and separate scale markers.
 
 ### Improved rim fitting
-Active contour / closed spline on the line response instead of a convex hull (smooth gaps, concave
-nasal shapes); kernel sizes from the board's px/square.
+Done for clear lenses as v5 (closed path by dynamic programming). Still open: sub-pixel edge refinement
+along the found path, and kernel sizes from the board's px/square.
 
 ## ML reference
 
