@@ -241,7 +241,7 @@ Flat by default, with one exception: the chart panel. Depth is the panel lifted 
 
 ## Shapes
 
-Gently rounded and mostly rectilinear. Controls, notes and inputs use 8px; the segmented track wraps its 8px options at 12px (radius + 4px); the chart panel uses 16px (top corners only on mobile). Small 4px corners belong to name plates and images inside registration frames. Borders are 1px hairlines, 1.5px for plates and registration corners, 2–3px only for the green verified line and the red current-step rule. Lists are open, ruled rows rather than boxed cards.
+Gently rounded and mostly rectilinear. Controls, notes and inputs use 8px; the segmented track wraps its 8px options at 12px (radius + 4px); the chart panel uses 16px (top corners only on mobile). Small 4px corners belong to name plates and images inside registration frames. A filled area that carries registration corners itself (the empty photo slot) stays square, so its corner marks are never clipped. Borders are 1px hairlines, 1.5px for plates and registration corners, 2–3px only for the green verified line and the red current-step rule. Lists are open, ruled rows rather than boxed cards.
 
 ## Components
 
