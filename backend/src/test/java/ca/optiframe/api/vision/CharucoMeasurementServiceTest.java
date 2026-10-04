@@ -46,7 +46,7 @@ class CharucoMeasurementServiceTest {
 	@Test
 	void measuresEllipticLensOnTiltedPhoto() {
 		MatOfByte jpeg = new MatOfByte();
-		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36)), jpeg);
+		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36, 90, 0)), jpeg);
 
 		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
 
@@ -55,6 +55,30 @@ class CharucoMeasurementServiceTest {
 		assertThat(r.contour().aMm()).isCloseTo(50, within(0.3));
 		assertThat(r.contour().bMm()).isCloseTo(36, within(0.3));
 		assertThat(r.steps()).hasSize(3);
+	}
+
+	@Test
+	void ignoresTheSoftShadowNextToTheLens() {
+		// Room light casts a shadow 25 grey levels deep, offset by 3 mm, with a 0.5 mm soft edge, like on real photos.
+		MatOfByte jpeg = new MatOfByte();
+		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36, 90, 25)), jpeg);
+
+		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
+
+		assertThat(r.contour().aMm()).isCloseTo(50, within(0.3));
+		assertThat(r.contour().bMm()).isCloseTo(36, within(0.3));
+	}
+
+	@Test
+	void keepsAFaintRim() {
+		// A clear lens shows a lighter rim than a tinted one: 90 grey levels below the paper instead of 160.
+		MatOfByte jpeg = new MatOfByte();
+		Imgcodecs.imencode(".jpg", tiltedPhoto(renderBoard(50, 36, 160, 25)), jpeg);
+
+		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
+
+		assertThat(r.contour().aMm()).isCloseTo(50, within(0.3));
+		assertThat(r.contour().bMm()).isCloseTo(36, within(0.3));
 	}
 
 	@Test
@@ -77,8 +101,13 @@ class CharucoMeasurementServiceTest {
 				.isEqualTo(MeasurementException.Code.MARKERS_NOT_FOUND);
 	}
 
-	/** Board seen from above at TRUE_PPM, blank window, lens whose dark refraction rim ends at its true edge. */
-	private Mat renderBoard(double aMm, double bMm) {
+	/**
+	 * Board seen from above at TRUE_PPM, blank window, lens whose dark refraction rim ends at its true edge.
+	 *
+	 * @param rimGray grey level of the rim (paper is 250)
+	 * @param shadowDepth how much darker the soft shadow offset towards the top-left is, 0 for none
+	 */
+	private Mat renderBoard(double aMm, double bMm, double rimGray, double shadowDepth) {
 		SheetLayout.Charuco c = layout.charuco();
 		CharucoBoard board = new CharucoBoard(new Size(c.squaresX(), c.squaresY()), (float) c.squareMm(),
 				(float) c.markerMm(), Objdetect.getPredefinedDictionary(Objdetect.DICT_5X5_250));
@@ -98,7 +127,16 @@ class CharucoMeasurementServiceTest {
 		Point center = new Point((win.xMm() + win.widthMm() / 2) * TRUE_PPM, (win.yMm() + win.heightMm() / 2) * TRUE_PPM);
 		Size outer = new Size(aMm / 2 * TRUE_PPM, bMm / 2 * TRUE_PPM);
 		Size inner = new Size((aMm / 2 - 1.5) * TRUE_PPM, (bMm / 2 - 1.5) * TRUE_PPM);
-		Imgproc.ellipse(sheet, center, outer, 0, 0, 360, new Scalar(90, 90, 90), -1);
+		if (shadowDepth > 0) {
+			Mat shadow = Mat.zeros(sheet.size(), CvType.CV_8UC3);
+			Point offset = new Point(center.x - 3 * TRUE_PPM, center.y - 3 * TRUE_PPM);
+			Imgproc.ellipse(shadow, offset, outer, 0, 0, 360, Scalar.all(shadowDepth), -1);
+			// Shadow edge about 0.5 mm wide, as measured on real photos: crisp enough to fool a low threshold.
+			int blur = ((int) Math.round(0.5 * TRUE_PPM)) | 1;
+			Imgproc.GaussianBlur(shadow, shadow, new Size(blur, blur), 0);
+			Core.subtract(sheet, shadow, sheet);
+		}
+		Imgproc.ellipse(sheet, center, outer, 0, 0, 360, Scalar.all(rimGray), -1);
 		Imgproc.ellipse(sheet, center, inner, 0, 0, 360, new Scalar(235, 235, 235), -1);
 
 		// White paper margin around the board, like the printed page.
