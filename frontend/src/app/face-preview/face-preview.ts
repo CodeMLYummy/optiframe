@@ -122,9 +122,9 @@ const SMOOTHING = 0.4;
     }
     .stage {
       position: relative;
-      border-radius: 6px;
+      border-radius: 4px;
       overflow: hidden;
-      background: #000;
+      background: var(--panel-2);
     }
     .stage.mirror {
       transform: scaleX(-1);
@@ -148,9 +148,10 @@ const SMOOTHING = 0.4;
       height: 100%;
     }
     path {
-      fill: #1d2b3a;
+      /* Same filament colour as the 3D preview: dark in the light theme, pale in the dark one. */
+      fill: var(--ink);
       fill-opacity: 0.9;
-      stroke: #0b1218;
+      stroke: var(--ink);
       stroke-width: 0.3;
     }
   `,

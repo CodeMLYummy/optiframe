@@ -17,7 +17,8 @@
   justify-items: center;
   gap: 18px;
   padding: 36px 20px 28px;
-  border-radius: 6px;
+  /* Square: rounding would clip the registration corners drawn at the edges. */
+  border-radius: 0;
   background-color: var(--panel-2);
   cursor: pointer;
   transition: background-color 0.2s var(--ease);
@@ -55,18 +56,6 @@
 .sheet .lens {
   stroke: var(--ink);
   stroke-width: 1.6;
-}
-
-.cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 0 22px;
-  border-radius: var(--radius);
-  background: var(--ink);
-  color: var(--on-ink);
-  font-weight: 600;
 }
 
 .buttons {
