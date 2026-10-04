@@ -6,8 +6,10 @@ The rim of a clear lens is a thin, faint line; shadows (lens, cables) are wide s
 - v4 (`v4`, kept as the failed attempt): close the rim ring, fill it, open away thin leftovers. Fails whenever the
   faint rim has a gap or a cable touches it (3-10 / 34 windows).
 - v5 (`v5`, polar contour): unroll the rim map around the lens centre and find, by dynamic programming, the closed
-  path r(theta) with the most rim evidence, with a 0.4 mm step limit and a cost per radius jump. Bridges gaps,
-  ignores cables. Refuses when the path has rim evidence on < MIN_RIM of its length. 28 / 34 windows.
+  path r(theta) with the most rim evidence, with a 0.4 mm step limit and a cost per radius jump, then snaps each
+  point to the strongest rim response within 0.6 mm (the jump cost alone flattens the long axis). Bridges gaps,
+  ignores cables. Refuses when the path has rim evidence on < MIN_RIM of its length. Ported to the backend's
+  ClassicalSegmenter.
 
 usage (from lensDetection/):
   .venv/bin/python prototypes/v5_polar_contour/make_windows.py     # photos3 -> results_session3/windows/
@@ -70,11 +72,12 @@ def line_response(win, ppm=PPM):
     return resp
 
 
-def polar_contour(resp, center, ppm=PPM, n_angles=720, r_min_mm=8, r_max_mm=45, max_step=4, jump_cost=0.4):
+def polar_contour(resp, center, ppm=PPM, n_angles=720, r_min_mm=8, r_max_mm=45, max_step=4, jump_cost=0.4,
+                  snap_mm=0.6):
     """Closed path r(theta) maximising the rim response, |dr| <= max_step px between neighbouring angles."""
     r_max = int(r_max_mm * ppm)
-    pol = cv2.warpPolar(resp, (r_max, n_angles), center, r_max, cv2.WARP_POLAR_LINEAR)
-    pol = np.minimum(pol, 6.0)  # one very strong blob (glare) must not outweigh a whole faint rim
+    raw = cv2.warpPolar(resp, (r_max, n_angles), center, r_max, cv2.WARP_POLAR_LINEAR)
+    pol = np.minimum(raw, 6.0)  # one very strong blob (glare) must not outweigh a whole faint rim
     pol[:, : int(r_min_mm * ppm)] = 0
     # Unroll 2 turns so the path closes on itself; keep the second turn.
     score = np.vstack([pol, pol])
@@ -102,9 +105,19 @@ def polar_contour(resp, center, ppm=PPM, n_angles=720, r_min_mm=8, r_max_mm=45, 
     for t in range(n - 1, 0, -1):
         r[t - 1] = back[t, r[t]]
     radii = r[n_angles:]
-    theta = np.arange(n_angles) * 2 * np.pi / n_angles
-    pts = np.stack([center[0] + radii * np.cos(theta), center[1] + radii * np.sin(theta)], 1)
     strength = float(np.mean(pol[np.arange(n_angles), np.clip(radii, 0, R - 1)] > 2.0))
+    # The jump cost flattens the path (cuts the ends of the long axis): snap each point to the strongest
+    # response within snap_mm. Same as the backend's ClassicalSegmenter.
+    k = int(round(snap_mm * ppm))
+    if k:
+        snapped = radii.copy()
+        for t, rr in enumerate(radii):
+            lo, hi = max(0, rr - k), min(R - 1, rr + k)
+            band = raw[t, lo:hi + 1]
+            snapped[t] = lo + int(np.argmax(band)) if band[np.argmax(band)] > raw[t, rr] else rr
+        radii = snapped
+    theta = np.arange(n_angles) * 2 * np.pi / n_angles
+    pts = np.stack([center[0] + (radii + 0.5) * np.cos(theta), center[1] + (radii + 0.5) * np.sin(theta)], 1)
     return pts.astype(np.float32), strength
 
 

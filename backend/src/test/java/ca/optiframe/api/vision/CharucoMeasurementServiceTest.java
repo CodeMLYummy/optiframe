@@ -30,6 +30,8 @@ import ca.optiframe.api.sheet.SheetLayout;
 class CharucoMeasurementServiceTest {
 
 	private static final double TRUE_PPM = 12;
+	/** Width of the dark refraction rim, as seen on real lenses (0.3-0.5 mm). */
+	private static final double RIM_MM = 0.5;
 
 	@Autowired
 	MeasurementService service;
@@ -126,7 +128,7 @@ class CharucoMeasurementServiceTest {
 				new Scalar(250, 250, 250), -1);
 		Point center = new Point((win.xMm() + win.widthMm() / 2) * TRUE_PPM, (win.yMm() + win.heightMm() / 2) * TRUE_PPM);
 		Size outer = new Size(aMm / 2 * TRUE_PPM, bMm / 2 * TRUE_PPM);
-		Size inner = new Size((aMm / 2 - 1.5) * TRUE_PPM, (bMm / 2 - 1.5) * TRUE_PPM);
+		Size inner = new Size((aMm / 2 - RIM_MM) * TRUE_PPM, (bMm / 2 - RIM_MM) * TRUE_PPM);
 		if (shadowDepth > 0) {
 			Mat shadow = Mat.zeros(sheet.size(), CvType.CV_8UC3);
 			Point offset = new Point(center.x - 3 * TRUE_PPM, center.y - 3 * TRUE_PPM);

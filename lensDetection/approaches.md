@@ -2,18 +2,19 @@
 
 What we tried to measure a spectacle lens outline from a phone photo, what worked, what didn't, and what
 we recommend next. Started 2026-10-03 with the review of Richard's `lensDetection/` package (commits
-`2262257`..`9ce9a4e`). Prototype scripts (v0–v5, SAM) are in [`prototypes/`](prototypes/README.md); A1–A2 are changes to the app backend.
+`2262257`..`9ce9a4e`). Prototype scripts (v0–v5, SAM) are in [`prototypes/`](prototypes/README.md); A1–A3 are changes to the app backend.
 
 ## Summary
 
 - **Where we are:** the app backend reads the printed ChArUco sheet (Letter or A4); the sheet → mm part
-  is solid (fit error 0.17–0.29 mm). On **clear lenses** (session 3, 119 photos) the backend's segmenter
-  measures only 7 of 34 blank-window photos; the **v5 polar-contour prototype measures 28 / 34** with
-  a standard deviation under 1 mm per lens, and keeps the red lens within 0.8 mm. Open risks: v5 isn't in the backend
-  yet, **parallax on steep shots**, and **no caliper ground truth** yet.
-- **Recommendation:** keep the backlit blank-window ChArUco sheet; port v5 into `ClassicalSegmenter`;
-  caliper the three lenses; add a tilt check; then add SAM (box-prompted by the classical pipeline)
-  and/or a small model trained on synthetic + own photos for the "Données et IA" points.
+  is solid (fit error 0.17–0.29 mm). Its segmenter is now the **v5 polar contour** (A3): on clear
+  lenses (session 3) it measures **35 of 47** blank-window photos (was 11) with a standard deviation
+  under 1 mm per lens, and the red lens within −0.6…+1.0 mm of its colour reference. Open risks:
+  **parallax on steep shots**, the Ronchi sheets (unusable for the outline), and **no caliper ground
+  truth** yet.
+- **Recommendation:** keep the backlit blank-window ChArUco sheet; caliper the three lenses and set
+  `edge-bias-mm`; add a tilt check; then train the U-Net on photos auto-labelled by v5 (one mask per
+  lens position labels every photo of it) and let v5 refine its mask, for the "Données et IA" points.
 - **What the jury scores** (`consignes.pdf`): A and B of two real lenses vs caliper, full 30 pts at
   ≤ 1 mm mean abs error, 0 at 4 mm.
 
@@ -30,6 +31,7 @@ we recommend next. Started 2026-10-03 with the review of Richard's `lensDetectio
 | v3 → A2 | 10-04 | `prototypes/v3_segmenter_tuning/` → `backend/.../ClassicalSegmenter.java` (commit `a865b76`) | App: stop the classical segmenter leaking into the lens shadow | ✅ A spread 4.6 → 2.0 mm, B 57.2–57.7 mm (excl. steep shot) |
 | v4 | 10-04 | `prototypes/v5_polar_contour/seg_clear.py` | Clear lenses: close the rim ring, fill, open away cables | ❌ 3–10 / 34 (gaps, cables) |
 | v5 | 10-04 | `prototypes/v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar dynamic programming) | ✅ 28 / 34 vs 7 for the backend; std < 1 mm per lens |
+| v5 → A3 | 10-04 | `backend/.../ClassicalSegmenter.java` | App: v5 replaces the threshold segmenter, plus a ±0.6 mm snap to the rim | ✅ 35 / 47 blank-window photos via `/api/measure` (was 11), ~0.3 s each |
 
 ## Context
 
@@ -188,6 +190,25 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
   shots (004540, 004546) the path can follow the lens's top edge (parallax).
 - **Ronchi windows and the Ronchi-only sheet:** still unusable for the outline (36 + 36 photos).
 
+### v5 → A3 — app: polar contour in `ClassicalSegmenter`
+- Straight port of v5 (rim map, `warpPolar`, two-turn DP, re-centring, 50 % evidence rule), plus one
+  step found while porting: **the jump cost flattens the path** (it cuts the ends of the long axis and
+  bulges the short one: a synthetic 50 × 36 mm lens read 47.4 × 36.2). Each point is therefore snapped
+  to the strongest rim response within ±0.6 mm. A "push to the outer side of the rim" step was tried
+  first and rejected: it walked into neighbouring lines (side wall, shadow edge) on real photos, +2 mm on
+  the red lens.
+- Synthetic tests now draw a 0.5 mm rim, like real lenses (0.3–0.5 mm), instead of 1.5 mm; a lens whose
+  edge shows as a thick dark band (> ~1 mm) can be under-measured on the long axis.
+- All 133 photos of sessions 2–3 through `/api/measure`:
+
+  | | Before (A2) | A3 |
+  |---|---|---|
+  | `photos3` blank-window photos measured | 11 / 47 | **35 / 47** (8 sheet not found, 4 lens not found) |
+  | `lens1` long × short | — | 50.26 ± 0.96 × 31.05 ± 0.85 mm (19) |
+  | `lens2` long × short | — | 51.29 ± 0.57 × 38.21 ± 0.52 mm (16) |
+  | Red lens A / B vs colour prototype | +0.5 mm, steep shot +4 mm | −0.6 … +1.0 mm |
+  | Server time per photo | | ~0.3 s |
+
 ## Lessons
 
 - **The rim is the signal.** A low-power clear lens barely distorts what's behind it; every working
@@ -209,9 +230,8 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
 
 1. **Ground truth first:** caliper the red lens (A, B, longest and narrowest width) and check that 10
    printed squares measure 150 mm. Set `optiframe.edge-bias-mm` from the result.
-2. **Port v5 into `ClassicalSegmenter`** (rim map + `warpPolar` + the DP loop, ~150 lines of Java), with
-   regression tests on a few `photos3` windows. Clear lenses are what the jury will test; today's
-   backend measures 7 / 34 of them, v5 28 / 34. Capture instruction: light the sheet from below.
+2. ~~Port v5 into `ClassicalSegmenter`~~ — done (A3): 35 / 47 clear-lens photos. Still to add: a few
+   real `photos3` windows as regression tests. Capture instruction: light the sheet from below.
 3. **Tilt check:** the homography gives the camera tilt; reject or warn above ~15° ("tenez le téléphone
    à plat"). Better later: model the rim height with a calibrated camera.
 4. **Better error message** when the Ronchi sheet is used: "use the blank-window sheet", not
@@ -226,7 +246,8 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
 
 - [ ] Caliper the red lens; check 10 squares = 150 mm; set `edge-bias-mm`.
 - [x] Photograph clear lenses on the blank-window sheet (`photos3/`, 119 photos, 2 lenses).
-- [ ] Port v5 (polar contour) into `ClassicalSegmenter` + regression tests on `photos3` windows.
+- [x] Port v5 (polar contour) into `ClassicalSegmenter` (A3).
+- [ ] Real-photo regression tests (a few `photos3` windows with expected sizes).
 - [ ] Caliper `lens1` and `lens2` (session 3) as well as the red lens.
 - [x] Commit the second photo session (`photos2/`, Git LFS), as camera originals.
 - [ ] Tilt check in `MeasurementService`.

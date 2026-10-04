@@ -58,7 +58,20 @@ Même verre sur 5 photos originales (Galaxy S22 Ultra, `lensDetection/photos2/`)
 - Corrigé en cours de route : l'ombre du verre était prise pour le verre (jusqu'à +4 mm). Seuils relevés dans `ClassicalSegmenter`, test de non-régression ajouté.
 - Détail des essais, prototypes et recommandations : [`lensDetection/approaches.md`](../lensDetection/approaches.md).
 
-> À compléter : valeurs au pied à coulisse de ce verre (pour calibrer `edge-bias-mm`), verres transparents, contrôle de l'inclinaison de la photo.
+### Photos réelles (deux verres transparents, `lensDetection/photos3/`)
+
+119 photos (Galaxy S22 Ultra) de deux verres transparents de formes différentes, sur les trois feuilles Letter, avec ou sans éclairage par-dessous, de face et inclinées (3 à 28°), zoom 1× et 1,58×. Méthode classique (contour polaire), via `/api/measure`. Dimensions du rectangle minimal (indépendantes de la rotation du verre) :
+
+| Verre | Photos mesurées (cadre blanc) | Longueur (mm) | Largeur (mm) |
+|---|---|---|---|
+| `lens1` (rectangle arrondi) | 19 | 50,26 ± 0,96 | 31,05 ± 0,85 |
+| `lens2` (plus rond) | 16 | 51,29 ± 0,57 | 38,21 ± 0,52 |
+
+- 35 photos sur 47 avec cadre blanc sont mesurées (11 avant le contour polaire) ; les 12 autres sont refusées avec un message clair (8 feuilles non détectées, 4 verres non trouvés).
+- Les dispersions incluent les prises inclinées et zoomées ; ce sont des écarts de répétabilité, pas des écarts à la vraie taille.
+- Les feuilles à rayures (Ronchi) ne permettent pas de détecter le contour.
+
+> À compléter : valeurs au pied à coulisse des trois verres (pour calibrer `edge-bias-mm`), contrôle de l'inclinaison de la photo.
 
 ## Limites connues
 
