@@ -4,6 +4,7 @@ Preprocessing MUST match backend OnnxSegmenter: resize to SIZE x SIZE (no aspect
 ImageNet mean/std, NCHW. Images come from the API with OPTIFRAME_DATASET_DIR set (auto-labeled backlit
 shots) and from your own harder shots whose masks were transferred from a backlit twin.
 """
+
 from pathlib import Path
 
 import albumentations as A
@@ -19,16 +20,18 @@ STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 def augmentations() -> A.Compose:
     """Reflections, shadows, blur and lighting changes the backlit shots do not have."""
-    return A.Compose([
-        A.HorizontalFlip(),
-        A.VerticalFlip(),
-        A.Affine(rotate=(-20, 20), scale=(0.9, 1.1), p=0.7),
-        A.RandomBrightnessContrast(0.3, 0.3),
-        A.RandomShadow(p=0.3),
-        A.RandomSunFlare(src_radius=120, p=0.2),
-        A.GaussianBlur(p=0.2),
-        A.ImageCompression(quality_range=(60, 95), p=0.3),
-    ])
+    return A.Compose(
+        [
+            A.HorizontalFlip(),
+            A.VerticalFlip(),
+            A.Affine(rotate=(-20, 20), scale=(0.9, 1.1), p=0.7),
+            A.RandomBrightnessContrast(0.3, 0.3),
+            A.RandomShadow(p=0.3),
+            A.RandomSunFlare(src_radius=120, p=0.2),
+            A.GaussianBlur(p=0.2),
+            A.ImageCompression(quality_range=(60, 95), p=0.3),
+        ]
+    )
 
 
 def to_tensor(rgb: np.ndarray) -> torch.Tensor:

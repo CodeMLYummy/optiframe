@@ -13,6 +13,7 @@ millimetres, so the detector does not need to know which paper was used.
 Print at 100 % (no "fit to page") and check that `checkSquares` squares measure the expected length.
 Board corners touching the lens window are not usable and must be ignored by the detector.
 """
+
 import argparse
 import json
 from pathlib import Path
@@ -60,12 +61,24 @@ def ronchi_only(layout: dict, paper: str, out: Path) -> None:
     ax.axis("off")
     lines(ax, x, y, bw, bh, period)
 
-    ax.text(w / 2, y - 4, "Verre au centre, posé à plat puis surélevé (hauteur notée), puis tourné de 90°",
-            ha="center", va="center", fontsize=7, color="0.3")
+    ax.text(
+        w / 2,
+        y - 4,
+        "Verre au centre, posé à plat puis surélevé (hauteur notée), puis tourné de 90°",
+        ha="center",
+        va="center",
+        fontsize=7,
+        color="0.3",
+    )
     n = 50
-    ax.text(w / 2, y + bh + 4,
-            f"Imprimer à 100 %. {n} traits noirs = {n * period:g} mm.  |  OptiFrame Ronchi {period:g} mm ({paper})",
-            ha="center", va="center", fontsize=7)
+    ax.text(
+        w / 2,
+        y + bh + 4,
+        f"Imprimer à 100 %. {n} traits noirs = {n * period:g} mm.  |  OptiFrame Ronchi {period:g} mm ({paper})",
+        ha="center",
+        va="center",
+        fontsize=7,
+    )
 
     fig.savefig(out)
     plt.close(fig)
@@ -98,12 +111,25 @@ def sheet(layout: dict, paper: str, ronchi: bool, out: Path) -> None:
             ax.plot([x0, x0 + 5], [cy, cy], color="black", linewidth=0.6)
     ax.add_patch(Rectangle((wx, wy), ww, wh, fill=False, linestyle="--", linewidth=0.6, edgecolor="0.5"))
 
-    ax.text(w / 2, y - 4, "Verre au centre du cadre, face bombée vers le haut",
-            ha="center", va="center", fontsize=7, color="0.3")
+    ax.text(
+        w / 2,
+        y - 4,
+        "Verre au centre du cadre, face bombée vers le haut",
+        ha="center",
+        va="center",
+        fontsize=7,
+        color="0.3",
+    )
     n = layout["checkSquares"]
     name = layout["name"] + (f" + Ronchi {layout['ronchi']['periodMm']} mm" if ronchi else "") + f" ({paper})"
-    ax.text(w / 2, y + bh + 4, f"Imprimer à 100 %. {n} cases doivent mesurer {n * c['squareMm']} mm.  |  {name}",
-            ha="center", va="center", fontsize=7)
+    ax.text(
+        w / 2,
+        y + bh + 4,
+        f"Imprimer à 100 %. {n} cases doivent mesurer {n * c['squareMm']} mm.  |  {name}",
+        ha="center",
+        va="center",
+        fontsize=7,
+    )
 
     fig.savefig(out)
     plt.close(fig)

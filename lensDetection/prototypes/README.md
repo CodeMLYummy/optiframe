@@ -4,18 +4,18 @@ Throwaway-quality research scripts that informed the backend (`backend/.../visio
 frozen as it was when its results were recorded; the reasoning and results are in
 [`../approaches.md`](../approaches.md).
 
-| Version | Folder | Question it answered | Outcome |
-|---|---|---|---|
-| v0 | `../src/lensdetection/glass_edges.py` (Richard's package) | Can we find the lens by subtracting the expected checkerboard? | **No.** 0 candidates on all 3 clear-lens photos: printed-edge misregistration is as strong as the rim |
-| v1 | `v1_rim_line/` | Can we find a clear lens by its thin rim line on the checkerboard? | **Yes, roughly.** Top-hat/black-hat + ellipse-consistent piece selection finds the rim on 3/3 photos; convex hull, pixels only |
-| v2 | `v2_colour_charuco/` | Does the printed ChArUco sheet give reliable mm? (tinted lens, colour segmentation) | **Yes.** 11/14 photos, A 46.65 ± 0.77, B 56.69 ± 0.45 mm (same lens) |
-| v3 | `v3_segmenter_tuning/` | Why does the backend's classical segmenter over-measure? | Shadow leak; fixed with Canny 40/100 + darker-than-mean 25 (ported to Java) |
-| SAM | `sam_eval/` | Can Segment Anything outline the lens? | Only with a box prompt (filled IoU 0.96–0.98); points and automatic mode fail |
-| v4 | `v5_polar_contour/seg_clear.py` (`v4`) | Clear lenses on the blank window: close the rim ring and fill it? | **No.** 3–10 / 34: the faint rim has gaps and cables touch it, so the fill fails or floods |
-| v10 | `v10_smooth_rim/` | Can a second, smooth path search replace v5's jagged per-angle snap? | **Yes.** ~25 % less jagged, perimeter/hull 1.145 → 1.098, unbiased with outer bias 1 (+0.03 mm), double edge fixed on 005114; ported to the backend (A4) |
-| v7–v9 | `v7_v8_v9_detector/` | Do ChArUco detector settings (`minMarkers=1`, `tryRefineMarkers`, both) help end to end? | Coverage, not accuracy: measured 37 → 40 / 41 / 40 of 54; MAE on common photos unchanged (0.81–0.83 mm). v8 (`tryRefineMarkers`) best; v7/v9 trip the fold check |
-| v6 | `v6_corner_overlay/` | Diagnostic: how good is the sub-pixel ChArUco corner detection on every photo? | Detection is sharp (×8 insets) but the sheet isn't a plane: inlier RMS ~1.4 px, outliers on 64 / 67 photos (blur, curl); side columns found 42–55 % vs 70–75 % for top/bottom rows |
-| v5 | `v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar contour, dynamic programming)? | **Yes.** 28 / 34 blank windows (backend today: 7); lens 1 50.18 ± 0.99 × 31.33 ± 0.98, lens 2 51.51 ± 0.64 × 38.20 ± 0.48 mm; red lens within 0.8 mm of its colour mask |
+| Version | Folder                                                    | Question it answered                                                                        | Outcome                                                                                                                                                                            |
+| ------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v0      | `../src/lensdetection/glass_edges.py` (Richard's package) | Can we find the lens by subtracting the expected checkerboard?                              | **No.** 0 candidates on all 3 clear-lens photos: printed-edge misregistration is as strong as the rim                                                                              |
+| v1      | `v1_rim_line/`                                            | Can we find a clear lens by its thin rim line on the checkerboard?                          | **Yes, roughly.** Top-hat/black-hat + ellipse-consistent piece selection finds the rim on 3/3 photos; convex hull, pixels only                                                     |
+| v2      | `v2_colour_charuco/`                                      | Does the printed ChArUco sheet give reliable mm? (tinted lens, colour segmentation)         | **Yes.** 11/14 photos, A 46.65 ± 0.77, B 56.69 ± 0.45 mm (same lens)                                                                                                               |
+| v3      | `v3_segmenter_tuning/`                                    | Why does the backend's classical segmenter over-measure?                                    | Shadow leak; fixed with Canny 40/100 + darker-than-mean 25 (ported to Java)                                                                                                        |
+| SAM     | `sam_eval/`                                               | Can Segment Anything outline the lens?                                                      | Only with a box prompt (filled IoU 0.96–0.98); points and automatic mode fail                                                                                                      |
+| v4      | `v5_polar_contour/seg_clear.py` (`v4`)                    | Clear lenses on the blank window: close the rim ring and fill it?                           | **No.** 3–10 / 34: the faint rim has gaps and cables touch it, so the fill fails or floods                                                                                         |
+| v10     | `v10_smooth_rim/`                                         | Can a second, smooth path search replace v5's jagged per-angle snap?                        | **Yes.** ~25 % less jagged, perimeter/hull 1.145 → 1.098, unbiased with outer bias 1 (+0.03 mm), double edge fixed on 005114; ported to the backend (A4)                           |
+| v7–v9   | `v7_v8_v9_detector/`                                      | Do ChArUco detector settings (`minMarkers=1`, `tryRefineMarkers`, both) help end to end?    | Coverage, not accuracy: measured 37 → 40 / 41 / 40 of 54; MAE on common photos unchanged (0.81–0.83 mm). v8 (`tryRefineMarkers`) best; v7/v9 trip the fold check                   |
+| v6      | `v6_corner_overlay/`                                      | Diagnostic: how good is the sub-pixel ChArUco corner detection on every photo?              | Detection is sharp (×8 insets) but the sheet isn't a plane: inlier RMS ~1.4 px, outliers on 64 / 67 photos (blur, curl); side columns found 42–55 % vs 70–75 % for top/bottom rows |
+| v5      | `v5_polar_contour/`                                       | Clear lenses: best closed path r(θ) around the centre (polar contour, dynamic programming)? | **Yes.** 28 / 34 blank windows (backend today: 7); lens 1 50.18 ± 0.99 × 31.33 ± 0.98, lens 2 51.51 ± 0.64 × 38.20 ± 0.48 mm; red lens within 0.8 mm of its colour mask            |
 
 ## Setup
 
@@ -146,11 +146,11 @@ for four detector settings: base (today), v7 `minMarkers=1`, v8 `tryRefineMarker
 the true print scale (73.4 / 75). Per-photo results in `results_v7_v9/measurements.csv`.
 
 | Variant | Measured | MAE (true scale) | Fold-check failures |
-|---|---|---|---|
-| base | 37 / 54 | 0.84 mm | 1 |
-| v7 | 40 / 54 | 0.80 mm | 2 |
-| v8 | 41 / 54 | 0.80 mm | 0 |
-| v9 | 40 / 54 | 0.81 mm | 2 |
+| ------- | -------- | ---------------- | ------------------- |
+| base    | 37 / 54  | 0.84 mm          | 1                   |
+| v7      | 40 / 54  | 0.80 mm          | 2                   |
+| v8      | 41 / 54  | 0.80 mm          | 0                   |
+| v9      | 40 / 54  | 0.81 mm          | 2                   |
 
 The fold check averages the error over all corners, RANSAC outliers included; single-marker corners (v7, v9)
 add outliers and trip it. On the 36 photos all variants measure, MAE is 0.81–0.83 mm for every setting.

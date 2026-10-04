@@ -7,7 +7,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-
 from lensdetection.boxing import measure, measure_box
 
 
@@ -54,23 +53,21 @@ class BoxingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             (folder / "closed.json").write_text(json.dumps({"contour_board_mm": points.tolist()}))
-            (folder / "detections.json").write_text(
-                json.dumps({"board_to_image_homography": homography.tolist()})
-            )
+            (folder / "detections.json").write_text(json.dumps({"board_to_image_homography": homography.tolist()}))
             cv2.imwrite(str(folder / "photo.png"), image)
             run = subprocess.run(
-                [sys.executable, "-m", "lensdetection.boxing", str(folder),
-                 str(folder / "photo.png")],
-                capture_output=True, text=True,
+                [sys.executable, "-m", "lensdetection.boxing", str(folder), str(folder / "photo.png")],
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(run.returncode, 0, run.stderr)
             saved = json.loads((folder / "boxing.json").read_text())
             self.assertAlmostEqual(saved["length_mm"], 60, delta=0.05)
             self.assertTrue((folder / "boxing_overlay.png").exists())
             missing = subprocess.run(
-                [sys.executable, "-m", "lensdetection.boxing", str(folder / "nope"),
-                 str(folder / "photo.png")],
-                capture_output=True, text=True,
+                [sys.executable, "-m", "lensdetection.boxing", str(folder / "nope"), str(folder / "photo.png")],
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(missing.returncode, 2)
 

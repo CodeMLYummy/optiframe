@@ -39,7 +39,9 @@ export class Home {
     const key = this.errorKey();
     return key ? this.i18n.t(key) : null;
   });
-  protected readonly hasSteps = computed(() => Object.values(this.store.lenses()).some((s) => s?.response));
+  protected readonly hasSteps = computed(() =>
+    Object.values(this.store.lenses()).some((s) => s?.response),
+  );
   protected readonly defaultBridgeMm = DEFAULT_BRIDGE_MM;
 
   /** Null when no PD was entered: the frame then uses the standard bridge. */
@@ -71,13 +73,20 @@ export class Home {
       return this.i18n.t('frame.pdTooSmall', { mm: this.i18n.num(b), min: MIN_BRIDGE_MM });
     }
     if (b < COMFORT_BRIDGE_MM.min || b > COMFORT_BRIDGE_MM.max) {
-      return this.i18n.t('frame.bridgeUnusual', { mm: this.i18n.num(b), min: COMFORT_BRIDGE_MM.min, max: COMFORT_BRIDGE_MM.max });
+      return this.i18n.t('frame.bridgeUnusual', {
+        mm: this.i18n.num(b),
+        min: COMFORT_BRIDGE_MM.min,
+        max: COMFORT_BRIDGE_MM.max,
+      });
     }
     return null;
   });
 
   protected readonly canGenerate = computed(
-    () => this.store.bothMeasured() && !this.generating() && (this.placement()?.bridgeMm ?? 0) >= MIN_BRIDGE_MM,
+    () =>
+      this.store.bothMeasured() &&
+      !this.generating() &&
+      (this.placement()?.bridgeMm ?? 0) >= MIN_BRIDGE_MM,
   );
 
   protected setPaper(event: Event): void {
@@ -96,7 +105,10 @@ export class Home {
 
   protected setPd(field: keyof Omit<PdInput, 'perEye'>, event: Event): void {
     const value = (event.target as HTMLInputElement).valueAsNumber;
-    this.store.pd.update((pd) => ({ ...pd, [field]: Number.isFinite(value) && value > 0 ? value : null }));
+    this.store.pd.update((pd) => ({
+      ...pd,
+      [field]: Number.isFinite(value) && value > 0 ? value : null,
+    }));
     this.frame.set(null);
   }
 
@@ -137,7 +149,10 @@ export class Home {
       this.errorKey.set('pair.missing');
       return;
     }
-    download(new Blob([lensPairSvg(R.contour, L.contour)], { type: 'image/svg+xml' }), 'contours-paire.svg');
+    download(
+      new Blob([lensPairSvg(R.contour, L.contour)], { type: 'image/svg+xml' }),
+      'contours-paire.svg',
+    );
   }
 
   protected readonly templeLengthMm = TEMPLE.lengthMm;
@@ -150,7 +165,12 @@ export class Home {
 
   /** PD estimated on the face: replaces the entered one; the frame has to be generated again. */
   protected applyFacePd(pdMm: number): void {
-    this.store.pd.set({ perEye: false, totalMm: Math.round(pdMm * 2) / 2, rightMm: null, leftMm: null });
+    this.store.pd.set({
+      perEye: false,
+      totalMm: Math.round(pdMm * 2) / 2,
+      rightMm: null,
+      leftMm: null,
+    });
     this.frame.set(null);
   }
 

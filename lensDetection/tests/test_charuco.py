@@ -2,7 +2,6 @@ import unittest
 
 from lensdetection.charuco import parse_xrandr_monitors, select_monitor
 
-
 XRANDR_OUTPUT = """\
 Monitors: 2
  0: +*eDP-1 1920/340x1080/190+0+0  eDP-1

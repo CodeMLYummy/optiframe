@@ -1,5 +1,6 @@
-import csv, sys
-from collections import defaultdict
+import csv
+import sys
+
 rows = list(csv.DictReader(open(sys.argv[1])))
 cols = sys.argv[2].split(",") if len(sys.argv) > 2 else ["iou_fill", "bnd_mean_px", "bnd_p95_px", "ring", "snap"]
 filt = dict(a.split("=") for a in sys.argv[3:])

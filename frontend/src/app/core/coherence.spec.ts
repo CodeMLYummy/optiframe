@@ -33,7 +33,11 @@ describe('coherence', () => {
   });
 
   it('gives the spread of A and B between takes', () => {
-    const s = spread([ellipseContour('R', 50, 36), ellipseContour('R', 50.4, 35.7), ellipseContour('R', 49.8, 36)]);
+    const s = spread([
+      ellipseContour('R', 50, 36),
+      ellipseContour('R', 50.4, 35.7),
+      ellipseContour('R', 49.8, 36),
+    ]);
     expect(s.takes).toBe(3);
     expect(s.aMm).toBeCloseTo(0.6);
     expect(s.bMm).toBeCloseTo(0.3);

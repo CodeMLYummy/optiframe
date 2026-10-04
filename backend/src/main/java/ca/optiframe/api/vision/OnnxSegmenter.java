@@ -5,6 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+import ai.onnxruntime.OnnxTensor;
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
+import jakarta.annotation.PreDestroy;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -13,12 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import ai.onnxruntime.OnnxTensor;
-import ai.onnxruntime.OrtEnvironment;
-import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import ca.optiframe.api.config.OptiframeProperties;
-import jakarta.annotation.PreDestroy;
 
 /**
  * Runs the segmentation model trained in {@code training/}. Preprocessing must match {@code training/dataset.py}:

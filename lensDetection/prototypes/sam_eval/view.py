@@ -1,5 +1,6 @@
 import cv2
 from common import BBOX, load
+
 for n, b in BBOX.items():
     im = load(n)
     x, y, w, h = b

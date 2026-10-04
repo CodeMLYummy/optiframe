@@ -4,7 +4,14 @@
   <div class="actions">
     <label class="button primary" [class.disabled]="busy()">
       {{ i18n.t('lens.takePhoto') }}
-      <input type="file" accept="image/*" capture="environment" (change)="onFile($event)" [disabled]="busy()" hidden />
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        (change)="onFile($event)"
+        [disabled]="busy()"
+        hidden
+      />
     </label>
     <label class="button" [class.disabled]="busy()">
       {{ i18n.t('lens.import') }}
@@ -21,9 +28,18 @@
 
   @if (slot(); as s) {
     <dl class="measures">
-      <div><dt>A</dt><dd>{{ i18n.num(s.contour.aMm) }} mm</dd></div>
-      <div><dt>B</dt><dd>{{ i18n.num(s.contour.bMm) }} mm</dd></div>
-      <div><dt>{{ i18n.t('lens.perimeter') }}</dt><dd>{{ i18n.num(s.contour.perimeterMm, '1.0-0') }} mm</dd></div>
+      <div>
+        <dt>A</dt>
+        <dd>{{ i18n.num(s.contour.aMm) }} mm</dd>
+      </div>
+      <div>
+        <dt>B</dt>
+        <dd>{{ i18n.num(s.contour.bMm) }} mm</dd>
+      </div>
+      <div>
+        <dt>{{ i18n.t('lens.perimeter') }}</dt>
+        <dd>{{ i18n.num(s.contour.perimeterMm, '1.0-0') }} mm</dd>
+      </div>
     </dl>
     @if (controlImage(); as img) {
       <img class="control" [src]="img" [alt]="i18n.t('lens.controlAlt')" />
@@ -32,13 +48,25 @@
     }
     @if (spread(); as sp) {
       <div class="takes">
-        <p [class.ok]="sp.aMm <= tolerance && sp.bMm <= tolerance" [class.warn]="sp.aMm > tolerance || sp.bMm > tolerance">
-          {{ i18n.t('lens.takesSpread', { n: sp.takes, a: i18n.num(sp.aMm), b: i18n.num(sp.bMm) }) }}
-          {{ sp.aMm <= tolerance && sp.bMm <= tolerance ? i18n.t('lens.takesOk') : i18n.t('lens.takesWarn', { mm: tolerance }) }}
+        <p
+          [class.ok]="sp.aMm <= tolerance && sp.bMm <= tolerance"
+          [class.warn]="sp.aMm > tolerance || sp.bMm > tolerance"
+        >
+          {{
+            i18n.t('lens.takesSpread', { n: sp.takes, a: i18n.num(sp.aMm), b: i18n.num(sp.bMm) })
+          }}
+          {{
+            sp.aMm <= tolerance && sp.bMm <= tolerance
+              ? i18n.t('lens.takesOk')
+              : i18n.t('lens.takesWarn', { mm: tolerance })
+          }}
         </p>
         <ol>
           @for (t of takes(); track $index) {
-            <li>{{ i18n.t('lens.take', { a: i18n.num(t.aMm), b: i18n.num(t.bMm) }) }}{{ $last ? i18n.t('lens.takeUsed') : '' }}</li>
+            <li>
+              {{ i18n.t('lens.take', { a: i18n.num(t.aMm), b: i18n.num(t.bMm) })
+              }}{{ $last ? i18n.t('lens.takeUsed') : '' }}
+            </li>
           }
         </ol>
         <button class="link" (click)="clearTakes()">{{ i18n.t('lens.clearTakes') }}</button>

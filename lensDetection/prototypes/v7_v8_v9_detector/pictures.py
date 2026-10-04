@@ -3,6 +3,7 @@
 usage (from lensDetection/): .venv/bin/python prototypes/v7_v8_v9_detector/pictures.py [photo.jpg ...]
 Default: the photos v8 rescues plus the largest corner gain. Writes results_v7_v9/v8_pictures/ (gitignored).
 """
+
 import csv
 import sys
 from pathlib import Path
@@ -17,9 +18,13 @@ sys.path.insert(0, str(LD / "prototypes/v6_corner_overlay"))
 import corner_overlay as v6  # noqa: E402
 import measure as m  # noqa: E402
 
-DEFAULT = ["lens1_charuco-blank_20261004-004542.jpg", "lens2_charuco-blank_20261004-005457.jpg",
-           "lens1_charuco-blank_20261004-004730.jpg", "lens1_charuco-blank_20261004-004737.jpg",
-           "lens2_charuco-blank_20261004-005114.jpg"]
+DEFAULT = [
+    "lens1_charuco-blank_20261004-004542.jpg",
+    "lens2_charuco-blank_20261004-005457.jpg",
+    "lens1_charuco-blank_20261004-004730.jpg",
+    "lens1_charuco-blank_20261004-004737.jpg",
+    "lens2_charuco-blank_20261004-005114.jpg",
+]
 
 
 def lens_panel(path, lens, det, height):
@@ -42,10 +47,12 @@ def lens_panel(path, lens, det, height):
     if a:
         L, S = m.CALIPER[lens]
         A, B = max(a, b), min(a, b)
-        lines += [f"raw  {A:.2f} x {B:.2f} mm",
-                  f"true scale {A * m.PRINT_SCALE:.2f} x {B * m.PRINT_SCALE:.2f}",
-                  f"caliper {L} x {S}",
-                  f"error {A * m.PRINT_SCALE - L:+.2f} x {B * m.PRINT_SCALE - S:+.2f}"]
+        lines += [
+            f"raw  {A:.2f} x {B:.2f} mm",
+            f"true scale {A * m.PRINT_SCALE:.2f} x {B * m.PRINT_SCALE:.2f}",
+            f"caliper {L} x {S}",
+            f"error {A * m.PRINT_SCALE - L:+.2f} x {B * m.PRINT_SCALE - S:+.2f}",
+        ]
     for i, t in enumerate(lines):
         cv2.putText(win, t, (12, 34 + 32 * i), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 4, cv2.LINE_AA)
         cv2.putText(win, t, (12, 34 + 32 * i), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)

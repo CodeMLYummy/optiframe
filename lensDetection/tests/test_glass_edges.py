@@ -7,7 +7,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-
 from lensdetection.glass_edges import detect_glass, load_board
 
 
@@ -42,16 +41,10 @@ class GlassEdgesTests(unittest.TestCase):
         self.assert_outline(mask, self.truth)
         candidate = result["candidates"][0]
         expected_area = np.pi * 140 * 105 * (25 / 100) ** 2
-        self.assertAlmostEqual(
-            candidate["area_mm2"], expected_area, delta=expected_area * 0.1
-        )
+        self.assertAlmostEqual(candidate["area_mm2"], expected_area, delta=expected_area * 0.1)
         physical = np.array(candidate["contour_board_mm"])
-        self.assertAlmostEqual(
-            (physical[:, 0].max() + physical[:, 0].min()) / 2, 100, delta=1
-        )
-        self.assertAlmostEqual(
-            (physical[:, 1].max() + physical[:, 1].min()) / 2, 75, delta=1
-        )
+        self.assertAlmostEqual((physical[:, 0].max() + physical[:, 0].min()) / 2, 100, delta=1)
+        self.assertAlmostEqual((physical[:, 1].max() + physical[:, 1].min()) / 2, 75, delta=1)
         self.assertEqual(overlay.shape, self.glass.shape)
         self.assertEqual(detail.shape, self.truth.shape)
         self.assertEqual(edges.shape, self.truth.shape)
@@ -115,9 +108,7 @@ class GlassEdgesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ring tolerance"):
             detect_glass(self.glass, self.board, tolerance=1.5)
         with self.assertRaisesRegex(ValueError, "Minimum radius"):
-            detect_glass(
-                self.glass, self.board, min_radius_mm=50, max_radius_mm=20
-            )
+            detect_glass(self.glass, self.board, min_radius_mm=50, max_radius_mm=20)
 
     def test_board_json_validation(self):
         config = {
@@ -181,9 +172,7 @@ class GlassEdgesTests(unittest.TestCase):
                         capture_output=True,
                         text=True,
                     )
-                    self.assertEqual(
-                        completed.returncode, expected_status, completed.stderr
-                    )
+                    self.assertEqual(completed.returncode, expected_status, completed.stderr)
                     data = json.loads((output / "detections.json").read_text())
                     self.assertEqual(bool(data["candidates"]), expected_status == 0)
                     for name in (

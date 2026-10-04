@@ -54,9 +54,7 @@ def parse_xrandr_monitors(output: str) -> list[Monitor]:
     return monitors
 
 
-def select_monitor(
-    monitors: list[Monitor], pointer: tuple[int, int] | None
-) -> Monitor | None:
+def select_monitor(monitors: list[Monitor], pointer: tuple[int, int] | None) -> Monitor | None:
     """Select the monitor under the pointer, then the primary or sole monitor."""
     if pointer is not None:
         pointer_x, pointer_y = pointer
@@ -101,9 +99,7 @@ def detect_pixels_per_mm(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Display a fullscreen ChArUco calibration board."
-    )
+    parser = argparse.ArgumentParser(description="Display a fullscreen ChArUco calibration board.")
     parser.add_argument(
         "squares_x",
         type=int,
@@ -153,9 +149,7 @@ def parse_args() -> argparse.Namespace:
     marker_count = (args.squares_x * args.squares_y) // 2
     if marker_count > len(dictionary.bytesList):
         parser.error("the selected dictionary does not have enough marker IDs")
-    if not math.isfinite(args.squares_x * args.square_mm) or not math.isfinite(
-        args.squares_y * args.square_mm
-    ):
+    if not math.isfinite(args.squares_x * args.square_mm) or not math.isfinite(args.squares_y * args.square_mm):
         parser.error("board dimensions are too large")
     return args
 
@@ -188,29 +182,22 @@ def main() -> None:
         pixels_per_mm, scale_source = detected_scale
     elif screen_width_mm > 0:
         pixels_per_mm = screen_width_px / screen_width_mm
-        scale_source = (
-            f"Tk fallback: {screen_width_px} px / {screen_width_mm} mm"
-        )
+        scale_source = f"Tk fallback: {screen_width_px} px / {screen_width_mm} mm"
     else:
         root.destroy()
         raise RuntimeError(
-            "The display did not report its physical width; cannot calculate "
-            "the board's on-screen size."
+            "The display did not report its physical width; cannot calculate the board's on-screen size."
         )
 
     board_width_px = round(board_width_mm * pixels_per_mm)
     board_height_px = round(board_height_mm * pixels_per_mm)
     if board_width_px <= screen_width_px and board_height_px <= screen_height_px:
-        image = board.generateImage(
-            (board_width_px, board_height_px), marginSize=0, borderBits=1
-        )
+        image = board.generateImage((board_width_px, board_height_px), marginSize=0, borderBits=1)
         success, png = cv2.imencode(".png", image)
         if not success:
             root.destroy()
             raise RuntimeError("OpenCV could not encode the ChArUco board image.")
-        board_image: tk.PhotoImage | None = tk.PhotoImage(
-            data=base64.b64encode(png).decode("ascii"), format="png"
-        )
+        board_image: tk.PhotoImage | None = tk.PhotoImage(data=base64.b64encode(png).decode("ascii"), format="png")
     else:
         board_image = None
 
@@ -241,11 +228,7 @@ def main() -> None:
 
     def redraw(event: tk.Event) -> None:
         canvas.delete("board")
-        if (
-            board_image is None
-            or board_width_px > event.width
-            or board_height_px > event.height
-        ):
+        if board_image is None or board_width_px > event.width or board_height_px > event.height:
             canvas.create_text(
                 event.width // 2,
                 event.height // 2,
@@ -270,9 +253,7 @@ def main() -> None:
     root.bind("<Escape>", lambda _event: root.destroy())
     root.bind(
         "f",
-        lambda _event: root.attributes(
-            "-fullscreen", not root.attributes("-fullscreen")
-        ),
+        lambda _event: root.attributes("-fullscreen", not root.attributes("-fullscreen")),
     )
     root.mainloop()
 

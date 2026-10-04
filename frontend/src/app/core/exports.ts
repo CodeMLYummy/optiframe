@@ -6,12 +6,25 @@ import { LensContour } from './lens';
 function contourBounds(lens: LensContour) {
   const xs = lens.pointsMm.map((p) => p[0]);
   const ys = lens.pointsMm.map((p) => p[1]);
-  return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
+  return {
+    minX: Math.min(...xs),
+    maxX: Math.max(...xs),
+    minY: Math.min(...ys),
+    maxY: Math.max(...ys),
+  };
 }
 
-function contourMarkup(lens: LensContour, offsetX: number, offsetY: number, labelX: number, labelY: number): string {
+function contourMarkup(
+  lens: LensContour,
+  offsetX: number,
+  offsetY: number,
+  labelX: number,
+  labelY: number,
+): string {
   // SVG y points down: flip without mirroring the front-facing outline.
-  const d = lens.pointsMm.map(([x, y], i) => `${i ? 'L' : 'M'}${(x + offsetX).toFixed(3)} ${(offsetY - y).toFixed(3)}`).join(' ');
+  const d = lens.pointsMm
+    .map(([x, y], i) => `${i ? 'L' : 'M'}${(x + offsetX).toFixed(3)} ${(offsetY - y).toFixed(3)}`)
+    .join(' ');
   const label = `${lens.eye === 'R' ? 'OD (droit)' : 'OG (gauche)'}  A ${lens.aMm.toFixed(1)} mm  B ${lens.bMm.toFixed(1)} mm`;
   return `  <path d="${d} Z" fill="none" stroke="#000" stroke-width="0.2"/>
   <line x1="${(offsetX - 2).toFixed(3)}" y1="${offsetY.toFixed(3)}" x2="${(offsetX + 2).toFixed(3)}" y2="${offsetY.toFixed(3)}" stroke="#000" stroke-width="0.1"/>
@@ -33,7 +46,11 @@ export function contourSvg(lens: LensContour): string {
   const bounds = contourBounds(lens);
   const w = bounds.maxX - bounds.minX + 2 * margin;
   const h = bounds.maxY - bounds.minY + 2 * margin;
-  return svgDocument(w, h, contourMarkup(lens, margin - bounds.minX, bounds.maxY + margin, 2, h - 2));
+  return svgDocument(
+    w,
+    h,
+    contourMarkup(lens, margin - bounds.minX, bounds.maxY + margin, 2, h - 2),
+  );
 }
 
 /** Both lenses viewed from the front (OD on the left), separated by a display gap, not a frame bridge. */
@@ -48,10 +65,14 @@ export function lensPairSvg(right: LensContour, left: LensContour): string {
   const width = leftX + l.maxX - l.minX + margin;
   // Reserve two label rows so long measurement labels never overlap.
   const height = maxY - Math.min(r.minY, l.minY) + 2 * margin + 5;
-  return svgDocument(width, height, [
-    contourMarkup(right, margin - r.minX, margin + maxY, margin, height - 7),
-    contourMarkup(left, leftX - l.minX, margin + maxY, margin, height - 2),
-  ].join('\n'));
+  return svgDocument(
+    width,
+    height,
+    [
+      contourMarkup(right, margin - r.minX, margin + maxY, margin, height - 7),
+      contourMarkup(left, leftX - l.minX, margin + maxY, margin, height - 2),
+    ].join('\n'),
+  );
 }
 
 export function stlBlob(geometry: BufferGeometry): Blob {

@@ -17,7 +17,8 @@ export const es: Messages = {
   'sheet.squaresLabel': 'Longitud medida de 10 casillas (mm)',
   'sheet.percentLabel': 'Escala de impresión (%)',
   'sheet.scaleUsed': 'Escala usada para las medidas: {percent} %',
-  'sheet.invalid': 'Valor no válido: 10 casillas deben medir entre 120 y 180 mm (escala del 80 al 120 %).',
+  'sheet.invalid':
+    'Valor no válido: 10 casillas deben medir entre 120 y 180 mm (escala del 80 al 120 %).',
   'sheet.placement':
     'Coloque la hoja sobre un fondo iluminado y luego la lente, con la cara convexa hacia arriba, en el centro del marco. El lado nasal hacia el centro de la montura.',
   'sheet.alignStrong': 'Alinee la lente bien recta con las marcas horizontales del marco',
@@ -33,7 +34,8 @@ export const es: Messages = {
   'lens.controlAlt': 'Imagen de control: contorno detectado',
   'lens.testLens': 'Lente de prueba (elipse de 50 × 36 mm)',
   'lens.useTestLens': 'Usar una lente de prueba',
-  'lens.badScale': 'Tamaño de impresión de la hoja no válido: revise la longitud de las 10 casillas (arriba).',
+  'lens.badScale':
+    'Tamaño de impresión de la hoja no válido: revise la longitud de las 10 casillas (arriba).',
   'lens.takesSpread': '{n} fotos de esta lente: diferencia A {a} mm, B {b} mm',
   'lens.takesOk': '✓ coherente',
   'lens.takesWarn': '⚠ más de {mm} mm: repita la foto',
@@ -58,7 +60,8 @@ export const es: Messages = {
   'frame.perEye': 'DP por ojo',
   'frame.bridge': 'Puente calculado:',
   'frame.standardBridge': 'Sin DP: puente estándar de {mm} mm.',
-  'frame.pdTooSmall': 'DP demasiado pequeña para estas lentes: solo quedan {mm} mm para el puente (mínimo {min} mm).',
+  'frame.pdTooSmall':
+    'DP demasiado pequeña para estas lentes: solo quedan {mm} mm para el puente (mínimo {min} mm).',
   'frame.bridgeUnusual':
     'Puente de {mm} mm, fuera del rango habitual ({min} a {max} mm). Revise la DP y el tamaño de las lentes.',
   'frame.generate': 'Generar la montura',
@@ -75,8 +78,10 @@ export const es: Messages = {
   'fit.intro':
     'El contorno medido de cada lente se superpone al aro de la montura generada. El fondo de la ranura debe estar a la misma distancia de la lente en todo el contorno, y el labio frontal debe cubrir el borde de la lente.',
   'fit.aria': 'Contorno y montura superpuestos, {lens}',
-  'fit.groove': 'Lente → fondo de la ranura: {mean} mm (mín. {min}, máx. {max}), previsto {expected} mm',
-  'fit.lip': 'Labio frontal sobre el borde de la lente: {mean} mm (mín. {min}, máx. {max}), previsto {expected} mm',
+  'fit.groove':
+    'Lente → fondo de la ranura: {mean} mm (mín. {min}, máx. {max}), previsto {expected} mm',
+  'fit.lip':
+    'Labio frontal sobre el borde de la lente: {mean} mm (mín. {min}, máx. {max}), previsto {expected} mm',
   'fit.keyContour': 'contorno medido',
   'fit.keyGroove': 'fondo de la ranura',
   'fit.keyLip': 'abertura del labio frontal',
@@ -87,18 +92,21 @@ export const es: Messages = {
   'face.privacy': 'Análisis hecho en el teléfono: la imagen no se envía ni se guarda.',
   'face.loading': 'Cargando el seguimiento del rostro…',
   'face.selfieAlt': 'Selfie importado',
-  'face.scale': 'Tamaño real, escala tomada del iris (± 5 %). DP estimada en la imagen: {pd} mm (± 3 mm).',
+  'face.scale':
+    'Tamaño real, escala tomada del iris (± 5 %). DP estimada en la imagen: {pd} mm (± 3 mm).',
   'face.framePd': 'DP de la montura: {pd} mm.',
   'face.usePd': 'Usar esta DP',
   'face.position': 'Mire de frente a la cámara, con los ojos abiertos y buena luz.',
   'face.stop': 'Detener la cámara',
   'face.cameraDenied': 'Cámara denegada o no disponible: importe un selfie.',
   'face.noFace': 'No se encontró ningún rostro: foto de frente, ojos abiertos y buena luz.',
-  'face.unsupported': 'El seguimiento del rostro no funciona en este navegador. Pruebe Chrome o Safari actualizados.',
+  'face.unsupported':
+    'El seguimiento del rostro no funciona en este navegador. Pruebe Chrome o Safari actualizados.',
 
   'steps.link': 'Ver paso a paso',
   'steps.back': '← Volver',
-  'steps.details': '{markers} marcadores · error de ajuste {error} mm · {ppm} px/mm · {method} · {ms} ms',
+  'steps.details':
+    '{markers} marcadores · error de ajuste {error} mm · {ppm} px/mm · {method} · {ms} ms',
   'steps.none': 'Todavía no hay ninguna foto medida.',
   'steps.1': '1. Marcadores detectados',
   'steps.2': '2. Hoja enderezada',
@@ -108,10 +116,15 @@ export const es: Messages = {
   'error.unexpected': 'Error inesperado. Inténtelo de nuevo.',
   'error.unreadableImage': 'No se pudo leer la imagen.',
   'error.IMAGE_UNREADABLE': 'Imagen ilegible. Use una foto JPEG o PNG.',
-  'error.MARKERS_NOT_FOUND': 'No se encuentra la hoja de referencia. Encuadre toda la hoja, sin reflejos en el damero.',
-  'error.SCALE_CHECK_FAILED': 'La hoja parece doblada o mal detectada. Colóquela bien plana y repita la foto.',
-  'error.PHOTO_BLURRY': 'Foto borrosa. Mantenga el teléfono inmóvil y toque la pantalla para enfocar.',
-  'error.LENS_NOT_FOUND': 'No se encuentra la lente. Colóquela en el centro del marco, sobre el fondo iluminado.',
+  'error.MARKERS_NOT_FOUND':
+    'No se encuentra la hoja de referencia. Encuadre toda la hoja, sin reflejos en el damero.',
+  'error.SCALE_CHECK_FAILED':
+    'La hoja parece doblada o mal detectada. Colóquela bien plana y repita la foto.',
+  'error.PHOTO_BLURRY':
+    'Foto borrosa. Mantenga el teléfono inmóvil y toque la pantalla para enfocar.',
+  'error.LENS_NOT_FOUND':
+    'No se encuentra la lente. Colóquela en el centro del marco, sobre el fondo iluminado.',
   'error.LENS_OUT_OF_WINDOW': 'La lente sobresale del marco. Céntrela en el rectángulo de la hoja.',
-  'error.PRINT_SCALE_INVALID': 'Escala de impresión no válida. Mida 10 casillas de la hoja: deben medir entre 120 y 180 mm.',
+  'error.PRINT_SCALE_INVALID':
+    'Escala de impresión no válida. Mida 10 casillas de la hoja: deben medir entre 120 y 180 mm.',
 };

@@ -1,8 +1,10 @@
 """Grid: rows = photos, cols = prompt modes (sam2t, full1024)."""
+
 import sys
+
 import cv2
 import numpy as np
-from common import NAMES, HERE
+from common import HERE, NAMES
 
 model = sys.argv[1] if len(sys.argv) > 1 else "sam2t"
 modes = sys.argv[2].split(",") if len(sys.argv) > 2 else ["a_point", "c_point+neg", "b_box", "f_rimclicks", "d_auto"]

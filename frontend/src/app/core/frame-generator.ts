@@ -81,10 +81,12 @@ export interface FrameResult {
 let toplevel: Promise<ManifoldToplevel> | undefined;
 
 function loadManifold(): Promise<ManifoldToplevel> {
-  toplevel ??= Module({ locateFile: () => new URL('manifold.wasm', document.baseURI).href }).then((m) => {
-    m.setup();
-    return m;
-  });
+  toplevel ??= Module({ locateFile: () => new URL('manifold.wasm', document.baseURI).href }).then(
+    (m) => {
+      m.setup();
+      return m;
+    },
+  );
   return toplevel;
 }
 
@@ -123,28 +125,46 @@ export async function generateFrame(
       // V-groove: one solid cut with 45 degree walls (printable without supports), lofted between the outline
       // offsets at the profile's break points. A stack of thin slices left coincident walls that become
       // non-manifold edges once the STL's corners are welded.
-      const cut = keep(new Manifold(new Mesh(grooveCut(outline, lens, cx, profile(p, grooveOffset)))));
+      const cut = keep(
+        new Manifold(new Mesh(grooveCut(outline, lens, cx, profile(p, grooveOffset)))),
+      );
       if (cut.status() !== 'NoError') {
         throw new Error(`Groove cut is not a valid solid: ${cut.status()}`);
       }
       holes.push(cut);
-      const inLens = (c: CrossSection) => (c.toPolygons()[0] ?? []).map(([x, y]) => [x - cx, y] as Vec2);
+      const inLens = (c: CrossSection) =>
+        (c.toPolygons()[0] ?? []).map(([x, y]) => [x - cx, y] as Vec2);
       const lip = keep(outline.offset(-p.frontLipMm, 'Round'));
       openings.push(lip);
-      fit.push({ eye: lens.eye, grooveMm: inLens(keep(outline.offset(grooveOffset, 'Round'))), lipMm: inLens(lip) });
+      fit.push({
+        eye: lens.eye,
+        grooveMm: inLens(keep(outline.offset(grooveOffset, 'Round'))),
+        lipMm: inLens(lip),
+      });
     }
 
     // Bridge and hinge lugs share a line in the upper part of the rims, as on most frames.
     const y = Math.max(right.bMm, left.bMm) * 0.15;
     // Horizontal extent of each rim along that line, so both parts are sure to overlap the rim.
-    const [r, l] = rims.map((rim) => keep(rim.intersect(keep(CrossSection.square([1000, LUG.heightMm], true).translate(0, y)))).bounds());
+    const [r, l] = rims.map((rim) =>
+      keep(
+        rim.intersect(keep(CrossSection.square([1000, LUG.heightMm], true).translate(0, y))),
+      ).bounds(),
+    );
     const overlap = 2;
 
     const bridgeLeft = r.max[0] - overlap;
     const bridgeRight = l.min[0] + overlap;
-    const bridge = keep(CrossSection.square([bridgeRight - bridgeLeft, 6], true).translate((bridgeLeft + bridgeRight) / 2, y));
+    const bridge = keep(
+      CrossSection.square([bridgeRight - bridgeLeft, 6], true).translate(
+        (bridgeLeft + bridgeRight) / 2,
+        y,
+      ),
+    );
     const lugXs = [r.min[0] - LUG.widthMm / 2 + overlap, l.max[0] + LUG.widthMm / 2 - overlap];
-    const lugFootprints = lugXs.map((x) => keep(CrossSection.square([LUG.widthMm, LUG.heightMm], true).translate(x, y)));
+    const lugFootprints = lugXs.map((x) =>
+      keep(CrossSection.square([LUG.widthMm, LUG.heightMm], true).translate(x, y)),
+    );
 
     // Rims, bridge and the front of the hinge lugs are one 2D shape extruded once: separate solids flush with the
     // faces would share coplanar faces, which leave non-manifold edges once the STL's corners are welded.
@@ -157,14 +177,26 @@ export async function generateFrame(
     for (const x of lugXs) {
       const inset = 0.02;
       const depth = LUG.depthMm + 0.5;
-      solids.push(keep(Manifold.cube([LUG.widthMm - inset, LUG.heightMm - inset, depth], true).translate(x, y, 0.5 - depth / 2)));
+      solids.push(
+        keep(
+          Manifold.cube([LUG.widthMm - inset, LUG.heightMm - inset, depth], true).translate(
+            x,
+            y,
+            0.5 - depth / 2,
+          ),
+        ),
+      );
       const pin = keep(Manifold.cylinder(LUG.heightMm + 2, LUG.pinDiameterMm / 2, -1, 24, true));
       holes.push(keep(keep(pin.rotate([90, 0, 0])).translate(x, y, -LUG.depthMm / 2)));
     }
 
     // The booleans leave sliver triangles far below print resolution; written as float32 STL they collapse into
     // zero-area faces and edges shared by 4+ faces. Simplifying within 1 um removes them.
-    const frame = keep(keep(keep(Manifold.union(solids)).subtract(keep(Manifold.union(holes)))).simplify(MESH_TOLERANCE_MM));
+    const frame = keep(
+      keep(keep(Manifold.union(solids)).subtract(keep(Manifold.union(holes)))).simplify(
+        MESH_TOLERANCE_MM,
+      ),
+    );
     const parts = frame.decompose();
     parts.forEach(keep);
     if (parts.length !== 1) {
@@ -175,7 +207,9 @@ export async function generateFrame(
     // Temples: side profile (u behind the pin, v up) extruded through the thickness, then pinned to each lug.
     const temple = buildTemple(CrossSection, Manifold, keep);
     const pinZ = -LUG.depthMm / 2;
-    const worn = lugXs.map((x) => keep(keep(temple.rotate([0, 90, 0])).translate(x - TEMPLE.thicknessMm / 2, y, pinZ)));
+    const worn = lugXs.map((x) =>
+      keep(keep(temple.rotate([0, 90, 0])).translate(x - TEMPLE.thicknessMm / 2, y, pinZ)),
+    );
     const tb = temple.boundingBox();
     const pitch = tb.max[1] - tb.min[1] + 5;
     const templesPrint = keep(Manifold.union([temple, keep(temple.translate(0, pitch, 0))]));
@@ -235,13 +269,22 @@ function buildTemple(
     CrossSection.union([
       rect(-earFront, bridge1, gap, top),
       rect(-earFront, bridge1, -top, -gap),
-      keep(CrossSection.hull([rect(bridge0, bridge1, -top, top), rect(bridge1 + 12, bridge1 + 13, -h, h)])),
+      keep(
+        CrossSection.hull([
+          rect(bridge0, bridge1, -top, top),
+          rect(bridge1 + 12, bridge1 + 13, -h, h),
+        ]),
+      ),
       rect(bridge0, t.bendAtMm, -h, h),
       keep(CrossSection.hull([disc([t.bendAtMm, 0]), disc(tip)])),
     ]),
   );
   const body = keep(profile.extrude(t.thicknessMm));
-  const pin = keep(keep(keep(Manifold.cylinder(2 * top + 2, t.pinHoleMm / 2, -1, 24, true)).rotate([90, 0, 0])).translate(0, 0, half));
+  const pin = keep(
+    keep(
+      keep(Manifold.cylinder(2 * top + 2, t.pinHoleMm / 2, -1, 24, true)).rotate([90, 0, 0]),
+    ).translate(0, 0, half),
+  );
   return keep(body.subtract(pin));
 }
 
@@ -273,7 +316,10 @@ function grooveCut(
 ): { numProp: number; vertProperties: Float32Array; triVerts: Uint32Array } {
   const n = GROOVE_RAYS;
   const pts = lens.pointsMm;
-  const centre: Vec2 = [cx + pts.reduce((s, q) => s + q[0], 0) / pts.length, pts.reduce((s, q) => s + q[1], 0) / pts.length];
+  const centre: Vec2 = [
+    cx + pts.reduce((s, q) => s + q[0], 0) / pts.length,
+    pts.reduce((s, q) => s + q[1], 0) / pts.length,
+  ];
   const verts: number[] = [];
   for (const [z, off] of levels) {
     const offset = outline.offset(off, 'Round');

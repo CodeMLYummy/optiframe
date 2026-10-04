@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import cv2
 import numpy as np
 
@@ -8,11 +9,9 @@ PHOTOS = HERE.parents[1] / "photos1"  # lensDetection/photos1
 # photos1/clear0_screen-charuco_20261004-<first 6 digits>.jpg.
 NAMES = ["005615746", "005617784", "005621479"]
 FULL = (3072, 4080)  # H, W
-EVAL_SCALE = 0.5     # metrics computed on a 2040x1536 frame, distances reported in full-res px
+EVAL_SCALE = 0.5  # metrics computed on a 2040x1536 frame, distances reported in full-res px
 # Approximate ground-truth bboxes (full res) from the classical rim prototype.
-BBOX = {"005615746": [1300, 1128, 1340, 944],
-        "005617784": [1440, 1103, 990, 705],
-        "005621479": [1134, 830, 1822, 1298]}
+BBOX = {"005615746": [1300, 1128, 1340, 944], "005617784": [1440, 1103, 990, 705], "005621479": [1134, 830, 1822, 1298]}
 
 
 def load(n):
@@ -27,10 +26,10 @@ def gt_mask(n):
     if n == "005617784":
         src = cv2.imread(str(HERE / "gt" / "gt_005615.png"), 0)
         ys, xs = np.nonzero(src)
-        crop = src[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+        crop = src[ys.min() : ys.max() + 1, xs.min() : xs.max() + 1]
         x, y, w, h = [int(round(v * EVAL_SCALE)) for v in BBOX[n]]
         m = np.zeros((H, W), np.uint8)
-        m[y:y + h, x:x + w] = cv2.resize(crop, (w, h), interpolation=cv2.INTER_NEAREST)
+        m[y : y + h, x : x + w] = cv2.resize(crop, (w, h), interpolation=cv2.INTER_NEAREST)
         return m > 0
     src = cv2.imread(str(HERE / "gt" / f"gt_{n[:6]}.png"), 0)
     return cv2.resize(src, (W, H), interpolation=cv2.INTER_NEAREST) > 0

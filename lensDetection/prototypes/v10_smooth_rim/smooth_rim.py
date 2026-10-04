@@ -9,6 +9,7 @@ per-angle snap, so the outline follows one edge smoothly instead of jumping betw
 usage (from lensDetection/): .venv/bin/python prototypes/v10_smooth_rim/smooth_rim.py
 Compares v5 and v10 variants end to end on the 54 caliper photos (v8 detector), see report().
 """
+
 import statistics as st
 import sys
 from pathlib import Path
@@ -21,8 +22,8 @@ LD = HERE.parents[1]
 sys.path.insert(0, str(LD / "prototypes/v5_polar_contour"))
 sys.path.insert(0, str(LD / "prototypes/v3_segmenter_tuning"))
 sys.path.insert(0, str(LD / "prototypes/v7_v8_v9_detector"))
-import seg_clear  # noqa: E402
 import measure as pipeline  # noqa: E402
+import seg_clear  # noqa: E402
 
 V5 = seg_clear.v5  # the original, kept before measure() gets other segmenters swapped in
 
@@ -44,8 +45,9 @@ def refine(raw, first_radii, snap_mm=0.6, outer_bias=0.0, max_step=1):
     score = np.full((N_ANGLES, R), -OFF_BAND, np.float32)
     for t in range(N_ANGLES):
         lo, hi = max(0, first_radii[t] - k), min(R - 1, first_radii[t] + k)
-        score[t, lo:hi + 1] = (np.minimum(raw[t, lo:hi + 1], CAP)
-                               + outer_bias * (radius[lo:hi + 1] - first_radii[t]) / k)
+        score[t, lo : hi + 1] = (
+            np.minimum(raw[t, lo : hi + 1], CAP) + outer_bias * (radius[lo : hi + 1] - first_radii[t]) / k
+        )
     rows = np.vstack([score, score])
     n = rows.shape[0]
     acc = rows[0].copy()
@@ -56,7 +58,7 @@ def refine(raw, first_radii, snap_mm=0.6, outer_bias=0.0, max_step=1):
         for d in range(-max_step, max_step + 1):
             shifted = np.full(R, -np.inf, np.float32)
             if d >= 0:
-                shifted[d:] = acc[:R - d] if d else acc
+                shifted[d:] = acc[: R - d] if d else acc
             else:
                 shifted[:d] = acc[-d:]
             better = shifted > best
@@ -90,8 +92,7 @@ def v10(win, ppm=PPM, outer_bias=0.0, snap_mm=0.6):
     raw = cv2.warpPolar(resp, (R_MAX, N_ANGLES), used_center, R_MAX, cv2.WARP_POLAR_LINEAR)
     radii = refine(raw, first, snap_mm, outer_bias)
     theta = np.arange(N_ANGLES) * 2 * np.pi / N_ANGLES
-    out = np.stack([used_center[0] + (radii + 0.5) * np.cos(theta),
-                    used_center[1] + (radii + 0.5) * np.sin(theta)], 1)
+    out = np.stack([used_center[0] + (radii + 0.5) * np.cos(theta), used_center[1] + (radii + 0.5) * np.sin(theta)], 1)
     cv2.fillPoly(mask, [np.round(out).astype(np.int32)], 255)
     return mask
 
@@ -128,6 +129,7 @@ VARIANTS = {
 
 def main():
     import csv
+
     idx = {r["file"]: r for r in csv.DictReader(open(LD / "photos3/index.csv"))}
     photos = [(f, idx[f.name]["lens"]) for f in sorted((LD / "photos3").glob("*_charuco-blank_*.jpg"))]
     photos += [(f, "red") for f in sorted((LD / "photos2").glob("red_charuco-blank_*.jpg"))]
@@ -168,8 +170,10 @@ def main():
 
 def report(results):
     K = pipeline.PRINT_SCALE
-    print(f"\n{'variant':12} {'measured':>9} {'MAE true':>9} {'signed':>7} {'<=1mm':>7} "
-          f"{'roughness px':>12} {'perim/hull':>10} | 005114 error")
+    print(
+        f"\n{'variant':12} {'measured':>9} {'MAE true':>9} {'signed':>7} {'<=1mm':>7} "
+        f"{'roughness px':>12} {'perim/hull':>10} | 005114 error"
+    )
     for name, rows in results.items():
         ok = [r for r in rows if r["status"] == "OK"]
         e = []
@@ -182,9 +186,11 @@ def report(results):
         if x:
             L, S = pipeline.CALIPER[x["lens"]]
             xe = f"{max(x['A'], x['B']) * K - L:+.2f} x {min(x['A'], x['B']) * K - S:+.2f}"
-        print(f"{name:12} {len(ok):>4}/{len(rows):<4} {st.mean([abs(v) for p in e for v in p]):9.2f} "
-              f"{st.mean([v for p in e for v in p]):+7.2f} {sum(abs(a) <= 1 and abs(b) <= 1 for a, b in e):>3}/{len(e):<3} "
-              f"{st.median([r['rough'] for r in ok]):12.2f} {st.median([r['perim'] for r in ok]):10.3f} | {xe}")
+        print(
+            f"{name:12} {len(ok):>4}/{len(rows):<4} {st.mean([abs(v) for p in e for v in p]):9.2f} "
+            f"{st.mean([v for p in e for v in p]):+7.2f} {sum(abs(a) <= 1 and abs(b) <= 1 for a, b in e):>3}/{len(e):<3} "
+            f"{st.median([r['rough'] for r in ok]):12.2f} {st.median([r['perim'] for r in ok]):10.3f} | {xe}"
+        )
 
 
 if __name__ == "__main__":

@@ -20,7 +20,9 @@ export class MeasureService {
     form.append('eye', eye);
     form.append('printScale', String(printScale));
     try {
-      return await firstValueFrom(this.http.post<MeasureResponse>(`${environment.apiUrl}/api/measure`, form));
+      return await firstValueFrom(
+        this.http.post<MeasureResponse>(`${environment.apiUrl}/api/measure`, form),
+      );
     } catch (e) {
       throw toAppError(e);
     }
@@ -37,7 +39,11 @@ async function prepareImage(file: File): Promise<Blob> {
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new AppError('error.unreadableImage'))), 'image/jpeg', 0.92),
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new AppError('error.unreadableImage'))),
+      'image/jpeg',
+      0.92,
+    ),
   );
 }
 

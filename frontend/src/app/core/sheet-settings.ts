@@ -19,7 +19,12 @@ export interface SheetInput {
   percent: number | null;
 }
 
-export const DEFAULT_SHEET: SheetInput = { paper: 'letter', mode: 'squares', tenSquaresMm: 150, percent: 100 };
+export const DEFAULT_SHEET: SheetInput = {
+  paper: 'letter',
+  mode: 'squares',
+  tenSquaresMm: 150,
+  percent: 100,
+};
 
 /** Printed size / nominal size, or null when the entered value is missing or implausible. */
 export function printScale(input: SheetInput): number | null {
@@ -62,7 +67,8 @@ function load(): SheetInput {
       return {
         paper: v.paper === 'a4' ? 'a4' : 'letter',
         mode: v.mode === 'percent' ? 'percent' : 'squares',
-        tenSquaresMm: typeof v.tenSquaresMm === 'number' ? v.tenSquaresMm : DEFAULT_SHEET.tenSquaresMm,
+        tenSquaresMm:
+          typeof v.tenSquaresMm === 'number' ? v.tenSquaresMm : DEFAULT_SHEET.tenSquaresMm,
         percent: typeof v.percent === 'number' ? v.percent : DEFAULT_SHEET.percent,
       };
     }

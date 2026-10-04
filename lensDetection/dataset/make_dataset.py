@@ -13,6 +13,7 @@ For every photo of photos2/photos3 where the ChArUco sheet is found (v8 detector
 usage (from lensDetection/): .venv/bin/python dataset/make_dataset.py
 Writes results_dataset/ (gitignored): windows/*.png, auto/masks/*.png, label/ (images + queue.js for label.html).
 """
+
 import csv
 import json
 import shutil
@@ -47,8 +48,11 @@ EXCLUDED = {
     "lens2_charuco-blank_20261004-005410": "motion blur",
 }
 # Sharp photos the sheet detector misses: window corners clicked by hand.
-HAND_CORNERS = {"lens2_charuco-blank_20261004-005450", "red_charuco-blank_20261003-212019",
-                "red_charuco-blank_20261003-212025"}
+HAND_CORNERS = {
+    "lens2_charuco-blank_20261004-005450",
+    "red_charuco-blank_20261003-212019",
+    "red_charuco-blank_20261003-212025",
+}
 HAND_SCALE = 0.5  # photos shown at half size in label.html; clicks are scaled back
 
 
@@ -68,7 +72,7 @@ def rectified_window(img, det):
     W = pipeline.W
     rect = cv2.warpPerspective(img, H, (int(180 * PPM), int(255 * PPM)))
     x, y, w, h = (int(round(v * PPM)) for v in (W["xMm"], W["yMm"], W["widthMm"], W["heightMm"]))
-    return rect[y:y + h, x:x + w]
+    return rect[y : y + h, x : x + w]
 
 
 def outline(mask, n=96):
@@ -108,8 +112,20 @@ def main():
         if f.stem in HAND_CORNERS:
             small = cv2.resize(img, None, fx=HAND_SCALE, fy=HAND_SCALE, interpolation=cv2.INTER_AREA)
             cv2.imwrite(str(OUT / "label/img" / (f.stem + ".jpg")), small, [cv2.IMWRITE_JPEG_QUALITY, 92])
-            queue.append(dict(name=f.stem, lens=lens, sheet=sheet, caliper=[L, S], width=small.shape[1],
-                              height=small.shape[0], kind="corners", photoScale=HAND_SCALE, suggestion=None, v10=None))
+            queue.append(
+                dict(
+                    name=f.stem,
+                    lens=lens,
+                    sheet=sheet,
+                    caliper=[L, S],
+                    width=small.shape[1],
+                    height=small.shape[0],
+                    kind="corners",
+                    photoScale=HAND_SCALE,
+                    suggestion=None,
+                    v10=None,
+                )
+            )
             print(f"{f.name}: corners (by hand)", flush=True)
             continue
         win = rectified_window(img, det)
@@ -118,7 +134,9 @@ def main():
             continue
         name = f.stem + ".png"
         cv2.imwrite(str(OUT / "windows" / name), win)
-        mask = smooth_rim.v10(win, PPM, outer_bias=1.0) if sheet == "charuco-blank" else np.zeros(win.shape[:2], np.uint8)
+        mask = (
+            smooth_rim.v10(win, PPM, outer_bias=1.0) if sheet == "charuco-blank" else np.zeros(win.shape[:2], np.uint8)
+        )
         status, suggestion, measured = ("queue" if sheet == "charuco-blank" else "optional"), None, None
         if mask.any():
             measured = sizes_mm(mask)
@@ -131,19 +149,33 @@ def main():
             cv2.imwrite(str(OUT / "auto/masks" / name), mask)
         else:
             cv2.imwrite(str(OUT / "label/img" / (f.stem + ".jpg")), win, [cv2.IMWRITE_JPEG_QUALITY, 92])
-            queue.append(dict(name=f.stem, lens=lens, sheet=sheet, caliper=[L, S], width=win.shape[1],
-                              height=win.shape[0], kind=status, suggestion=suggestion,
-                              v10=[round(v, 2) for v in measured] if measured else None))
-        print(f"{f.name}: {status}" + (f" v10 {measured[0]:.2f} x {measured[1]:.2f} vs {L} x {S}" if measured else ""),
-              flush=True)
+            queue.append(
+                dict(
+                    name=f.stem,
+                    lens=lens,
+                    sheet=sheet,
+                    caliper=[L, S],
+                    width=win.shape[1],
+                    height=win.shape[0],
+                    kind=status,
+                    suggestion=suggestion,
+                    v10=[round(v, 2) for v in measured] if measured else None,
+                )
+            )
+        print(
+            f"{f.name}: {status}" + (f" v10 {measured[0]:.2f} x {measured[1]:.2f} vs {L} x {S}" if measured else ""),
+            flush=True,
+        )
     window_mm = [pipeline.W["widthMm"], pipeline.W["heightMm"]]
     meta = dict(ppm=PPM, printScale=PRINT_SCALE, windowMm=window_mm, items=queue)
     (OUT / "excluded.txt").write_text("\n".join(excluded) + "\n")
     shutil.copy(Path(__file__).parent / "label.html", OUT / "label/label.html")
     (OUT / "label/queue.js").write_text("window.QUEUE = " + json.dumps(meta) + ";\n")
     count = lambda k: sum(q["kind"] == k for q in queue)
-    print(f"\nauto-labelled {auto} | to label: {count('queue')} blank + {count('corners')} with corners | "
-          f"optional Ronchi windows {count('optional')} | excluded {len(excluded)}")
+    print(
+        f"\nauto-labelled {auto} | to label: {count('queue')} blank + {count('corners')} with corners | "
+        f"optional Ronchi windows {count('optional')} | excluded {len(excluded)}"
+    )
 
 
 if __name__ == "__main__":

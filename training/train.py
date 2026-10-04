@@ -4,14 +4,14 @@ Colab/Kaggle: pip install -r requirements.txt, then
   python train.py --data data/ --epochs 40
   -> lens-seg.onnx, copy to backend/models/
 """
+
 import argparse
 from pathlib import Path
 
 import segmentation_models_pytorch as smp
 import torch
-from torch.utils.data import DataLoader, random_split
-
 from dataset import SIZE, LensDataset
+from torch.utils.data import DataLoader, random_split
 
 
 def iou(logits: torch.Tensor, target: torch.Tensor) -> float:
@@ -31,8 +31,9 @@ def main() -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     full = LensDataset(args.data, augment=True)
     n_val = max(1, len(full) // 5)
-    train_set, val_idx = random_split(range(len(full)), [len(full) - n_val, n_val],
-                                      generator=torch.Generator().manual_seed(0))
+    train_set, val_idx = random_split(
+        range(len(full)), [len(full) - n_val, n_val], generator=torch.Generator().manual_seed(0)
+    )
     train = torch.utils.data.Subset(full, list(train_set))
     val = torch.utils.data.Subset(LensDataset(args.data, augment=False), list(val_idx))
 
@@ -66,8 +67,9 @@ def main() -> None:
 
     model.load_state_dict(torch.load("best.pt"))
     model.eval().cpu()
-    torch.onnx.export(model, torch.zeros(1, 3, SIZE, SIZE), args.out, input_names=["image"],
-                      output_names=["logits"], opset_version=17)
+    torch.onnx.export(
+        model, torch.zeros(1, 3, SIZE, SIZE), args.out, input_names=["image"], output_names=["logits"], opset_version=17
+    )
     print(f"Best val IoU {best:.4f}, exported {args.out}")
 
 

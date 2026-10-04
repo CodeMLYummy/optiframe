@@ -2,7 +2,6 @@
 
 import tkinter as tk
 
-
 BAR_WIDTH_MM = 0.5
 
 
@@ -13,10 +12,7 @@ def stripe_boundaries(width_px: int, screen_width_mm: float) -> list[int]:
 
     stripe_width_px = width_px / screen_width_mm * BAR_WIDTH_MM
     stripe_count = int(width_px / stripe_width_px) + 1
-    return [
-        round(index * stripe_width_px)
-        for index in range(stripe_count + 1)
-    ]
+    return [round(index * stripe_width_px) for index in range(stripe_count + 1)]
 
 
 def main() -> None:
@@ -30,10 +26,7 @@ def main() -> None:
     screen_width_mm = root.winfo_screenmmwidth()
     if screen_width_mm <= 0:
         root.destroy()
-        raise RuntimeError(
-            "The display did not report its physical width; cannot calculate "
-            "0.5 mm bars."
-        )
+        raise RuntimeError("The display did not report its physical width; cannot calculate 0.5 mm bars.")
 
     canvas = tk.Canvas(root, background="black", highlightthickness=0)
     canvas.pack(fill="both", expand=True)
@@ -68,9 +61,7 @@ def main() -> None:
     root.bind("<Escape>", lambda _event: root.destroy())
     root.bind(
         "f",
-        lambda _event: root.attributes(
-            "-fullscreen", not root.attributes("-fullscreen")
-        ),
+        lambda _event: root.attributes("-fullscreen", not root.attributes("-fullscreen")),
     )
     root.mainloop()
 

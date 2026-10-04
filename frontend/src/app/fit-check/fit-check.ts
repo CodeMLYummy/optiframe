@@ -25,7 +25,11 @@ const FIT_TOLERANCE_MM = 0.1;
   template: `
     @for (f of fits(); track f.title) {
       <figure>
-        <svg [attr.viewBox]="f.viewBox" role="img" [attr.aria-label]="i18n.t('fit.aria', { lens: f.title })">
+        <svg
+          [attr.viewBox]="f.viewBox"
+          role="img"
+          [attr.aria-label]="i18n.t('fit.aria', { lens: f.title })"
+        >
           <g transform="scale(1,-1)">
             <path class="lip" [attr.d]="f.paths.lip" />
             <path class="groove" [attr.d]="f.paths.groove" />
@@ -34,7 +38,10 @@ const FIT_TOLERANCE_MM = 0.1;
         </svg>
         <figcaption>
           <strong>{{ f.title }}</strong>
-          <span [class.ok]="isOk(f.groove, expectedGroove)" [class.warn]="!isOk(f.groove, expectedGroove)">
+          <span
+            [class.ok]="isOk(f.groove, expectedGroove)"
+            [class.warn]="!isOk(f.groove, expectedGroove)"
+          >
             {{ i18n.t('fit.groove', stats(f.groove, expectedGroove)) }}
           </span>
           <span [class.ok]="isOk(f.lip, expectedLip)" [class.warn]="!isOk(f.lip, expectedLip)">
@@ -45,23 +52,64 @@ const FIT_TOLERANCE_MM = 0.1;
     }
     <p class="status legend">
       <span class="key contour"></span> {{ i18n.t('fit.keyContour') }}
-      <span class="key groove"></span> {{ i18n.t('fit.keyGroove') }}
-      <span class="key lip"></span> {{ i18n.t('fit.keyLip') }}
+      <span class="key groove"></span> {{ i18n.t('fit.keyGroove') }} <span class="key lip"></span>
+      {{ i18n.t('fit.keyLip') }}
     </p>
   `,
   styles: `
-    figure { margin: 0 0 12px; }
-    svg { width: 100%; max-height: 220px; background: var(--surface-2); border-radius: 8px; }
-    path { fill: none; vector-effect: non-scaling-stroke; }
-    .contour { stroke: var(--text); stroke-width: 2; }
-    .groove { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; }
-    .lip { stroke: var(--warn); stroke-width: 1.5; }
-    figcaption { display: grid; gap: 2px; font-size: 0.9rem; margin-top: 4px; }
-    .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-    .key { display: inline-block; width: 18px; border-top: 2px solid; }
-    .key.contour { border-color: var(--text); }
-    .key.groove { border-color: var(--accent); border-top-style: dashed; }
-    .key.lip { border-color: var(--warn); }
+    figure {
+      margin: 0 0 12px;
+    }
+    svg {
+      width: 100%;
+      max-height: 220px;
+      background: var(--surface-2);
+      border-radius: 8px;
+    }
+    path {
+      fill: none;
+      vector-effect: non-scaling-stroke;
+    }
+    .contour {
+      stroke: var(--text);
+      stroke-width: 2;
+    }
+    .groove {
+      stroke: var(--accent);
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+    }
+    .lip {
+      stroke: var(--warn);
+      stroke-width: 1.5;
+    }
+    figcaption {
+      display: grid;
+      gap: 2px;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 8px;
+    }
+    .key {
+      display: inline-block;
+      width: 18px;
+      border-top: 2px solid;
+    }
+    .key.contour {
+      border-color: var(--text);
+    }
+    .key.groove {
+      border-color: var(--accent);
+      border-top-style: dashed;
+    }
+    .key.lip {
+      border-color: var(--warn);
+    }
   `,
 })
 export class FitCheck {
@@ -84,7 +132,12 @@ export class FitCheck {
       const xs = f.grooveMm.map((p) => p[0]);
       const ys = f.grooveMm.map((p) => p[1]);
       const m = 2;
-      const [x0, x1, y0, y1] = [Math.min(...xs) - m, Math.max(...xs) + m, Math.min(...ys) - m, Math.max(...ys) + m];
+      const [x0, x1, y0, y1] = [
+        Math.min(...xs) - m,
+        Math.max(...xs) + m,
+        Math.min(...ys) - m,
+        Math.max(...ys) + m,
+      ];
       return [
         {
           title: this.i18n.t(eye === 'R' ? 'lens.R' : 'lens.L'),
@@ -101,11 +154,19 @@ export class FitCheck {
 
   protected stats(g: GapStats, expected: number): Record<string, string> {
     const n = (v: number) => this.i18n.num(v, '1.2-2');
-    return { mean: n(g.meanMm), min: n(g.minMm), max: n(g.maxMm), expected: this.i18n.num(expected) };
+    return {
+      mean: n(g.meanMm),
+      min: n(g.minMm),
+      max: n(g.maxMm),
+      expected: this.i18n.num(expected),
+    };
   }
 
   protected isOk(g: GapStats, expected: number): boolean {
-    return Math.abs(g.minMm - expected) <= FIT_TOLERANCE_MM && Math.abs(g.maxMm - expected) <= FIT_TOLERANCE_MM;
+    return (
+      Math.abs(g.minMm - expected) <= FIT_TOLERANCE_MM &&
+      Math.abs(g.maxMm - expected) <= FIT_TOLERANCE_MM
+    );
   }
 }
 
@@ -114,5 +175,7 @@ function neg(g: GapStats): GapStats {
 }
 
 function path(points: readonly (readonly [number, number])[]): string {
-  return points.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' ') + ' Z';
+  return (
+    points.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' ') + ' Z'
+  );
 }

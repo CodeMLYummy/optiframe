@@ -1,35 +1,35 @@
 import json
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 import cv2
 import numpy as np
-
 from lensdetection.ronchi_edges import (
-    RonchiPattern, detect_ronchi_glass, load_pattern,
+    RonchiPattern,
+    detect_ronchi_glass,
+    load_pattern,
 )
 
 
 class RonchiEdgesTests(unittest.TestCase):
     def setUp(self):
         self.config = {
-            "width_mm": 20, "height_mm": 15, "bar_width_mm": 0.5,
+            "width_mm": 20,
+            "height_mm": 15,
+            "bar_width_mm": 0.5,
             "corners_px": [[0, 0], [800, 0], [800, 600], [0, 600]],
         }
-        self.pattern = RonchiPattern(
-            20, 15, 0.5, np.array(self.config["corners_px"], dtype=np.float32)
-        )
+        self.pattern = RonchiPattern(20, 15, 0.5, np.array(self.config["corners_px"], dtype=np.float32))
         gray = np.tile(
             np.where((np.arange(801) // 20) % 2, 255, 0).astype(np.uint8),
             (601, 1),
         )
         self.bare = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         self.glass = self.bare.copy()
-        cv2.ellipse(self.glass, (400, 300), (140, 105), 12, 0, 360,
-                    (110, 110, 110), 6)
+        cv2.ellipse(self.glass, (400, 300), (140, 105), 12, 0, 360, (110, 110, 110), 6)
         self.truth = np.zeros(gray.shape, np.uint8)
         cv2.ellipse(self.truth, (400, 300), (140, 105), 12, 0, 360, 255, -1)
 
@@ -49,24 +49,22 @@ class RonchiEdgesTests(unittest.TestCase):
         self.assert_outline(images["mask.png"], self.truth)
         candidate = result["candidates"][0]
         expected_area = np.pi * 140 * 105 / 40**2
-        self.assertAlmostEqual(candidate["area_mm2"], expected_area,
-                               delta=expected_area * 0.1)
+        self.assertAlmostEqual(candidate["area_mm2"], expected_area, delta=expected_area * 0.1)
         physical = np.array(candidate["contour_pattern_mm"])
-        self.assertAlmostEqual(
-            (physical[:, 0].max() + physical[:, 0].min()) / 2, 10, delta=0.1
-        )
+        self.assertAlmostEqual((physical[:, 0].max() + physical[:, 0].min()) / 2, 10, delta=0.1)
         self.assertGreater(cv2.countNonZero(images["edges.png"]), 0)
 
     def test_perspective_and_exposure(self):
-        corners = np.array([[70, 60], [870, 100], [820, 720], [100, 680]],
-                           dtype=np.float32)
+        corners = np.array([[70, 60], [870, 100], [820, 720], [100, 680]], dtype=np.float32)
         transform = cv2.getPerspectiveTransform(self.pattern.corners_px, corners)
         pattern = RonchiPattern(20, 15, 0.5, corners)
         for has_glass in (False, True):
             with self.subTest(has_glass=has_glass):
                 photo = cv2.warpPerspective(
                     self.glass if has_glass else self.bare,
-                    transform, (960, 800), borderValue=(255, 255, 255),
+                    transform,
+                    (960, 800),
+                    borderValue=(255, 255, 255),
                 )
                 photo = (photo.astype(np.float32) * 0.8 + 20).astype(np.uint8)
                 result, images = detect_ronchi_glass(photo, pattern)
@@ -80,9 +78,7 @@ class RonchiEdgesTests(unittest.TestCase):
         gradient = np.linspace(0.65, 1, 601)[:, None, None]
         reference = (self.bare * gradient).astype(np.uint8)
         photo = (self.glass * gradient).astype(np.uint8)
-        result, images = detect_ronchi_glass(
-            photo, self.pattern, reference=reference
-        )
+        result, images = detect_ronchi_glass(photo, self.pattern, reference=reference)
         self.assertEqual(result["background_source"], "reference")
         self.assertEqual(len(result["candidates"]), 1)
         self.assert_outline(images["mask.png"], self.truth)
@@ -93,7 +89,9 @@ class RonchiEdgesTests(unittest.TestCase):
         photo = cv2.rotate(self.glass, cv2.ROTATE_90_CLOCKWISE)
         truth = cv2.rotate(self.truth, cv2.ROTATE_90_CLOCKWISE)
         pattern = RonchiPattern(
-            20, 15, 0.5,
+            20,
+            15,
+            0.5,
             np.array([[600, 0], [600, 800], [0, 800], [0, 0]], dtype=np.float32),
         )
         result, images = detect_ronchi_glass(photo, pattern)
@@ -112,8 +110,7 @@ class RonchiEdgesTests(unittest.TestCase):
         result, _ = detect_ronchi_glass(self.glass, self.pattern, min_area_mm2=100)
         self.assertEqual(result["candidates"], [])
         photo = self.bare.copy()
-        cv2.ellipse(photo, (30, 300), (140, 105), 0, 0, 360,
-                    (110, 110, 110), 6)
+        cv2.ellipse(photo, (30, 300), (140, 105), 0, 0, 360, (110, 110, 110), 6)
         result, _ = detect_ronchi_glass(photo, self.pattern)
         self.assertEqual(result["candidates"], [])
 
@@ -147,18 +144,27 @@ class RonchiEdgesTests(unittest.TestCase):
             for photo, status in ((self.glass, 0), (self.bare, 1)):
                 cv2.imwrite(str(image), photo)
                 completed = subprocess.run(
-                    [sys.executable, "-m", "lensdetection.ronchi_edges",
-                     str(image), str(config), "--output-dir", str(output)],
-                    capture_output=True, text=True,
+                    [
+                        sys.executable,
+                        "-m",
+                        "lensdetection.ronchi_edges",
+                        str(image),
+                        str(config),
+                        "--output-dir",
+                        str(output),
+                    ],
+                    capture_output=True,
+                    text=True,
                 )
                 self.assertEqual(completed.returncode, status, completed.stderr)
                 data = json.loads((output / "detections.json").read_text())
                 self.assertEqual(bool(data["candidates"]), status == 0)
-                for name in ("mask.png", "edges.png", "overlay.png",
-                             "rectified.png", "residual.png"):
+                for name in ("mask.png", "edges.png", "overlay.png", "rectified.png", "residual.png"):
                     self.assertIsNotNone(cv2.imread(str(output / name)))
             invalid = [
-                [], {}, dict(self.config, width_mm=True),
+                [],
+                {},
+                dict(self.config, width_mm=True),
                 dict(self.config, bar_width_mm=0),
                 dict(self.config, height_mm="15"),
                 dict(self.config, corners_px=[[0, 0]] * 4),
@@ -171,9 +177,17 @@ class RonchiEdgesTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         load_pattern(config)
             completed = subprocess.run(
-                [sys.executable, "-m", "lensdetection.ronchi_edges",
-                 str(image), str(config), "--output-dir", str(output)],
-                capture_output=True, text=True,
+                [
+                    sys.executable,
+                    "-m",
+                    "lensdetection.ronchi_edges",
+                    str(image),
+                    str(config),
+                    "--output-dir",
+                    str(output),
+                ],
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(completed.returncode, 2)
             self.assertNotIn("Traceback", completed.stderr)
@@ -182,9 +196,17 @@ class RonchiEdgesTests(unittest.TestCase):
             collision = output / "overlay.png"
             before = collision.read_bytes()
             completed = subprocess.run(
-                [sys.executable, "-m", "lensdetection.ronchi_edges",
-                 str(collision), str(config), "--output-dir", str(output)],
-                capture_output=True, text=True,
+                [
+                    sys.executable,
+                    "-m",
+                    "lensdetection.ronchi_edges",
+                    str(collision),
+                    str(config),
+                    "--output-dir",
+                    str(output),
+                ],
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(completed.returncode, 2)
             self.assertIn("overwrite", completed.stderr)

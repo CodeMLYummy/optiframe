@@ -7,7 +7,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-
 from lensdetection.close_contour import close_contour
 from lensdetection.glass_edges import detect_glass
 
@@ -63,9 +62,7 @@ class CloseContourTests(unittest.TestCase):
         segments = np.array(result["bezier_px"])
         self.assertTrue(np.allclose(segments[:, 3], np.roll(segments[:, 0], -1, axis=0)))
         expected_area = np.pi * 140 * 105 * (25 / 100) ** 2
-        self.assertAlmostEqual(
-            result["area_mm2"], expected_area, delta=expected_area * 0.1
-        )
+        self.assertAlmostEqual(result["area_mm2"], expected_area, delta=expected_area * 0.1)
 
     def test_too_open_and_invalid_inputs(self):
         sparse = np.zeros_like(self.edges)
@@ -90,16 +87,18 @@ class CloseContourTests(unittest.TestCase):
             cv2.imwrite(str(root / "highpass.png"), self.detail)
             (root / "detections.json").write_text(json.dumps(self.detections))
             command = [sys.executable, "-m", "lensdetection.close_contour", str(root)]
-            completed = subprocess.run(
-                command, check=False, capture_output=True, text=True
-            )
+            completed = subprocess.run(command, check=False, capture_output=True, text=True)
             self.assertEqual(completed.returncode, 0, completed.stderr)
-            for name in ("closed.json", "closed.svg", "closed_mask.png", "closed_overlay.png", "closed_highpass_overlay.png"):
+            for name in (
+                "closed.json",
+                "closed.svg",
+                "closed_mask.png",
+                "closed_overlay.png",
+                "closed_highpass_overlay.png",
+            ):
                 self.assertTrue((root / name).exists(), name)
             (root / "detections.json").write_text("{}")
-            completed = subprocess.run(
-                command, check=False, capture_output=True, text=True
-            )
+            completed = subprocess.run(command, check=False, capture_output=True, text=True)
             self.assertEqual(completed.returncode, 2)
 
 

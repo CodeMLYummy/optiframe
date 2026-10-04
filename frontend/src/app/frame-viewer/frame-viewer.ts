@@ -1,4 +1,13 @@
-import { Component, DestroyRef, ElementRef, afterNextRender, effect, inject, input, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  effect,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
 import {
   AmbientLight,
   BufferGeometry,
@@ -17,8 +26,18 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   selector: 'app-frame-viewer',
   template: '<canvas #canvas></canvas>',
   styles: `
-    :host { display: block; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; }
-    canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+    :host {
+      display: block;
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
   `,
 })
 export class FrameViewer {
@@ -27,7 +46,10 @@ export class FrameViewer {
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(35, 4 / 3, 1, 2000);
-  private readonly mesh = new Mesh(new BufferGeometry(), new MeshStandardMaterial({ color: 0x3b6ea8, roughness: 0.6 }));
+  private readonly mesh = new Mesh(
+    new BufferGeometry(),
+    new MeshStandardMaterial({ color: 0x3b6ea8, roughness: 0.6 }),
+  );
   private renderer?: WebGLRenderer;
   private controls?: OrbitControls;
 

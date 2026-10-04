@@ -7,31 +7,61 @@
       <option value="a4">{{ i18n.t('sheet.a4') }}</option>
     </select>
   </label>
-  <a class="button wide" [href]="sheet.pdf()" target="_blank" download>{{ i18n.t('sheet.download') }}</a>
+  <a class="button wide" [href]="sheet.pdf()" target="_blank" download>{{
+    i18n.t('sheet.download')
+  }}</a>
   <p class="status">
     {{ i18n.t('sheet.printHint', { mm: nominalTenSquaresMm }) }}
   </p>
   <div class="choice" role="radiogroup" [attr.aria-label]="i18n.t('sheet.sizeMode')">
     <label class="check">
-      <input type="radio" name="size-mode" [checked]="sheet.input().mode === 'squares'" (change)="setSizeMode('squares')" />
+      <input
+        type="radio"
+        name="size-mode"
+        [checked]="sheet.input().mode === 'squares'"
+        (change)="setSizeMode('squares')"
+      />
       {{ i18n.t('sheet.modeSquares') }}
     </label>
     <label class="check">
-      <input type="radio" name="size-mode" [checked]="sheet.input().mode === 'percent'" (change)="setSizeMode('percent')" />
+      <input
+        type="radio"
+        name="size-mode"
+        [checked]="sheet.input().mode === 'percent'"
+        (change)="setSizeMode('percent')"
+      />
       {{ i18n.t('sheet.modePercent') }}
     </label>
   </div>
-  <label class="field">
-    @if (sheet.input().mode === 'squares') {
+  @if (sheet.input().mode === 'squares') {
+    <label class="field">
       {{ i18n.t('sheet.squaresLabel') }}
-      <input type="number" inputmode="decimal" min="120" max="180" step="0.1" placeholder="150"
-        [value]="sheet.input().tenSquaresMm ?? ''" (input)="setSize($event)" />
-    } @else {
+      <input
+        type="number"
+        inputmode="decimal"
+        min="120"
+        max="180"
+        step="0.1"
+        placeholder="150"
+        [value]="sheet.input().tenSquaresMm ?? ''"
+        (input)="setSize($event)"
+      />
+    </label>
+  } @else {
+    <label class="field">
       {{ i18n.t('sheet.percentLabel') }}
-      <input type="number" inputmode="decimal" min="80" max="120" step="0.01" placeholder="100"
-        [value]="sheet.input().percent ?? ''" (input)="setSize($event)" />
-    }
-  </label>
+      <input
+        type="number"
+        inputmode="decimal"
+        min="80"
+        max="120"
+        step="0.01"
+        placeholder="100"
+        [value]="sheet.input().percent ?? ''"
+        (input)="setSize($event)"
+      />
+    </label>
+  }
   @if (sheet.scale(); as s) {
     <p class="status">{{ i18n.t('sheet.scaleUsed', { percent: i18n.num(s * 100, '1.2-2') }) }}</p>
   } @else {
@@ -39,7 +69,8 @@
   }
   <p>
     {{ i18n.t('sheet.placement') }}
-    <strong>{{ i18n.t('sheet.alignStrong') }}</strong>{{ i18n.t('sheet.alignRest') }}
+    <strong>{{ i18n.t('sheet.alignStrong') }}</strong
+    >{{ i18n.t('sheet.alignRest') }}
   </p>
 </section>
 
@@ -64,20 +95,44 @@
   @if (!store.pd().perEye) {
     <label class="field">
       {{ i18n.t('frame.pd') }}
-      <input type="number" inputmode="decimal" min="40" max="80" step="0.5" [placeholder]="i18n.t('frame.pdExample')"
-        [value]="store.pd().totalMm ?? ''" (input)="setPd('totalMm', $event)" />
+      <input
+        type="number"
+        inputmode="decimal"
+        min="40"
+        max="80"
+        step="0.5"
+        [placeholder]="i18n.t('frame.pdExample')"
+        [value]="store.pd().totalMm ?? ''"
+        (input)="setPd('totalMm', $event)"
+      />
     </label>
   } @else {
     <div class="pd-split">
       <label class="field">
         {{ i18n.t('frame.pdRight') }}
-        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" [placeholder]="i18n.t('frame.pdHalfExample')"
-          [value]="store.pd().rightMm ?? ''" (input)="setPd('rightMm', $event)" />
+        <input
+          type="number"
+          inputmode="decimal"
+          min="20"
+          max="40"
+          step="0.5"
+          [placeholder]="i18n.t('frame.pdHalfExample')"
+          [value]="store.pd().rightMm ?? ''"
+          (input)="setPd('rightMm', $event)"
+        />
       </label>
       <label class="field">
         {{ i18n.t('frame.pdLeft') }}
-        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" [placeholder]="i18n.t('frame.pdHalfExample')"
-          [value]="store.pd().leftMm ?? ''" (input)="setPd('leftMm', $event)" />
+        <input
+          type="number"
+          inputmode="decimal"
+          min="20"
+          max="40"
+          step="0.5"
+          [placeholder]="i18n.t('frame.pdHalfExample')"
+          [value]="store.pd().leftMm ?? ''"
+          (input)="setPd('leftMm', $event)"
+        />
       </label>
     </div>
   }
@@ -111,9 +166,15 @@
 
   @if (frame(); as f) {
     <app-frame-viewer [geometry]="f.previewGeometry" />
-    <p class="status">{{ i18n.t('frame.stats', { triangles: f.triangles, cm3: i18n.num(f.volumeMm3 / 1000) }) }}</p>
-    <button class="button primary wide" (click)="downloadStl()">{{ i18n.t('frame.downloadFront') }}</button>
-    <button class="button wide" (click)="downloadTemplesStl()">{{ i18n.t('frame.downloadTemples') }}</button>
+    <p class="status">
+      {{ i18n.t('frame.stats', { triangles: f.triangles, cm3: i18n.num(f.volumeMm3 / 1000) }) }}
+    </p>
+    <button class="button primary wide" (click)="downloadStl()">
+      {{ i18n.t('frame.downloadFront') }}
+    </button>
+    <button class="button wide" (click)="downloadTemplesStl()">
+      {{ i18n.t('frame.downloadTemples') }}
+    </button>
     <p class="status">
       {{ i18n.t('frame.templesHint', { mm: templeLengthMm }) }}
     </p>
@@ -134,10 +195,16 @@
   }
   <section class="card">
     <h2>{{ i18n.t('face.title') }}</h2>
-    <app-face-preview [outline]="f.frontOutline" [pdMm]="framePdMm()" (usePd)="applyFacePd($event)" />
+    <app-face-preview
+      [outline]="f.frontOutline"
+      [pdMm]="framePdMm()"
+      (usePd)="applyFacePd($event)"
+    />
   </section>
 }
 
 @if (hasSteps()) {
-  <p class="center"><a routerLink="/pas-a-pas">{{ i18n.t('steps.link') }}</a></p>
+  <p class="center">
+    <a routerLink="/pas-a-pas">{{ i18n.t('steps.link') }}</a>
+  </p>
 }

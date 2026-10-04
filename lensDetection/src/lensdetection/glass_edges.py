@@ -3,7 +3,7 @@
 import argparse
 import json
 import math
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -25,26 +25,17 @@ def load_board(path: Path) -> cv2.aruco.CharucoBoard:
         if type(data[key]) is not int or data[key] < 3:
             raise ValueError(f"{key} must be an integer of at least 3.")
     for key in ("square_mm", "marker_mm"):
-        if (
-            type(data[key]) not in (int, float)
-            or not math.isfinite(data[key])
-            or data[key] <= 0
-        ):
+        if type(data[key]) not in (int, float) or not math.isfinite(data[key]) or data[key] <= 0:
             raise ValueError(f"{key} must be a finite positive number.")
     if data["marker_mm"] >= data["square_mm"]:
         raise ValueError("marker_mm must be smaller than square_mm.")
     name = data["dictionary"]
     if not isinstance(name, str) or name not in DICTIONARIES:
-        raise ValueError(
-            f"dictionary must be one of: {', '.join(sorted(DICTIONARIES))}"
-        )
+        raise ValueError(f"dictionary must be one of: {', '.join(sorted(DICTIONARIES))}")
     dictionary = cv2.aruco.getPredefinedDictionary(DICTIONARIES[name])
     if data["squares_x"] * data["squares_y"] // 2 > len(dictionary.bytesList):
         raise ValueError("The dictionary does not contain enough marker IDs.")
-    if not all(
-        math.isfinite(data[key] * data["square_mm"])
-        for key in ("squares_x", "squares_y")
-    ):
+    if not all(math.isfinite(data[key] * data["square_mm"]) for key in ("squares_x", "squares_y")):
         raise ValueError("Board dimensions are too large.")
     board = cv2.aruco.CharucoBoard(
         (data["squares_x"], data["squares_y"]),
@@ -69,9 +60,7 @@ def locate_board(gray: np.ndarray, board: cv2.aruco.CharucoBoard) -> tuple:
     physical = board_corners[ids_idx, :2]
     if np.linalg.matrix_rank(physical - physical.mean(axis=0)) < 2:
         raise ValueError("Visible board corners must span both board directions.")
-    homography, inliers = cv2.findHomography(
-        physical, corners.reshape(-1, 2), cv2.RANSAC, 2.0
-    )
+    homography, inliers = cv2.findHomography(physical, corners.reshape(-1, 2), cv2.RANSAC, 2.0)
     if homography is None or inliers is None or int(inliers.sum()) < 6:
         raise ValueError("Could not reliably fit the board plane to the image.")
     selected = inliers.ravel().astype(bool)
@@ -80,9 +69,7 @@ def locate_board(gray: np.ndarray, board: cv2.aruco.CharucoBoard) -> tuple:
     if not np.isfinite(homography).all() or np.linalg.cond(homography) > 1e12:
         raise ValueError("Board homography is degenerate.")
     projected = cv2.perspectiveTransform(physical[selected, None], homography)
-    errors = np.linalg.norm(
-        projected.reshape(-1, 2) - corners.reshape(-1, 2)[selected], axis=1
-    )
+    errors = np.linalg.norm(projected.reshape(-1, 2) - corners.reshape(-1, 2)[selected], axis=1)
     return homography, int(selected.sum()), float(np.sqrt(np.mean(errors**2)))
 
 
@@ -102,17 +89,13 @@ def render_background(
     area = abs(cv2.contourArea(outline))
     pixels_per_square = math.sqrt(area / (sx * sy))
     if pixels_per_square < 12:
-        raise ValueError(
-            "Board squares are too small in the image; use a closer photo."
-        )
+        raise ValueError("Board squares are too small in the image; use a closer photo.")
     tile = max(32, min(256, round(pixels_per_square * 2)))
     template = board.generateImage((sx * tile, sy * tile), marginSize=0, borderBits=1)
     template_to_mm = np.diag([square / tile, square / tile, 1.0])
     transform = homography @ template_to_mm
     height, width = shape
-    expected = cv2.warpPerspective(
-        template, transform, (width, height), borderValue=255
-    )
+    expected = cv2.warpPerspective(template, transform, (width, height), borderValue=255)
     footprint = cv2.warpPerspective(
         np.full(template.shape, 255, np.uint8),
         transform,
@@ -174,9 +157,7 @@ def rim_candidate_edges(
     blurred = cv2.GaussianBlur(detail, (0, 0), 2.0)
     edges = cv2.Canny(blurred, 40, 120)
     radius = max(2, round(pixels_per_square * 0.04))
-    band = cv2.dilate(
-        cv2.Canny(expected, 50, 150), np.ones((2 * radius + 1,) * 2, np.uint8)
-    )
+    band = cv2.dilate(cv2.Canny(expected, 50, 150), np.ones((2 * radius + 1,) * 2, np.uint8))
     ys, xs = np.nonzero((edges > 0) & (band > 0))
     if xs.size:
         smooth = blurred.astype(np.float32)
@@ -192,16 +173,12 @@ def rim_candidate_edges(
     # Drop specks and short slivers that cannot be part of a rim.
     count, labels, stats, _ = cv2.connectedComponentsWithStats(edges, connectivity=8)
     for label in range(1, count):
-        if max(stats[label, cv2.CC_STAT_WIDTH], stats[label, cv2.CC_STAT_HEIGHT]) < (
-            pixels_per_square * 0.1
-        ):
+        if max(stats[label, cv2.CC_STAT_WIDTH], stats[label, cv2.CC_STAT_HEIGHT]) < (pixels_per_square * 0.1):
             edges[labels == label] = 0
     return edges
 
 
-def ring_coverage(
-    ys: np.ndarray, xs: np.ndarray, circle: tuple, tolerance: float, bins: int
-) -> float:
+def ring_coverage(ys: np.ndarray, xs: np.ndarray, circle: tuple, tolerance: float, bins: int) -> float:
     """Fraction of angular bins around a circle that hold an edge pixel."""
     cx, cy, radius = circle
     dx, dy = xs - cx, ys - cy
@@ -231,9 +208,7 @@ def find_round_edge(
     if xs.size == 0:
         return None
     scale = min(1.0, 1000 / max(edges.shape))
-    small = cv2.resize(
-        edges, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA
-    )
+    small = cv2.resize(edges, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
     small = cv2.normalize(cv2.GaussianBlur(small, (0, 0), 3), None, 0, 255, cv2.NORM_MINMAX)
     circles = cv2.HoughCircles(
         small,
@@ -311,9 +286,7 @@ def detect_glass(
     that edge and fitted with an ellipse, with the board's own printed edges
     removed.
     """
-    if min_area_mm2 is not None and (
-        not math.isfinite(min_area_mm2) or min_area_mm2 <= 0
-    ):
+    if min_area_mm2 is not None and (not math.isfinite(min_area_mm2) or min_area_mm2 <= 0):
         raise ValueError("Minimum area must be finite and positive.")
     for name, value in (("Minimum radius", min_radius_mm), ("Maximum radius", max_radius_mm)):
         if value is not None and (not math.isfinite(value) or value <= 0):
@@ -322,9 +295,7 @@ def detect_glass(
         raise ValueError("Ring tolerance must be between 0 and 1.")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     homography, inlier_count, reprojection_rms = locate_board(gray, board)
-    expected, footprint, pixels_per_square = render_background(
-        gray.shape, board, homography
-    )
+    expected, footprint, pixels_per_square = render_background(gray.shape, board, homography)
     square = board.getSquareLength()
     sx, sy = board.getChessboardSize()
     pixels_per_mm = pixels_per_square / square
@@ -334,9 +305,7 @@ def detect_glass(
         raise ValueError("Minimum radius must be smaller than maximum radius.")
 
     detail = high_pass(gray, pixels_per_square)
-    candidate_edges = rim_candidate_edges(
-        detail, expected, footprint, pixels_per_square, homography
-    )
+    candidate_edges = rim_candidate_edges(detail, expected, footprint, pixels_per_square, homography)
     found = find_round_edge(
         candidate_edges,
         min_radius_mm * pixels_per_mm,
@@ -390,9 +359,7 @@ def detect_glass(
                 cv2.drawContours(mask, [contour], -1, 255, cv2.FILLED)
                 cv2.drawContours(overlay, [contour], -1, (0, 255, 0), 2)
                 x, y, width, height = cv2.boundingRect(contour)
-                cv2.putText(
-                    overlay, "1", (x, max(15, y - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2
-                )
+                cv2.putText(overlay, "1", (x, max(15, y - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                 candidates.append(
                     {
                         "id": 1,
@@ -451,8 +418,7 @@ def main() -> None:
         "--tolerance",
         type=float,
         default=0.3,
-        help="Ring half-width around the Hough circle, as a fraction of its "
-        "radius (default: 0.3)",
+        help="Ring half-width around the Hough circle, as a fraction of its radius (default: 0.3)",
     )
     args = parser.parse_args()
     try:
@@ -460,10 +426,7 @@ def main() -> None:
             args.output_dir / name
             for name in ("detections.json", "mask.png", "overlay.png", "highpass.png", "edges.png")
         ]
-        inputs = {
-            path.resolve()
-            for path in (args.image, args.board)
-        }
+        inputs = {path.resolve() for path in (args.image, args.board)}
         if any(path.resolve() in inputs for path in outputs):
             raise ValueError("Output paths must not overwrite input files.")
         board = load_board(args.board)
@@ -485,9 +448,7 @@ def main() -> None:
         parser.exit(2, f"glass-edges: {error}\n")
     print(f"{len(result['candidates'])} candidate(s); results in {args.output_dir}")
     if not result["candidates"]:
-        parser.exit(
-            1, "No glass outline found; inspect highpass.png and edges.png or improve lighting.\n"
-        )
+        parser.exit(1, "No glass outline found; inspect highpass.png and edges.png or improve lighting.\n")
 
 
 if __name__ == "__main__":

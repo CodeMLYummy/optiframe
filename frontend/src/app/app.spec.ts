@@ -14,6 +14,8 @@ describe('App', () => {
   it('renders the title', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain('OptiFrame');
+    expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
+      'OptiFrame',
+    );
   });
 });

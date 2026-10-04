@@ -132,7 +132,8 @@ public class MeasurementService {
 		log.info("Measured {} with {}: A={} B={} mm ({} markers, {} points, err {} mm, {} ms)", eye, segmenter.name(),
 				String.format("%.2f", c.aMm()), String.format("%.2f", c.bMm()), sheet.markerIds().size(),
 				sheet.pointsUsed(), String.format("%.3f", sheet.reprojectionErrorMm()), elapsed);
-		return new MeasureResponse(c, segmenter.name(), ppm, scale, sheet.markerIds().size(), sheet.reprojectionErrorMm(),
+		return new MeasureResponse(c, segmenter.name(), ppm, scale, sheet.markerIds().size(),
+				sheet.reprojectionErrorMm(),
 				sharpness, m.rotatedAMm(), m.rotatedBMm(), steps, elapsed);
 	}
 

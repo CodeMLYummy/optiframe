@@ -17,7 +17,8 @@ export const en: Messages = {
   'sheet.squaresLabel': 'Measured length of 10 squares (mm)',
   'sheet.percentLabel': 'Print scale (%)',
   'sheet.scaleUsed': 'Scale used for the measurements: {percent} %',
-  'sheet.invalid': 'Invalid value: 10 squares must measure between 120 and 180 mm (scale 80 to 120 %).',
+  'sheet.invalid':
+    'Invalid value: 10 squares must measure between 120 and 180 mm (scale 80 to 120 %).',
   'sheet.placement':
     'Lay the sheet on a lit background, then the lens, convex side up, in the middle of the frame. Nasal side toward the middle of the glasses.',
   'sheet.alignStrong': 'Line the lens up straight with the horizontal marks of the frame',
@@ -33,7 +34,8 @@ export const en: Messages = {
   'lens.controlAlt': 'Check image: detected outline',
   'lens.testLens': 'Test lens (50 × 36 mm ellipse)',
   'lens.useTestLens': 'Use a test lens',
-  'lens.badScale': 'Invalid printed size for the sheet: check the length of 10 squares (at the top).',
+  'lens.badScale':
+    'Invalid printed size for the sheet: check the length of 10 squares (at the top).',
   'lens.takesSpread': '{n} photos of this lens: A differs by {a} mm, B by {b} mm',
   'lens.takesOk': '✓ consistent',
   'lens.takesWarn': '⚠ more than {mm} mm: take the photo again',
@@ -58,7 +60,8 @@ export const en: Messages = {
   'frame.perEye': 'PD per eye',
   'frame.bridge': 'Calculated bridge:',
   'frame.standardBridge': 'No PD: standard {mm} mm bridge.',
-  'frame.pdTooSmall': 'PD too small for these lenses: only {mm} mm is left for the bridge (minimum {min} mm).',
+  'frame.pdTooSmall':
+    'PD too small for these lenses: only {mm} mm is left for the bridge (minimum {min} mm).',
   'frame.bridgeUnusual':
     '{mm} mm bridge, outside the usual range ({min} to {max} mm). Check the PD and the lens sizes.',
   'frame.generate': 'Generate the frame',
@@ -76,7 +79,8 @@ export const en: Messages = {
     'Each lens’s measured outline is drawn over the rim of the generated frame. The bottom of the groove must be the same distance from the lens all around, and the front lip must cover the edge of the lens.',
   'fit.aria': 'Outline and frame overlaid, {lens}',
   'fit.groove': 'Lens → groove bottom: {mean} mm (min {min}, max {max}), designed {expected} mm',
-  'fit.lip': 'Front lip over the lens edge: {mean} mm (min {min}, max {max}), designed {expected} mm',
+  'fit.lip':
+    'Front lip over the lens edge: {mean} mm (min {min}, max {max}), designed {expected} mm',
   'fit.keyContour': 'measured outline',
   'fit.keyGroove': 'groove bottom',
   'fit.keyLip': 'front lip opening',
@@ -87,14 +91,16 @@ export const en: Messages = {
   'face.privacy': 'Analyzed on the phone: the image is never sent or saved.',
   'face.loading': 'Loading face tracking…',
   'face.selfieAlt': 'Imported selfie',
-  'face.scale': 'True size, scaled from the iris (± 5 %). PD estimated from the image: {pd} mm (± 3 mm).',
+  'face.scale':
+    'True size, scaled from the iris (± 5 %). PD estimated from the image: {pd} mm (± 3 mm).',
   'face.framePd': 'Frame PD: {pd} mm.',
   'face.usePd': 'Use this PD',
   'face.position': 'Face the camera, eyes open, in good light.',
   'face.stop': 'Stop the camera',
   'face.cameraDenied': 'Camera denied or unavailable: import a selfie instead.',
   'face.noFace': 'No face found: use a front-facing photo, eyes open, in good light.',
-  'face.unsupported': 'Face tracking does not work in this browser. Try an up-to-date Chrome or Safari.',
+  'face.unsupported':
+    'Face tracking does not work in this browser. Try an up-to-date Chrome or Safari.',
 
   'steps.link': 'See each step',
   'steps.back': '← Back',
@@ -108,10 +114,14 @@ export const en: Messages = {
   'error.unexpected': 'Unexpected error. Try again.',
   'error.unreadableImage': 'Could not read the image.',
   'error.IMAGE_UNREADABLE': 'Unreadable image. Use a JPEG or PNG photo.',
-  'error.MARKERS_NOT_FOUND': 'Reference sheet not found. Keep the whole sheet in the picture, with no glare on the checkerboard.',
-  'error.SCALE_CHECK_FAILED': 'The sheet looks folded or was poorly detected. Lay it flat and take the photo again.',
+  'error.MARKERS_NOT_FOUND':
+    'Reference sheet not found. Keep the whole sheet in the picture, with no glare on the checkerboard.',
+  'error.SCALE_CHECK_FAILED':
+    'The sheet looks folded or was poorly detected. Lay it flat and take the photo again.',
   'error.PHOTO_BLURRY': 'Blurry photo. Hold the phone still and tap the screen to focus.',
-  'error.LENS_NOT_FOUND': 'Lens not found. Place it in the middle of the frame, on the lit background.',
+  'error.LENS_NOT_FOUND':
+    'Lens not found. Place it in the middle of the frame, on the lit background.',
   'error.LENS_OUT_OF_WINDOW': 'The lens goes past the frame. Center it in the sheet’s rectangle.',
-  'error.PRINT_SCALE_INVALID': 'Invalid print scale. Measure 10 squares of the sheet: they must be between 120 and 180 mm.',
+  'error.PRINT_SCALE_INVALID':
+    'Invalid print scale. Measure 10 squares of the sheet: they must be between 120 and 180 mm.',
 };

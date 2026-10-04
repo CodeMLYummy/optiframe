@@ -36,7 +36,11 @@ export function signedDistance(p: Pt, poly: readonly Pt[]): number {
  */
 export function gap(contour: readonly Pt[], outline: readonly Pt[]): GapStats {
   const d = contour.map((p) => signedDistance(p, outline));
-  return { minMm: Math.min(...d), meanMm: d.reduce((s, v) => s + v, 0) / d.length, maxMm: Math.max(...d) };
+  return {
+    minMm: Math.min(...d),
+    meanMm: d.reduce((s, v) => s + v, 0) / d.length,
+    maxMm: Math.max(...d),
+  };
 }
 
 export interface TakesSpread {
@@ -49,5 +53,9 @@ export interface TakesSpread {
 /** Spread of A and B over several photos of the same lens. */
 export function spread(takes: readonly LensContour[]): TakesSpread {
   const range = (v: number[]) => Math.max(...v) - Math.min(...v);
-  return { takes: takes.length, aMm: range(takes.map((t) => t.aMm)), bMm: range(takes.map((t) => t.bMm)) };
+  return {
+    takes: takes.length,
+    aMm: range(takes.map((t) => t.aMm)),
+    bMm: range(takes.map((t) => t.bMm)),
+  };
 }

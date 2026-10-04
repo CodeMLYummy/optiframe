@@ -10,7 +10,9 @@ import { SessionStore } from '../../core/session.store';
   selector: 'app-steps',
   imports: [RouterLink],
   template: `
-    <p><a routerLink="/">{{ i18n.t('steps.back') }}</a></p>
+    <p>
+      <a routerLink="/">{{ i18n.t('steps.back') }}</a>
+    </p>
     @for (item of measured(); track item.eye) {
       <section class="card">
         <h2>{{ i18n.t(item.eye === 'R' ? 'lens.R' : 'lens.L') }}</h2>
@@ -34,7 +36,12 @@ import { SessionStore } from '../../core/session.store';
       <p class="status">{{ i18n.t('steps.none') }}</p>
     }
   `,
-  styles: `img { width: 100%; border-radius: 8px; }`,
+  styles: `
+    img {
+      width: 100%;
+      border-radius: 8px;
+    }
+  `,
 })
 export class Steps {
   private readonly store = inject(SessionStore);

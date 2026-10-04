@@ -29,7 +29,8 @@ class PrintScaleTest {
 		// Drawn 50 x 36 mm on the nominal sheet; on a sheet printed at 90 % the same lens is 45 x 32.4 mm.
 		MatOfByte jpeg = new MatOfByte();
 		Imgcodecs.imencode(".jpg",
-				CharucoMeasurementServiceTest.tiltedPhoto(CharucoMeasurementServiceTest.renderBoard(layout, 50, 36, 90, 0)),
+				CharucoMeasurementServiceTest
+						.tiltedPhoto(CharucoMeasurementServiceTest.renderBoard(layout, 50, 36, 90, 0)),
 				jpeg);
 
 		MeasureResponse r = service.measure(jpeg.toArray(), Eye.R, "classical");
@@ -59,7 +60,8 @@ class PrintScaleTest {
 	private byte[] photo() {
 		MatOfByte jpeg = new MatOfByte();
 		Imgcodecs.imencode(".jpg",
-				CharucoMeasurementServiceTest.tiltedPhoto(CharucoMeasurementServiceTest.renderBoard(layout, 50, 36, 90, 0)),
+				CharucoMeasurementServiceTest
+						.tiltedPhoto(CharucoMeasurementServiceTest.renderBoard(layout, 50, 36, 90, 0)),
 				jpeg);
 		return jpeg.toArray();
 	}

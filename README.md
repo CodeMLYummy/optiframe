@@ -64,22 +64,22 @@ flowchart TB
 
 Bleu : sur le téléphone. Vert : sur le serveur. Orange : préparé à l'avance. Les cylindres sont des fichiers ou des données.
 
-| Dossier | Contenu |
-|---|---|
-| `frontend/` | Application Angular 22 (PWA) |
-| `backend/` | API Spring Boot 4, `POST /api/measure` |
+| Dossier     | Contenu                                                         |
+| ----------- | --------------------------------------------------------------- |
+| `frontend/` | Application Angular 22 (PWA)                                    |
+| `backend/`  | API Spring Boot 4, `POST /api/measure`                          |
 | `training/` | Feuille de référence, jeu de données, entraînement, export ONNX |
 
 ### Documentation
 
-| Page | Contenu |
-|---|---|
+| Page                                     | Contenu                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------- |
 | [Fonctionnement](docs/fonctionnement.md) | Parcours de l'utilisateur, contrôles de la photo, images de contrôle |
-| [Monture](docs/monture.md) | Génération de la monture, tenue du verre dans le cercle, conventions |
-| [Capture](docs/capture.md) | Feuille de référence, éclairage, prise de vue |
-| [Données et IA](docs/donnees-ia.md) | Collecte auto-étiquetée, entraînement, outils et licences |
-| [Validation](docs/validation.md) | Écarts mesurés, limites connues et parades |
-| [Déploiement](docs/deploiement.md) | Cloud Run, Cloud Build, variables d'environnement |
+| [Monture](docs/monture.md)               | Génération de la monture, tenue du verre dans le cercle, conventions |
+| [Capture](docs/capture.md)               | Feuille de référence, éclairage, prise de vue                        |
+| [Données et IA](docs/donnees-ia.md)      | Collecte auto-étiquetée, entraînement, outils et licences            |
+| [Validation](docs/validation.md)         | Écarts mesurés, limites connues et parades                           |
+| [Déploiement](docs/deploiement.md)       | Cloud Run, Cloud Build, variables d'environnement                    |
 
 ### Lancer en local
 

@@ -87,7 +87,7 @@ The detector works in four steps:
 2. **Hough circle transform**: finds the round shape over the board. The
    board's own printed edges are removed from the Canny edges first so they do
    not win the vote: an edge pixel is erased only if it lies near an edge of the
-   board rendered from the JSON (a margin absorbs drift) *and* runs along one of
+   board rendered from the JSON (a margin absorbs drift) _and_ runs along one of
    the board's two axes, so a rim crossing a printed edge at an angle survives; the best circle is the one whose ring has edges all
    the way around.
 3. **Canny edges isolated to the round edge**: only edges within `--tolerance`
@@ -184,7 +184,12 @@ corresponding image points:
   "width_mm": 20.0,
   "height_mm": 15.0,
   "bar_width_mm": 0.5,
-  "corners_px": [[0, 0], [800, 0], [800, 600], [0, 600]]
+  "corners_px": [
+    [0, 0],
+    [800, 0],
+    [800, 600],
+    [0, 600]
+  ]
 }
 ```
 

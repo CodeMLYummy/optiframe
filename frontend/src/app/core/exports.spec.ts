@@ -28,10 +28,26 @@ describe('contourSvg', () => {
 
     it('only translates and flips y, preserving asymmetric outlines and their measured perimeter', () => {
       const right: LensContour = {
-        eye: 'R', pointsMm: [[-20, -10], [30, -10], [15, 20]], aMm: 50, bMm: 30, perimeterMm: 0,
+        eye: 'R',
+        pointsMm: [
+          [-20, -10],
+          [30, -10],
+          [15, 20],
+        ],
+        aMm: 50,
+        bMm: 30,
+        perimeterMm: 0,
       };
       const left: LensContour = {
-        eye: 'L', pointsMm: [[-15, -25], [25, -15], [-5, 15]], aMm: 40, bMm: 40, perimeterMm: 0,
+        eye: 'L',
+        pointsMm: [
+          [-15, -25],
+          [25, -15],
+          [-5, 15],
+        ],
+        aMm: 40,
+        bMm: 40,
+        perimeterMm: 0,
       };
       const svg = lensPairSvg(right, left);
       const document = new DOMParser().parseFromString(svg, 'image/svg+xml');
@@ -40,8 +56,10 @@ describe('contourSvg', () => {
       for (const [index, lens] of [right, left].entries()) {
         const d = paths[index].getAttribute('d')!;
         expect(d.endsWith(' Z')).toBe(true);
-        const points = [...d.matchAll(/[ML](-?\d+\.\d+) (-?\d+\.\d+)/g)]
-          .map((match) => [Number(match[1]), Number(match[2])]);
+        const points = [...d.matchAll(/[ML](-?\d+\.\d+) (-?\d+\.\d+)/g)].map((match) => [
+          Number(match[1]),
+          Number(match[2]),
+        ]);
         expect(points).toHaveLength(lens.pointsMm.length);
         const offsetX = points[0][0] - lens.pointsMm[0][0];
         const offsetY = points[0][1] + lens.pointsMm[0][1];
@@ -52,7 +70,8 @@ describe('contourSvg', () => {
           expect(y).toBeCloseTo(offsetY - lens.pointsMm[i][1], 3);
           const next = (i + 1) % points.length;
           originalPerimeter += Math.hypot(
-            lens.pointsMm[next][0] - lens.pointsMm[i][0], lens.pointsMm[next][1] - lens.pointsMm[i][1],
+            lens.pointsMm[next][0] - lens.pointsMm[i][0],
+            lens.pointsMm[next][1] - lens.pointsMm[i][1],
           );
           exportedPerimeter += Math.hypot(points[next][0] - x, points[next][1] - y);
         });

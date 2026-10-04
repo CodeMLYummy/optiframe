@@ -6,9 +6,9 @@ import java.io.InputStream;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.ObjectMapper;
 
 import ca.optiframe.api.config.OptiframeProperties;
-import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class SheetLayoutConfig {

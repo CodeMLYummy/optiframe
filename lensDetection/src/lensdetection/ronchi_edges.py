@@ -1,9 +1,9 @@
 """Detect candidate glass outlines over a measured rectangular Ronchi ruling."""
 
 import argparse
-from dataclasses import dataclass
 import json
 import math
+from dataclasses import dataclass
 from pathlib import Path
 
 import cv2
@@ -36,9 +36,11 @@ def load_pattern(path: Path) -> RonchiPattern:
         raise ValueError("The measured region must span at least eight bars.")
     points = data["corners_px"]
     if (
-        not isinstance(points, list) or len(points) != 4
+        not isinstance(points, list)
+        or len(points) != 4
         or any(
-            not isinstance(point, list) or len(point) != 2
+            not isinstance(point, list)
+            or len(point) != 2
             or any(type(v) not in (int, float) or not math.isfinite(v) for v in point)
             for point in points
         )
@@ -49,37 +51,41 @@ def load_pattern(path: Path) -> RonchiPattern:
         raise ValueError("Corner coordinates exceed OpenCV's coordinate range.")
     if not cv2.isContourConvex(corners) or cv2.contourArea(corners, oriented=True) <= 0:
         raise ValueError("corners_px must form a convex clockwise quadrilateral.")
-    return RonchiPattern(
-        data["width_mm"], data["height_mm"], data["bar_width_mm"], corners
-    )
+    return RonchiPattern(data["width_mm"], data["height_mm"], data["bar_width_mm"], corners)
 
 
-def rectify(
-    image: np.ndarray, pattern: RonchiPattern
-) -> tuple[np.ndarray, np.ndarray, float]:
+def rectify(image: np.ndarray, pattern: RonchiPattern) -> tuple[np.ndarray, np.ndarray, float]:
     height, width = image.shape[:2]
     corners = pattern.corners_px
     if (
-        (corners[:, 0] < 0).any() or (corners[:, 0] > width - 1).any()
-        or (corners[:, 1] < 0).any() or (corners[:, 1] > height - 1).any()
+        (corners[:, 0] < 0).any()
+        or (corners[:, 0] > width - 1).any()
+        or (corners[:, 1] < 0).any()
+        or (corners[:, 1] > height - 1).any()
     ):
         raise ValueError("All pattern corners must be inside the image.")
     lengths = np.linalg.norm(corners - np.roll(corners, -1, axis=0), axis=1)
-    scale = float(min(
-        min(lengths[0], lengths[2]) / pattern.width_mm,
-        min(lengths[1], lengths[3]) / pattern.height_mm,
-    ))
+    scale = float(
+        min(
+            min(lengths[0], lengths[2]) / pattern.width_mm,
+            min(lengths[1], lengths[3]) / pattern.height_mm,
+        )
+    )
     if not math.isfinite(scale) or scale * pattern.bar_width_mm < 6:
         raise ValueError("Each bar must span at least six pixels; use a closer photo.")
     out_width = round(pattern.width_mm * scale) + 1
     out_height = round(pattern.height_mm * scale) + 1
     if out_width < 16 or out_height < 16 or out_width * out_height > 20_000_000:
         raise ValueError("Rectified pattern dimensions are too small or too large.")
-    destination = np.array([
-        [0, 0], [pattern.width_mm * scale, 0],
-        [pattern.width_mm * scale, pattern.height_mm * scale],
-        [0, pattern.height_mm * scale],
-    ], dtype=np.float32)
+    destination = np.array(
+        [
+            [0, 0],
+            [pattern.width_mm * scale, 0],
+            [pattern.width_mm * scale, pattern.height_mm * scale],
+            [0, pattern.height_mm * scale],
+        ],
+        dtype=np.float32,
+    )
     transform = cv2.getPerspectiveTransform(corners, destination)
     if not np.isfinite(transform).all() or np.linalg.cond(transform) > 1e12:
         raise ValueError("Pattern perspective transform is degenerate.")
@@ -104,12 +110,8 @@ def detect_ronchi_glass(
     if reference is not None:
         if reference.shape != image.shape:
             raise ValueError("Reference and glass images must have identical dimensions.")
-        aligned = cv2.warpPerspective(
-            reference, transform, (gray.shape[1], gray.shape[0])
-        )
-        source = cv2.GaussianBlur(
-            cv2.cvtColor(aligned, cv2.COLOR_BGR2GRAY), (5, 5), 1.0
-        ).astype(np.float32)
+        aligned = cv2.warpPerspective(reference, transform, (gray.shape[1], gray.shape[0]))
+        source = cv2.GaussianBlur(cv2.cvtColor(aligned, cv2.COLOR_BGR2GRAY), (5, 5), 1.0).astype(np.float32)
     else:
         source = observed
     # A vertical ruling repeats along rows. The median rejects localized glass
@@ -149,9 +151,7 @@ def detect_ronchi_glass(
     along = max(5, round(bar_px * 0.4) | 1)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (across, along))
     connected = cv2.morphologyEx(evidence, cv2.MORPH_CLOSE, kernel)
-    contours, _ = cv2.findContours(
-        connected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-    )
+    contours, _ = cv2.findContours(connected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     inverse = np.linalg.inv(transform)
     overlay = image.copy()
     rectified_mask = np.zeros(gray.shape, np.uint8)
@@ -170,26 +170,35 @@ def detect_ronchi_glass(
         cv2.drawContours(rectified_mask, [contour], -1, 255, cv2.FILLED)
         cv2.drawContours(overlay, [display_contour], -1, (0, 255, 0), 2)
         label_x, label_y = display_contour.reshape(-1, 2).min(axis=0)
-        cv2.putText(overlay, str(number), (int(label_x), max(15, int(label_y) - 5)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        candidates.append({
-            "id": number,
-            "contour_px": contour_px.reshape(-1, 2).tolist(),
-            "contour_pattern_mm": contour_mm.reshape(-1, 2).tolist(),
-            "area_mm2": area,
-            "perimeter_mm": float(cv2.arcLength(contour_mm, True)),
-        })
+        cv2.putText(
+            overlay,
+            str(number),
+            (int(label_x), max(15, int(label_y) - 5)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (0, 255, 0),
+            2,
+        )
+        candidates.append(
+            {
+                "id": number,
+                "contour_px": contour_px.reshape(-1, 2).tolist(),
+                "contour_pattern_mm": contour_mm.reshape(-1, 2).tolist(),
+                "area_mm2": area,
+                "perimeter_mm": float(cv2.arcLength(contour_mm, True)),
+            }
+        )
     mask = cv2.warpPerspective(
-        rectified_mask, inverse, (image.shape[1], image.shape[0]),
+        rectified_mask,
+        inverse,
+        (image.shape[1], image.shape[0]),
         flags=cv2.INTER_NEAREST,
     )
     edges = cv2.subtract(mask, cv2.erode(mask, np.ones((3, 3), np.uint8)))
     result = {
         "status": "candidates_found" if candidates else "no_candidates",
         "image_size_px": [image.shape[1], image.shape[0]],
-        "pattern_to_image_homography": (
-            inverse @ np.diag([scale, scale, 1.0])
-        ).tolist(),
+        "pattern_to_image_homography": (inverse @ np.diag([scale, scale, 1.0])).tolist(),
         "rectified_pixels_per_mm": scale,
         "measured_bar_width_px": float(np.median(widths)),
         "background_source": "reference" if reference is not None else "column_median",
@@ -198,7 +207,9 @@ def detect_ronchi_glass(
         "candidates": candidates,
     }
     return result, {
-        "overlay.png": overlay, "mask.png": mask, "edges.png": edges,
+        "overlay.png": overlay,
+        "mask.png": mask,
+        "edges.png": edges,
         "rectified.png": rectified,
         "residual.png": np.clip(residual, 0, 255).astype(np.uint8),
     }
@@ -214,26 +225,20 @@ def main() -> None:
     parser.add_argument("--min-area-mm2", type=float, default=1.0)
     args = parser.parse_args()
     try:
-        names = ("detections.json", "overlay.png", "mask.png", "edges.png",
-                 "rectified.png", "residual.png")
-        inputs = {p.resolve() for p in (args.image, args.pattern, args.reference)
-                  if p is not None}
+        names = ("detections.json", "overlay.png", "mask.png", "edges.png", "rectified.png", "residual.png")
+        inputs = {p.resolve() for p in (args.image, args.pattern, args.reference) if p is not None}
         if any((args.output_dir / name).resolve() in inputs for name in names):
             raise ValueError("Output paths must not overwrite input files.")
         pattern = load_pattern(args.pattern)
         image = read_image(args.image)
         reference = read_image(args.reference) if args.reference is not None else None
-        result, images = detect_ronchi_glass(
-            image, pattern, args.threshold, args.min_area_mm2, reference
-        )
+        result, images = detect_ronchi_glass(image, pattern, args.threshold, args.min_area_mm2, reference)
         args.output_dir.mkdir(parents=True, exist_ok=True)
         for name, output in images.items():
             path = args.output_dir / name
             if not cv2.imwrite(str(path), output):
                 raise OSError(f"Could not write image: {path}")
-        (args.output_dir / "detections.json").write_text(
-            json.dumps(result, indent=2, allow_nan=False) + "\n"
-        )
+        (args.output_dir / "detections.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     except (OSError, ValueError, cv2.error) as error:
         parser.exit(2, f"ronchi-edges: {error}\n")
     print(f"{len(result['candidates'])} candidate(s); results in {args.output_dir}")

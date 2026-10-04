@@ -1,4 +1,14 @@
-import { Component, DestroyRef, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import type { FaceLandmarker, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
 import type { Vec2 } from 'manifold-3d';
 
@@ -19,10 +29,18 @@ const SMOOTHING = 0.4;
   selector: 'app-face-preview',
   template: `
     <div class="actions">
-      <button class="button primary" [disabled]="mode() === 'loading'" (click)="startCamera()">{{ i18n.t('face.tryOn') }}</button>
+      <button class="button primary" [disabled]="mode() === 'loading'" (click)="startCamera()">
+        {{ i18n.t('face.tryOn') }}
+      </button>
       <label class="button" [class.disabled]="mode() === 'loading'">
         {{ i18n.t('face.importSelfie') }}
-        <input type="file" accept="image/*" (change)="onPhoto($event)" [disabled]="mode() === 'loading'" hidden />
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onPhoto($event)"
+          [disabled]="mode() === 'loading'"
+          hidden
+        />
       </label>
     </div>
     <p class="status">{{ i18n.t('face.privacy') }}</p>
@@ -33,13 +51,21 @@ const SMOOTHING = 0.4;
       <p class="error" role="alert">{{ i18n.t(key) }}</p>
     }
 
-    <div class="stage" [class.mirror]="mode() === 'live'" [hidden]="mode() !== 'live' && mode() !== 'photo'">
+    <div
+      class="stage"
+      [class.mirror]="mode() === 'live'"
+      [hidden]="mode() !== 'live' && mode() !== 'photo'"
+    >
       <video #video playsinline muted [hidden]="mode() !== 'live'"></video>
       @if (photoUrl(); as url) {
         <img #photo [src]="url" [alt]="i18n.t('face.selfieAlt')" (load)="detectPhoto()" />
       }
       @if (placement(); as p) {
-        <svg [attr.viewBox]="'0 0 ' + size().w + ' ' + size().h" preserveAspectRatio="none" aria-hidden="true">
+        <svg
+          [attr.viewBox]="'0 0 ' + size().w + ' ' + size().h"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
           <g [attr.transform]="transform()">
             <path [attr.d]="outlinePath()" fill-rule="evenodd" />
           </g>
@@ -65,13 +91,40 @@ const SMOOTHING = 0.4;
     }
   `,
   styles: `
-    .stage { position: relative; border-radius: 12px; overflow: hidden; margin: 8px 0; background: #000; }
-    .stage.mirror { transform: scaleX(-1); }
-    .stage[hidden] { display: none; }
-    video, img { display: block; width: 100%; height: auto; }
-    video[hidden] { display: none; }
-    svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    path { fill: #1d2b3a; fill-opacity: 0.9; stroke: #0b1218; stroke-width: 0.3; }
+    .stage {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 8px 0;
+      background: #000;
+    }
+    .stage.mirror {
+      transform: scaleX(-1);
+    }
+    .stage[hidden] {
+      display: none;
+    }
+    video,
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    video[hidden] {
+      display: none;
+    }
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    path {
+      fill: #1d2b3a;
+      fill-opacity: 0.9;
+      stroke: #0b1218;
+      stroke-width: 0.3;
+    }
   `,
 })
 export class FacePreview {
@@ -96,14 +149,20 @@ export class FacePreview {
 
   protected readonly outlinePath = computed(() =>
     this.outline()
-      .map((poly) => poly.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' ') + ' Z')
+      .map(
+        (poly) =>
+          poly.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' ') +
+          ' Z',
+      )
       .join(' '),
   );
 
   /** Model mm to image pixels: centre of the frame on the midpoint between the pupils, y up to y down. */
   protected readonly transform = computed(() => {
     const p = this.placement();
-    return p ? `translate(${p.x} ${p.y}) rotate(${p.rollDeg}) scale(${p.pxPerMm} ${-p.pxPerMm})` : '';
+    return p
+      ? `translate(${p.x} ${p.y}) rotate(${p.rollDeg}) scale(${p.pxPerMm} ${-p.pxPerMm})`
+      : '';
   });
 
   constructor() {
@@ -120,7 +179,10 @@ export class FacePreview {
     this.mode.set('loading');
     let stream: MediaStream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false,
+      });
     } catch {
       this.mode.set('idle');
       this.error.set('face.cameraDenied');
@@ -145,7 +207,12 @@ export class FacePreview {
       }
       if (video.currentTime !== last) {
         last = video.currentTime;
-        this.update(landmarker.detectForVideo(video, performance.now()), video.videoWidth, video.videoHeight, true);
+        this.update(
+          landmarker.detectForVideo(video, performance.now()),
+          video.videoWidth,
+          video.videoHeight,
+          true,
+        );
       }
       this.frameRequest = requestAnimationFrame(tick);
     };
@@ -216,9 +283,14 @@ export class FacePreview {
   private async load(): Promise<FaceLandmarker | null> {
     this.landmarker ??= (async () => {
       const { FaceLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
-      const files = await FilesetResolver.forVisionTasks(new URL('face/wasm', document.baseURI).href);
+      const files = await FilesetResolver.forVisionTasks(
+        new URL('face/wasm', document.baseURI).href,
+      );
       const options = (delegate: 'GPU' | 'CPU') => ({
-        baseOptions: { modelAssetPath: new URL('face/face_landmarker.task', document.baseURI).href, delegate },
+        baseOptions: {
+          modelAssetPath: new URL('face/face_landmarker.task', document.baseURI).href,
+          delegate,
+        },
         runningMode: 'VIDEO' as const,
         numFaces: 1,
       });

@@ -22,8 +22,7 @@ def load_results(directory: Path) -> tuple[np.ndarray, dict, np.ndarray | None]:
     circle = detections.get("hough_circle") if isinstance(detections, dict) else None
     if not isinstance(circle, dict) or "ellipse" not in circle:
         raise ValueError(
-            "detections.json has no fitted ellipse; run glass-edges on a photo where "
-            "the lens rim is found first."
+            "detections.json has no fitted ellipse; run glass-edges on a photo where the lens rim is found first."
         )
     detail = cv2.imread(str(directory / "highpass.png"), cv2.IMREAD_GRAYSCALE)
     return edges, detections, detail
@@ -34,17 +33,13 @@ def unit_frame(ellipse: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     center = np.asarray(ellipse["center_px"], dtype=np.float64)
     axes = np.asarray(ellipse["axes_px"], dtype=np.float64) / 2
     angle = math.radians(ellipse["angle_degrees"])
-    rotation = np.array(
-        [[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]]
-    )
+    rotation = np.array([[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]])
     if not (np.isfinite(center).all() and np.isfinite(axes).all() and (axes > 0).all()):
         raise ValueError("The fitted ellipse is not valid.")
     return center, rotation, axes
 
 
-def rim_knots(
-    edges: np.ndarray, ellipse: dict, count: int = 48, min_pixels: int = 3
-) -> tuple[np.ndarray, np.ndarray]:
+def rim_knots(edges: np.ndarray, ellipse: dict, count: int = 48, min_pixels: int = 3) -> tuple[np.ndarray, np.ndarray]:
     """One knot per angular span around the lens, in image coordinates.
 
     Edge pixels are mapped into the ellipse's unit-circle frame, so a span's
@@ -93,21 +88,14 @@ def sample_bezier(segments: np.ndarray, per_segment: int = 16) -> np.ndarray:
     t = np.linspace(0, 1, per_segment, endpoint=False)[:, None]
     points = []
     for p0, p1, p2, p3 in segments:
-        points.append(
-            (1 - t) ** 3 * p0
-            + 3 * (1 - t) ** 2 * t * p1
-            + 3 * (1 - t) * t**2 * p2
-            + t**3 * p3
-        )
+        points.append((1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3)
     return np.concatenate(points)
 
 
 def svg_path(segments: np.ndarray) -> str:
     parts = [f"M {segments[0, 0, 0]:.2f} {segments[0, 0, 1]:.2f}"]
     for _, p1, p2, p3 in segments:
-        parts.append(
-            f"C {p1[0]:.2f} {p1[1]:.2f} {p2[0]:.2f} {p2[1]:.2f} {p3[0]:.2f} {p3[1]:.2f}"
-        )
+        parts.append(f"C {p1[0]:.2f} {p1[1]:.2f} {p2[0]:.2f} {p2[1]:.2f} {p3[0]:.2f} {p3[1]:.2f}")
     return " ".join(parts) + " Z"
 
 
@@ -157,9 +145,9 @@ def close_contour(
     segments = closed_bezier(points)
     curve = sample_bezier(segments)
     homography = np.asarray(detections["board_to_image_homography"], dtype=np.float64)
-    physical = cv2.perspectiveTransform(
-        curve.astype(np.float32).reshape(-1, 1, 2), np.linalg.inv(homography)
-    ).reshape(-1, 2)
+    physical = cv2.perspectiveTransform(curve.astype(np.float32).reshape(-1, 1, 2), np.linalg.inv(homography)).reshape(
+        -1, 2
+    )
     area_mm2 = abs(cv2.contourArea(physical.astype(np.float32)))
     polygon = np.round(curve).astype(np.int32).reshape(-1, 1, 2)
     mask = np.zeros(edges.shape, np.uint8)
@@ -168,9 +156,7 @@ def close_contour(
     # A segment is bridged when either end span had no edge pixels.
     bridged = ~(measured & np.roll(measured, -1))
     plain = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-    overlay = draw_contour(
-        plain if image is None else image, edges, curve, len(segments), bridged
-    )
+    overlay = draw_contour(plain if image is None else image, edges, curve, len(segments), bridged)
     detail_overlay = draw_contour(
         plain if detail is None else cv2.cvtColor(detail, cv2.COLOR_GRAY2BGR),
         edges,
@@ -185,9 +171,7 @@ def close_contour(
         "measured_fraction": coverage,
         "bridged_segments": [int(i) for i in np.flatnonzero(bridged)],
         "area_mm2": area_mm2,
-        "perimeter_mm": float(
-            cv2.arcLength(physical.astype(np.float32).reshape(-1, 1, 2), True)
-        ),
+        "perimeter_mm": float(cv2.arcLength(physical.astype(np.float32).reshape(-1, 1, 2), True)),
         "bezier_px": segments.tolist(),
         "contour_board_mm": physical.tolist(),
     }
@@ -202,13 +186,9 @@ def close_contour(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "results", type=Path, help="glass-edges output folder (edges.png, detections.json)"
-    )
+    parser.add_argument("results", type=Path, help="glass-edges output folder (edges.png, detections.json)")
     parser.add_argument("--image", type=Path, help="Photo to draw the overlay on")
-    parser.add_argument(
-        "--output-dir", type=Path, help="Where to write results (default: the results folder)"
-    )
+    parser.add_argument("--output-dir", type=Path, help="Where to write results (default: the results folder)")
     parser.add_argument(
         "--knots",
         type=int,
@@ -238,9 +218,7 @@ def main() -> None:
             if not cv2.imwrite(str(output_dir / name), picture):
                 raise OSError(f"Could not write image: {output_dir / name}")
         (output_dir / "closed.svg").write_text(svg)
-        (output_dir / "closed.json").write_text(
-            json.dumps(result, indent=2, allow_nan=False) + "\n"
-        )
+        (output_dir / "closed.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     except (OSError, ValueError, KeyError, cv2.error) as error:
         parser.exit(2, f"close-contour: {error}\n")
     print(

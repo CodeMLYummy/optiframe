@@ -24,13 +24,19 @@ export class LensCapture {
   protected readonly busy = signal(false);
   /** Kept untranslated, so it follows a change of language. */
   private readonly failure = signal<unknown>(null);
-  protected readonly error = computed(() => (this.failure() ? this.i18n.error(this.failure()) : null));
+  protected readonly error = computed(() =>
+    this.failure() ? this.i18n.error(this.failure()) : null,
+  );
   protected readonly slot = computed(() => this.store.lenses()[this.eye()]);
   protected readonly title = computed(() => this.i18n.t(this.eye() === 'R' ? 'lens.R' : 'lens.L'));
-  protected readonly controlImage = computed(() => this.slot()?.response?.steps.at(-1)?.imageDataUrl);
+  protected readonly controlImage = computed(
+    () => this.slot()?.response?.steps.at(-1)?.imageDataUrl,
+  );
   protected readonly takes = computed(() => this.store.takes()[this.eye()]);
   /** Spread of A and B between the photos of this lens, once there are at least two. */
-  protected readonly spread = computed(() => (this.takes().length >= 2 ? spread(this.takes()) : null));
+  protected readonly spread = computed(() =>
+    this.takes().length >= 2 ? spread(this.takes()) : null,
+  );
   protected readonly tolerance = JURY_TOLERANCE_MM;
 
   protected clearTakes(): void {

@@ -7,6 +7,7 @@ sheet detector would have.
 usage (from lensDetection/): .venv/bin/python dataset/finalize.py [~/Downloads/labels.json]
 Writes results_dataset/train/{images,masks}/*.png and prints each hand label's size against the caliper.
 """
+
 import json
 import shutil
 import sys

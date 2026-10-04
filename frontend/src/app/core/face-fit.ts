@@ -25,7 +25,11 @@ export interface FacePlacement {
 }
 
 /** Null when the landmarks have no irises. Landmarks are normalized to the image size, as MediaPipe returns them. */
-export function placeOnFace(landmarks: readonly Landmark[], width: number, height: number): FacePlacement | null {
+export function placeOnFace(
+  landmarks: readonly Landmark[],
+  width: number,
+  height: number,
+): FacePlacement | null {
   if (landmarks.length < 478) {
     return null;
   }

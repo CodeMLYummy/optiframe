@@ -1,7 +1,11 @@
 # Record: ran once on 2026-10-04 against the ORIGINAL camera names in results_session3/ (before the rename),
 # to label photos3 and write the index.csv files. Kept to document how the labels were made, not to re-run.
 """Rename the LFS photos to <lens>_<sheet>_<YYYYMMDD-HHMMSS>.jpg (git mv) and write an index.csv per folder."""
-import csv, json, subprocess, sys
+
+import csv
+import json
+import subprocess
+import sys
 from pathlib import Path
 
 import cv2
@@ -18,13 +22,31 @@ DRY = "--dry" in sys.argv
 
 # Sheet labels checked by eye where the automatic label was missing or wrong (see contact sheets).
 EYE = {
-    "004555": "ronchi", "004558": "ronchi", "004604": "charuco-ronchi", "004608": "charuco-ronchi",
-    "004736": "charuco-blank", "004757": "charuco-ronchi", "005203": "ronchi", "005204": "ronchi",
-    "005207": "ronchi", "005304": "ronchi", "005323": "charuco-ronchi", "005355": "ronchi",
-    "005356": "ronchi", "005408": "charuco-blank", "005410": "charuco-blank", "005437": "ronchi",
-    "005457": "charuco-blank", "005450": "charuco-blank", "004734": "charuco-blank",
-    "004857": "charuco-ronchi", "004542": "charuco-blank", "004752": "charuco-ronchi",
-    "005231": "charuco-ronchi", "004544": "charuco-blank", "005407": "charuco-blank",
+    "004555": "ronchi",
+    "004558": "ronchi",
+    "004604": "charuco-ronchi",
+    "004608": "charuco-ronchi",
+    "004736": "charuco-blank",
+    "004757": "charuco-ronchi",
+    "005203": "ronchi",
+    "005204": "ronchi",
+    "005207": "ronchi",
+    "005304": "ronchi",
+    "005323": "charuco-ronchi",
+    "005355": "ronchi",
+    "005356": "ronchi",
+    "005408": "charuco-blank",
+    "005410": "charuco-blank",
+    "005437": "ronchi",
+    "005457": "charuco-blank",
+    "005450": "charuco-blank",
+    "004734": "charuco-blank",
+    "004857": "charuco-ronchi",
+    "004542": "charuco-blank",
+    "004752": "charuco-ronchi",
+    "005231": "charuco-ronchi",
+    "004544": "charuco-blank",
+    "005407": "charuco-blank",
     "004706": "charuco-ronchi",
 }
 
@@ -63,10 +85,23 @@ for orig, lab in sorted(labels.items()):
         lens, lens_src = ("lens1" if key < "005100" else "lens2"), "time"
     stamp = "20261004-" + orig[9:15] + ("-2" if "(0)" in orig else "")
     new = f"{lens}_{sheet}_{stamp}.jpg"
-    rows.append(dict(file=new, original=orig, lens=lens, lens_source=lens_src, sheet=sheet,
-                     sheet_source=sheet_src, chessboard_corners=lab["corners"], aruco_markers=lab["markers"],
-                     tilt_deg=lab.get("tilt_deg", ""), zoom=lab["zoom"], focal_35mm=lab["focal35"],
-                     v5_long_mm=long_mm, v5_short_mm=short_mm))
+    rows.append(
+        dict(
+            file=new,
+            original=orig,
+            lens=lens,
+            lens_source=lens_src,
+            sheet=sheet,
+            sheet_source=sheet_src,
+            chessboard_corners=lab["corners"],
+            aruco_markers=lab["markers"],
+            tilt_deg=lab.get("tilt_deg", ""),
+            zoom=lab["zoom"],
+            focal_35mm=lab["focal35"],
+            v5_long_mm=long_mm,
+            v5_short_mm=short_mm,
+        )
+    )
 print("photos3:", len(rows), "files,", len({r["file"] for r in rows}), "unique names")
 assert len({r["file"] for r in rows}) == len(rows)
 for r in rows:
@@ -97,8 +132,15 @@ for f in sorted((LD / "photos1").glob("*.jpg")):
         new, lens = f"nolens_screen-charuco_{stamp}.jpg", "none"
     else:
         continue
-    rows.append(dict(file=new, original=f.name, lens=lens, sheet="screen-charuco (8x6, 4X4_50, on a monitor)",
-                     taken=exif(f).get(0x9003, "")))
+    rows.append(
+        dict(
+            file=new,
+            original=f.name,
+            lens=lens,
+            sheet="screen-charuco (8x6, 4X4_50, on a monitor)",
+            taken=exif(f).get(0x9003, ""),
+        )
+    )
     git_mv(f, f.with_name(new))
 print("photos1:", len(rows))
 if rows:

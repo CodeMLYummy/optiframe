@@ -14,6 +14,7 @@ at the true print scale of the sheet used for photos2/photos3 (5 squares = 73.4 
 usage (from lensDetection/): .venv/bin/python prototypes/v7_v8_v9_detector/measure.py
 Writes results_v7_v9/measurements.csv (gitignored).
 """
+
 import csv
 import json
 import statistics as st
@@ -36,8 +37,12 @@ VARIANTS = {"base": (2, False), "v7": (1, False), "v8": (2, True), "v9": (1, Tru
 
 layout = json.loads((LD.parent / "backend/src/main/resources/sheet-layout-charuco.json").read_text())
 C, W = layout["charuco"], layout["lensWindow"]
-board = cv2.aruco.CharucoBoard((C["squaresX"], C["squaresY"]), C["squareMm"], C["markerMm"],
-                               cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, layout["dictionary"])))
+board = cv2.aruco.CharucoBoard(
+    (C["squaresX"], C["squaresY"]),
+    C["squareMm"],
+    C["markerMm"],
+    cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, layout["dictionary"])),
+)
 board.setLegacyPattern(C["legacyPattern"])
 BOARD_CORNERS = board.getChessboardCorners()[:, :2].astype(np.float32)
 
@@ -52,8 +57,10 @@ def detector(min_markers, refine):
 
 
 def on_window_edge(x, y, margin=0.5):
-    return (W["xMm"] - margin <= x <= W["xMm"] + W["widthMm"] + margin
-            and W["yMm"] - margin <= y <= W["yMm"] + W["heightMm"] + margin)
+    return (
+        W["xMm"] - margin <= x <= W["xMm"] + W["widthMm"] + margin
+        and W["yMm"] - margin <= y <= W["yMm"] + W["heightMm"] + margin
+    )
 
 
 def measure(gray, img, det, images=None):
@@ -75,7 +82,7 @@ def measure(gray, img, det, images=None):
         return "SCALE_CHECK_FAILED", None, None, int(keep.sum()), err_mm
     rect = cv2.warpPerspective(img, H, (int(180 * PPM), int(255 * PPM)))
     x, y, w, h = (int(round(v * PPM)) for v in (W["xMm"], W["yMm"], W["widthMm"], W["heightMm"]))
-    window = rect[y:y + h, x:x + w]
+    window = rect[y : y + h, x : x + w]
     mask = seg_clear.v5(window, PPM)
     if images is not None:
         images.update(window=window, mask=mask)
@@ -87,8 +94,9 @@ def measure(gray, img, det, images=None):
     cs, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     c = max(cs, key=cv2.contourArea).reshape(-1, 2).astype(float)
     k = max(1, round(PPM * 0.5))  # ContourMeasurer: circular moving average
-    sm = np.stack([np.convolve(np.r_[c[-k:, i], c[:, i], c[:k, i]], np.ones(2 * k + 1) / (2 * k + 1), "valid")
-                   for i in (0, 1)], 1)
+    sm = np.stack(
+        [np.convolve(np.r_[c[-k:, i], c[:, i], c[:k, i]], np.ones(2 * k + 1) / (2 * k + 1), "valid") for i in (0, 1)], 1
+    )
     a = (sm[:, 0].max() - sm[:, 0].min() + 1) / PPM
     b = (sm[:, 1].max() - sm[:, 1].min() + 1) / PPM
     return "OK", a, b, int(keep.sum()), err_mm
@@ -105,9 +113,18 @@ def main():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         for name, det in dets.items():
             status, a, b, used, err = measure(gray, img, det)
-            rows.append(dict(photo=f.name, lens=lens, variant=name, status=status, corners_used=used,
-                             reprojection_mm=round(err, 3) if err is not None else "",
-                             A_mm=round(a, 2) if a else "", B_mm=round(b, 2) if b else ""))
+            rows.append(
+                dict(
+                    photo=f.name,
+                    lens=lens,
+                    variant=name,
+                    status=status,
+                    corners_used=used,
+                    reprojection_mm=round(err, 3) if err is not None else "",
+                    A_mm=round(a, 2) if a else "",
+                    B_mm=round(b, 2) if b else "",
+                )
+            )
         print(f.name, " ".join(f"{r['variant']}:{r['status'][:6]}" for r in rows[-4:]), flush=True)
     out = LD / "results_v7_v9"
     out.mkdir(exist_ok=True)
@@ -131,22 +148,28 @@ def report(rows, n_photos):
     ok_by = {v: {r["photo"] for r in rows if r["variant"] == v and r["status"] == "OK"} for v in VARIANTS}
     common = set.intersection(*ok_by.values())
     print(f"\n{n_photos} blank-window photos with a known lens; {len(common)} measured by every variant")
-    head = f"{'variant':6} {'measured':>9} {'fail: sheet/scale/lens/edge':>28} {'corners':>8} | " \
-           f"{'MAE raw':>7} {'MAE true':>8} {'signed':>7} {'<=1mm':>6} | {'common: MAE true':>16}"
+    head = (
+        f"{'variant':6} {'measured':>9} {'fail: sheet/scale/lens/edge':>28} {'corners':>8} | "
+        f"{'MAE raw':>7} {'MAE true':>8} {'signed':>7} {'<=1mm':>6} | {'common: MAE true':>16}"
+    )
     print(head)
     for v in VARIANTS:
         rv = [r for r in rows if r["variant"] == v]
         ok = [r for r in rv if r["status"] == "OK"]
-        fails = [sum(r["status"] == s for r in rv) for s in
-                 ("MARKERS_NOT_FOUND", "SCALE_CHECK_FAILED", "LENS_NOT_FOUND", "LENS_OUT_OF_WINDOW")]
+        fails = [
+            sum(r["status"] == s for r in rv)
+            for s in ("MARKERS_NOT_FOUND", "SCALE_CHECK_FAILED", "LENS_NOT_FOUND", "LENS_OUT_OF_WINDOW")
+        ]
         raw = errors(ok, 1.0)
         true = errors(ok, PRINT_SCALE)
         com = errors([r for r in ok if r["photo"] in common], PRINT_SCALE)
         mae = lambda e: st.mean([abs(x) for p in e for x in p])
-        print(f"{v:6} {len(ok):>4}/{len(rv):<4} {'/'.join(map(str, fails)):>28} "
-              f"{st.median([r['corners_used'] for r in rv]):>8} | {mae(raw):7.2f} {mae(true):8.2f} "
-              f"{st.mean([x for p in true for x in p]):+7.2f} {sum(abs(a) <= 1 and abs(b) <= 1 for a, b in true):>3}/{len(true):<3}"
-              f"| {mae(com):16.2f}")
+        print(
+            f"{v:6} {len(ok):>4}/{len(rv):<4} {'/'.join(map(str, fails)):>28} "
+            f"{st.median([r['corners_used'] for r in rv]):>8} | {mae(raw):7.2f} {mae(true):8.2f} "
+            f"{st.mean([x for p in true for x in p]):+7.2f} {sum(abs(a) <= 1 and abs(b) <= 1 for a, b in true):>3}/{len(true):<3}"
+            f"| {mae(com):16.2f}"
+        )
 
 
 if __name__ == "__main__":

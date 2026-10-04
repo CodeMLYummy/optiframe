@@ -2,13 +2,12 @@ package ca.optiframe.api.config;
 
 import java.io.IOException;
 
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Browser hardening headers on every response (no Spring Security here to add them). */
 @Component

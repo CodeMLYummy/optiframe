@@ -1,7 +1,10 @@
 # Record: ran once on 2026-10-04 against the ORIGINAL camera names in results_session3/ (before the rename),
 # to label photos3 and write the index.csv files. Kept to document how the labels were made, not to re-run.
 """Auto-label session-3 photos (sheet, tilt, zoom, backlight cue) for renaming; output checked by eye."""
-import json, struct, sys
+
+import json
+import struct
+import sys
 from pathlib import Path
 
 import cv2
@@ -11,7 +14,6 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "lensDetection/prototypes/v4_clear_lens"))
 sys.path.insert(0, str(ROOT / "lensDetection/prototypes/v3_segmenter_tuning"))
-import seg_clear  # noqa: E402
 
 L = json.loads((ROOT / "backend/src/main/resources/sheet-layout-charuco.json").read_text())
 C, W = L["charuco"], L["lensWindow"]
@@ -26,10 +28,10 @@ def exif(path):
     i = t.find(b"Exif\x00\x00")
     if i < 0:
         return {}
-    t = t[i + 6:]
+    t = t[i + 6 :]
     E = "<" if t[:2] == b"II" else ">"
-    u16 = lambda o: struct.unpack(E + "H", t[o:o + 2])[0]
-    u32 = lambda o: struct.unpack(E + "I", t[o:o + 4])[0]
+    u16 = lambda o: struct.unpack(E + "H", t[o : o + 2])[0]
+    u32 = lambda o: struct.unpack(E + "I", t[o : o + 4])[0]
     out = {}
 
     def ifd(o):
@@ -37,7 +39,7 @@ def exif(path):
             e = o + 2 + 12 * k
             tag, typ, cnt, val = u16(e), u16(e + 2), u32(e + 4), e + 8
             if typ == 2:
-                s = t[u32(val):u32(val) + cnt] if cnt > 4 else t[val:val + cnt]
+                s = t[u32(val) : u32(val) + cnt] if cnt > 4 else t[val : val + cnt]
                 out[tag] = s.rstrip(b"\0").decode(errors="ignore")
             elif typ == 5:
                 off = u32(val)
@@ -46,6 +48,7 @@ def exif(path):
                 out[tag] = u16(val)
             elif typ == 4:
                 out[tag] = u32(val)
+
     ifd(u32(4))
     if 0x8769 in out:
         ifd(out[0x8769])
@@ -70,8 +73,14 @@ if __name__ == "__main__":
         h, w = g.shape
         corners, ids, _, mids = det.detectBoard(g)
         n = 0 if ids is None else len(ids)
-        row = dict(original=f.name, corners=n, markers=0 if mids is None else len(mids),
-                   zoom=ex.get(0xA404), focal35=ex.get(0xA405), taken=ex.get(0x9003))
+        row = dict(
+            original=f.name,
+            corners=n,
+            markers=0 if mids is None else len(mids),
+            zoom=ex.get(0xA404),
+            focal35=ex.get(0xA405),
+            taken=ex.get(0x9003),
+        )
         if n >= 8:
             obj = board.getChessboardCorners()[ids.ravel(), :2].astype(np.float32)
             img_pts = corners.reshape(-1, 2)
@@ -92,7 +101,7 @@ if __name__ == "__main__":
             Hi, _ = cv2.findHomography(img_pts, obj * P, cv2.RANSAC, 3.0)
             rect = cv2.warpPerspective(img, Hi, (180 * P, 255 * P))
             x, y, ww, hh = (int(v * P) for v in (W["xMm"], W["yMm"], W["widthMm"], W["heightMm"]))
-            win = rect[y + 15:y + hh - 15, x + 15:x + ww - 15]
+            win = rect[y + 15 : y + hh - 15, x + 15 : x + ww - 15]
             prof = cv2.cvtColor(win, cv2.COLOR_BGR2GRAY).astype(float).mean(axis=0)
             row["stripe_power"] = round(periodic(prof, 2 * P), 3)
             row["sheet"] = "charuco-ronchi" if row["stripe_power"] > 0.2 else "charuco-blank"
@@ -101,7 +110,7 @@ if __name__ == "__main__":
             row["window_val"] = int(np.median(hsv[..., 2]))
         else:
             # No board: stripes across the centre of the image mean the Ronchi-only sheet.
-            c = g[h // 3: 2 * h // 3, w // 4: 3 * w // 4].astype(float)
+            c = g[h // 3 : 2 * h // 3, w // 4 : 3 * w // 4].astype(float)
             best = 0.0
             for prof in (c.mean(axis=0), c.mean(axis=1)):
                 spec = np.abs(np.fft.rfft(prof - prof.mean())) ** 2

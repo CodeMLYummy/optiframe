@@ -27,19 +27,25 @@ describe('Home lens pair export', () => {
 
   it('enables one pair download only after both lenses are measured, using the latest contours', async () => {
     const createObjectURL = vi.fn((_blob: Blob) => 'blob:lens-pair');
-    vi.stubGlobal('URL', class extends URL {
-      static override createObjectURL = createObjectURL;
-      static override revokeObjectURL = vi.fn();
-    });
-    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+    vi.stubGlobal(
+      'URL',
+      class extends URL {
+        static override createObjectURL = createObjectURL;
+        static override revokeObjectURL = vi.fn();
+      },
+    );
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
       expect(this.download).toBe('contours-paire.svg');
       expect(this.href).toBe('blob:lens-pair');
     });
     const fixture = TestBed.createComponent(Home);
     const store = TestBed.inject(SessionStore);
     await fixture.whenStable();
-    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')]
-      .find((element) => element.textContent?.includes('Télécharger la paire en SVG'))!;
+    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
+      (element) => element.textContent?.includes('Télécharger la paire en SVG'),
+    )!;
     expect(button.disabled).toBe(true);
 
     const right = ellipseContour('R', 50, 36);

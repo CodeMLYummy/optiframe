@@ -19,7 +19,8 @@ export const fr = {
   'sheet.squaresLabel': 'Longueur mesurée de 10 cases (mm)',
   'sheet.percentLabel': "Échelle d'impression (%)",
   'sheet.scaleUsed': 'Échelle utilisée pour les mesures : {percent} %',
-  'sheet.invalid': 'Valeur invalide : 10 cases doivent mesurer entre 120 et 180 mm (échelle 80 à 120 %).',
+  'sheet.invalid':
+    'Valeur invalide : 10 cases doivent mesurer entre 120 et 180 mm (échelle 80 à 120 %).',
   'sheet.placement':
     'Posez la feuille sur un fond éclairé, puis le verre, face bombée vers le haut, au centre du cadre. Côté nasal vers le centre de la monture.',
   'sheet.alignStrong': 'Alignez le verre bien droit sur les repères horizontaux du cadre',
@@ -35,7 +36,8 @@ export const fr = {
   'lens.controlAlt': 'Image de contrôle : contour détecté',
   'lens.testLens': 'Verre de test (ellipse 50 × 36 mm)',
   'lens.useTestLens': 'Utiliser un verre de test',
-  'lens.badScale': "Taille d'impression de la feuille invalide : vérifiez la longueur des 10 cases (en haut).",
+  'lens.badScale':
+    "Taille d'impression de la feuille invalide : vérifiez la longueur des 10 cases (en haut).",
   'lens.takesSpread': '{n} photos de ce verre : écart A {a} mm, B {b} mm',
   'lens.takesOk': '✓ cohérent',
   'lens.takesWarn': '⚠ plus de {mm} mm : reprenez la photo',
@@ -60,7 +62,8 @@ export const fr = {
   'frame.perEye': 'PD par œil',
   'frame.bridge': 'Pont calculé :',
   'frame.standardBridge': 'Sans PD : pont standard de {mm} mm.',
-  'frame.pdTooSmall': 'PD trop petit pour ces verres : il ne reste que {mm} mm pour le pont (minimum {min} mm).',
+  'frame.pdTooSmall':
+    'PD trop petit pour ces verres : il ne reste que {mm} mm pour le pont (minimum {min} mm).',
   'frame.bridgeUnusual':
     'Pont de {mm} mm, hors de la plage habituelle ({min} à {max} mm). Vérifiez le PD et la taille des verres.',
   'frame.generate': 'Générer la monture',
@@ -78,7 +81,8 @@ export const fr = {
     'Le contour mesuré de chaque verre est superposé au cercle de la monture générée. Le fond de la rainure doit être à la même distance du verre tout autour, et la lèvre avant doit recouvrir le bord du verre.',
   'fit.aria': 'Contour et monture superposés, {lens}',
   'fit.groove': 'Verre → fond de rainure : {mean} mm (min {min}, max {max}), prévu {expected} mm',
-  'fit.lip': 'Lèvre avant sur le bord du verre : {mean} mm (min {min}, max {max}), prévu {expected} mm',
+  'fit.lip':
+    'Lèvre avant sur le bord du verre : {mean} mm (min {min}, max {max}), prévu {expected} mm',
   'fit.keyContour': 'contour mesuré',
   'fit.keyGroove': 'fond de la rainure',
   'fit.keyLip': 'ouverture de la lèvre avant',
@@ -86,21 +90,25 @@ export const fr = {
   'face.title': 'Aperçu sur le visage',
   'face.tryOn': 'Essayer sur le visage',
   'face.importSelfie': 'Importer un selfie',
-  'face.privacy': "Analyse faite sur le téléphone : l'image n'est envoyée nulle part ni enregistrée.",
+  'face.privacy':
+    "Analyse faite sur le téléphone : l'image n'est envoyée nulle part ni enregistrée.",
   'face.loading': 'Chargement du suivi du visage…',
   'face.selfieAlt': 'Selfie importé',
-  'face.scale': "Taille réelle, échelle donnée par l'iris (± 5 %). PD estimé sur l'image : {pd} mm (± 3 mm).",
+  'face.scale':
+    "Taille réelle, échelle donnée par l'iris (± 5 %). PD estimé sur l'image : {pd} mm (± 3 mm).",
   'face.framePd': 'PD de la monture : {pd} mm.',
   'face.usePd': 'Utiliser ce PD',
   'face.position': 'Placez votre visage de face, yeux ouverts, bien éclairé.',
   'face.stop': 'Arrêter la caméra',
   'face.cameraDenied': 'Caméra refusée ou indisponible : importez plutôt un selfie.',
   'face.noFace': 'Aucun visage trouvé : photo de face, yeux ouverts, bien éclairée.',
-  'face.unsupported': 'Le suivi du visage ne fonctionne pas sur ce navigateur. Essayez Chrome ou Safari à jour.',
+  'face.unsupported':
+    'Le suivi du visage ne fonctionne pas sur ce navigateur. Essayez Chrome ou Safari à jour.',
 
   'steps.link': 'Voir le pas à pas',
   'steps.back': '← Retour',
-  'steps.details': "{markers} marqueurs · écart d'ajustement {error} mm · {ppm} px/mm · {method} · {ms} ms",
+  'steps.details':
+    "{markers} marqueurs · écart d'ajustement {error} mm · {ppm} px/mm · {method} · {ms} ms",
   'steps.none': "Aucune photo mesurée pour l'instant.",
   'steps.1': '1. Marqueurs détectés',
   'steps.2': '2. Feuille redressée',
@@ -110,12 +118,17 @@ export const fr = {
   'error.unexpected': 'Erreur inattendue. Réessayez.',
   'error.unreadableImage': "Impossible de lire l'image.",
   'error.IMAGE_UNREADABLE': 'Image illisible. Utilisez une photo JPEG ou PNG.',
-  'error.MARKERS_NOT_FOUND': 'Feuille de référence introuvable. Cadrez toute la feuille, sans reflet sur le damier.',
-  'error.SCALE_CHECK_FAILED': 'La feuille semble pliée ou mal détectée. Posez-la bien à plat et reprenez la photo.',
-  'error.PHOTO_BLURRY': "Photo floue. Tenez le téléphone immobile et touchez l'écran pour faire la mise au point.",
+  'error.MARKERS_NOT_FOUND':
+    'Feuille de référence introuvable. Cadrez toute la feuille, sans reflet sur le damier.',
+  'error.SCALE_CHECK_FAILED':
+    'La feuille semble pliée ou mal détectée. Posez-la bien à plat et reprenez la photo.',
+  'error.PHOTO_BLURRY':
+    "Photo floue. Tenez le téléphone immobile et touchez l'écran pour faire la mise au point.",
   'error.LENS_NOT_FOUND': 'Verre introuvable. Placez-le au centre du cadre, sur le fond éclairé.',
-  'error.LENS_OUT_OF_WINDOW': 'Le verre dépasse du cadre. Centrez-le dans le rectangle de la feuille.',
-  'error.PRINT_SCALE_INVALID': "Échelle d'impression invalide. Mesurez 10 cases de la feuille : elles doivent faire entre 120 et 180 mm.",
+  'error.LENS_OUT_OF_WINDOW':
+    'Le verre dépasse du cadre. Centrez-le dans le rectangle de la feuille.',
+  'error.PRINT_SCALE_INVALID':
+    "Échelle d'impression invalide. Mesurez 10 cases de la feuille : elles doivent faire entre 120 et 180 mm.",
 };
 
 export type MessageKey = keyof typeof fr;

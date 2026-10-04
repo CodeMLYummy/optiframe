@@ -3,8 +3,13 @@
 usage (from lensDetection/): .venv/bin/python prototypes/v2_colour_charuco/red_proto.py photos2/*.jpg
 Writes overlays, contours (mm) and measurements.json to lensDetection/results_red/.
 """
-import json, sys, cv2, numpy as np
+
+import json
+import sys
 from pathlib import Path
+
+import cv2
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 L = json.loads((ROOT / "backend/src/main/resources/sheet-layout-charuco.json").read_text())
@@ -26,7 +31,8 @@ for f in sys.argv[1:]:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     corners, ids, _, _ = detector.detectBoard(gray)
     if ids is None or len(ids) < 8:
-        print(f"{name}: board not found ({0 if ids is None else len(ids)} corners)"); continue
+        print(f"{name}: board not found ({0 if ids is None else len(ids)} corners)")
+        continue
     obj = board.getChessboardCorners()[ids.ravel(), :2].astype(np.float32)
     H, inl = cv2.findHomography(obj, corners.reshape(-1, 2), cv2.RANSAC, 3.0)
     proj = cv2.perspectiveTransform(obj[inl.ravel() > 0][:, None], H).reshape(-1, 2)
@@ -36,7 +42,7 @@ for f in sys.argv[1:]:
     rect = cv2.warpPerspective(img, S @ np.linalg.inv(H), (BW * PPM, BH * PPM))
     x0, y0, w, h = (int(v * PPM) for v in (WIN["xMm"], WIN["yMm"], WIN["widthMm"], WIN["heightMm"]))
     m = 2 * PPM  # stay 2 mm inside the window (avoid dashed border)
-    win = rect[y0 + m:y0 + h - m, x0 + m:x0 + w - m]
+    win = rect[y0 + m : y0 + h - m, x0 + m : x0 + w - m]
     # Tint: Lab a* (red-green) relative to the paper; paper and shadows are neutral.
     lab = cv2.cvtColor(win, cv2.COLOR_BGR2LAB).astype(np.float32)
     a = lab[..., 1] - np.median(lab[..., 1])
@@ -47,25 +53,37 @@ for f in sys.argv[1:]:
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
     cs, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if not cs:
-        print(f"{name}: no lens"); continue
+        print(f"{name}: no lens")
+        continue
     c = max(cs, key=cv2.contourArea)
     (_, _), (rw, rh), ang = cv2.minAreaRect(c)
     bx, by, bw_, bh_ = cv2.boundingRect(c)
-    row = dict(photo=name, corners=len(ids), rms_px=round(rms, 2),
-               box_w_mm=round(bw_ / PPM, 2), box_h_mm=round(bh_ / PPM, 2),
-               area_mm2=round(cv2.contourArea(c) / PPM**2, 1),
-               perim_mm=round(cv2.arcLength(c, True) / PPM, 1))
+    row = dict(
+        photo=name,
+        corners=len(ids),
+        rms_px=round(rms, 2),
+        box_w_mm=round(bw_ / PPM, 2),
+        box_h_mm=round(bh_ / PPM, 2),
+        area_mm2=round(cv2.contourArea(c) / PPM**2, 1),
+        perim_mm=round(cv2.arcLength(c, True) / PPM, 1),
+    )
     # Rotation-independent sizes: min-area rectangle and Feret (caliper) widths over all angles.
     (_, _), (ra, rb), _ = cv2.minAreaRect(c)
     pts = c.reshape(-1, 2).astype(float) / PPM
     th = np.radians(np.arange(0, 180, 0.25))
     wid = np.ptp(pts @ np.vstack([np.cos(th), np.sin(th)]), axis=0)
-    row.update(rect_long_mm=round(max(ra, rb) / PPM, 2), rect_short_mm=round(min(ra, rb) / PPM, 2),
-               feret_max_mm=round(wid.max(), 2), feret_min_mm=round(wid.min(), 2),
-               feret_max_deg=float(np.degrees(th[wid.argmax()])))
+    row.update(
+        rect_long_mm=round(max(ra, rb) / PPM, 2),
+        rect_short_mm=round(min(ra, rb) / PPM, 2),
+        feret_max_mm=round(wid.max(), 2),
+        feret_min_mm=round(wid.min(), 2),
+        feret_max_deg=float(np.degrees(th[wid.argmax()])),
+    )
     np.save(OUT / f"{name}_contour_mm.npy", pts)
-    rows.append(row); print(row)
-    ov = win.copy(); cv2.drawContours(ov, [c], -1, (0, 255, 0), 2)
+    rows.append(row)
+    print(row)
+    ov = win.copy()
+    cv2.drawContours(ov, [c], -1, (0, 255, 0), 2)
     cv2.rectangle(ov, (bx, by), (bx + bw_, by + bh_), (255, 0, 0), 1)
     cv2.imwrite(str(OUT / f"{name}_rect.jpg"), ov)
 (OUT / "measurements.json").write_text(json.dumps(rows, indent=1))

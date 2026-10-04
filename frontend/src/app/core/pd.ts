@@ -15,7 +15,11 @@ export function bridgeFromPd(right: LensContour, left: LensContour, pd: Monocula
   return pd.rightMm - right.aMm / 2 + (pd.leftMm - left.aMm / 2);
 }
 
-export function pdFromBridge(right: LensContour, left: LensContour, bridgeMm = DEFAULT_BRIDGE_MM): MonocularPd {
+export function pdFromBridge(
+  right: LensContour,
+  left: LensContour,
+  bridgeMm = DEFAULT_BRIDGE_MM,
+): MonocularPd {
   return { rightMm: bridgeMm / 2 + right.aMm / 2, leftMm: bridgeMm / 2 + left.aMm / 2 };
 }
 

@@ -123,7 +123,8 @@ class MeasurementServiceTest {
 		}
 
 		SheetLayout.Rect win = layout.lensWindow();
-		Point center = new Point((win.xMm() + win.widthMm() / 2) * TRUE_PPM, (win.yMm() + win.heightMm() / 2) * TRUE_PPM);
+		Point center = new Point((win.xMm() + win.widthMm() / 2) * TRUE_PPM,
+				(win.yMm() + win.heightMm() / 2) * TRUE_PPM);
 		Size outer = new Size(aMm / 2 * TRUE_PPM, bMm / 2 * TRUE_PPM);
 		Size inner = new Size((aMm / 2 - RIM_MM) * TRUE_PPM, (bMm / 2 - RIM_MM) * TRUE_PPM);
 		Imgproc.ellipse(sheet, center, outer, 0, 0, 360, new Scalar(90, 90, 90), -1);

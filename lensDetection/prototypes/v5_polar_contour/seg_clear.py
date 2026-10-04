@@ -16,6 +16,7 @@ usage (from lensDetection/):
   .venv/bin/python prototypes/v5_polar_contour/seg_clear.py        # table + overlays in results_session3/v5/
 Also scores the red lens against its colour mask, from results_seg/win_*.png (see v3_segmenter_tuning).
 """
+
 import sys
 from pathlib import Path
 
@@ -26,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "v3_segmenter_tunin
 import seg_lab  # noqa: E402  (mirror of the current backend segmenter)
 
 PPM = 10
-MIN_RIM_COVERAGE = float(__import__('os').environ.get('MIN_RIM', 0.5))
+MIN_RIM_COVERAGE = float(__import__("os").environ.get("MIN_RIM", 0.5))
 HERE = Path(__file__).resolve().parents[2]
 
 
@@ -72,8 +73,7 @@ def line_response(win, ppm=PPM):
     return resp
 
 
-def polar_contour(resp, center, ppm=PPM, n_angles=720, r_min_mm=8, r_max_mm=45, max_step=4, jump_cost=0.4,
-                  snap_mm=0.6):
+def polar_contour(resp, center, ppm=PPM, n_angles=720, r_min_mm=8, r_max_mm=45, max_step=4, jump_cost=0.4, snap_mm=0.6):
     """Closed path r(theta) maximising the rim response, |dr| <= max_step px between neighbouring angles."""
     r_max = int(r_max_mm * ppm)
     raw = cv2.warpPolar(resp, (r_max, n_angles), center, r_max, cv2.WARP_POLAR_LINEAR)
@@ -113,7 +113,7 @@ def polar_contour(resp, center, ppm=PPM, n_angles=720, r_min_mm=8, r_max_mm=45, 
         snapped = radii.copy()
         for t, rr in enumerate(radii):
             lo, hi = max(0, rr - k), min(R - 1, rr + k)
-            band = raw[t, lo:hi + 1]
+            band = raw[t, lo : hi + 1]
             snapped[t] = lo + int(np.argmax(band)) if band[np.argmax(band)] > raw[t, rr] else rr
         radii = snapped
     theta = np.arange(n_angles) * 2 * np.pi / n_angles
@@ -177,6 +177,7 @@ if __name__ == "__main__":
 
     def fmt(d):
         return "  —  fail   " if d is None else ("  edge      " if d == "edge" else f"{d[0]:5.1f}×{d[1]:4.1f} ")
+
     print(f"{'photo':10} {'current':12} {'v5':12} lens")
     groups = {"lens 1 (~50×31)": [], "lens 2 (~52×38)": []}
     for p, o, n in rows:
@@ -190,13 +191,16 @@ if __name__ == "__main__":
     for k, v in groups.items():
         if v:
             a = np.array(v)
-            print(f"{k}: n={len(v)} long {a[:,0].mean():.2f} ± {a[:,0].std():.2f} (range {a[:,0].min():.1f}–{a[:,0].max():.1f}), "
-                  f"short {a[:,1].mean():.2f} ± {a[:,1].std():.2f} (range {a[:,1].min():.1f}–{a[:,1].max():.1f})")
+            print(
+                f"{k}: n={len(v)} long {a[:, 0].mean():.2f} ± {a[:, 0].std():.2f} (range {a[:, 0].min():.1f}–{a[:, 0].max():.1f}), "
+                f"short {a[:, 1].mean():.2f} ± {a[:, 1].std():.2f} (range {a[:, 1].min():.1f}–{a[:, 1].max():.1f})"
+            )
     # Tinted red lens (session 2): v4 must not regress against the colour reference.
     print("\nred lens (session 2), A × B sheet axes vs colour reference:")
     for n in seg_lab.NAMES:
         w = cv2.imread(str(HERE / "results_seg" / f"win_{n}.png"))
         s = seg_lab.score(v5(w), seg_lab.reference(w))
-        if 'dA' not in s:
-            print(f"  {n}: not found"); continue
+        if "dA" not in s:
+            print(f"  {n}: not found")
+            continue
         print(f"  {n}: dA {s['dA']:+.1f} dB {s['dB']:+.1f} IoU {s['iou']:.3f} worst leak {s['out']:.1f} mm")

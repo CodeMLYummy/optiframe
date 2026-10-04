@@ -27,9 +27,7 @@ def load_results(directory: Path) -> tuple[np.ndarray, np.ndarray]:
         closed = json.loads((directory / "closed.json").read_text())
         detections = json.loads((directory / "detections.json").read_text())
     except FileNotFoundError as error:
-        raise ValueError(
-            f"{error.filename} not found; run glass-edges and close-contour first."
-        ) from error
+        raise ValueError(f"{error.filename} not found; run glass-edges and close-contour first.") from error
     except json.JSONDecodeError as error:
         raise ValueError(f"Invalid JSON in {directory}: {error}") from error
     contour = np.asarray(closed["contour_board_mm"], dtype=np.float64)
@@ -43,9 +41,7 @@ def load_results(directory: Path) -> tuple[np.ndarray, np.ndarray]:
 
 def rotation(degrees: float) -> np.ndarray:
     angle = math.radians(degrees)
-    return np.array(
-        [[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]]
-    )
+    return np.array([[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]])
 
 
 def measure_box(contour_mm: np.ndarray, angle_degrees: float = 0.0) -> dict:
@@ -58,9 +54,7 @@ def measure_box(contour_mm: np.ndarray, angle_degrees: float = 0.0) -> dict:
     local = contour_mm @ frame  # board -> datum frame (row-vector form of R^T p)
     low = local.min(axis=0)
     high = local.max(axis=0)
-    corners_local = np.array(
-        [[low[0], low[1]], [high[0], low[1]], [high[0], high[1]], [low[0], high[1]]]
-    )
+    corners_local = np.array([[low[0], low[1]], [high[0], low[1]], [high[0], high[1]], [low[0], high[1]]])
     center_local = (low + high) / 2
     width, height = (high - low).tolist()
     return {
@@ -87,15 +81,11 @@ def to_image(points_mm: np.ndarray, homography: np.ndarray) -> np.ndarray:
     return cv2.perspectiveTransform(points, homography).reshape(-1, 2)
 
 
-def draw_label(
-    image: np.ndarray, text: str, center: np.ndarray, scale: float, thickness: int
-) -> None:
+def draw_label(image: np.ndarray, text: str, center: np.ndarray, scale: float, thickness: int) -> None:
     (w, h), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, scale, thickness)
     x = int(round(center[0] - w / 2))
     y = int(round(center[1] + h / 2))
-    cv2.rectangle(
-        image, (x - 4, y - h - 4), (x + w + 4, y + baseline + 2), (0, 0, 0), cv2.FILLED
-    )
+    cv2.rectangle(image, (x - 4, y - h - 4), (x + w + 4, y + baseline + 2), (0, 0, 0), cv2.FILLED)
     cv2.putText(
         image,
         text,
@@ -140,9 +130,7 @@ def draw_dimension(
     draw_label(image, text, (a + b) / 2, scale, max(1, thickness // 2))
 
 
-def draw_overlay(
-    image: np.ndarray, contour_mm: np.ndarray, homography: np.ndarray, box: dict
-) -> np.ndarray:
+def draw_overlay(image: np.ndarray, contour_mm: np.ndarray, homography: np.ndarray, box: dict) -> np.ndarray:
     """Draw the lens, its boxing rectangle, the contact points, and dimension lines."""
     overlay = image.copy()
     scale = max(image.shape[:2]) / 1600
@@ -166,13 +154,9 @@ def draw_overlay(
         cv2.LINE_AA,
     )
     quad = np.round(to_image(np.array(box["box_corners_board_mm"]), homography))
-    cv2.polylines(
-        overlay, [quad.astype(np.int32)], True, BOX_COLOR, thickness, cv2.LINE_AA
-    )
+    cv2.polylines(overlay, [quad.astype(np.int32)], True, BOX_COLOR, thickness, cv2.LINE_AA)
     for point in to_image(np.array(box["contact_points_board_mm"]), homography):
-        cv2.circle(
-            overlay, tuple(np.round(point).astype(int)), thickness * 2, (0, 0, 255), -1
-        )
+        cv2.circle(overlay, tuple(np.round(point).astype(int)), thickness * 2, (0, 0, 255), -1)
 
     # The datum line and box centre mark the frame of reference.
     middle = (low + high) / 2
@@ -248,9 +232,7 @@ def measure(
 ) -> tuple[dict, np.ndarray]:
     box = measure_box(contour_mm, angle)
     overlay = draw_overlay(image, contour_mm, homography, box)
-    public = {
-        k: v for k, v in box.items() if k not in ("frame", "low_local", "high_local")
-    }
+    public = {k: v for k, v in box.items() if k not in ("frame", "low_local", "high_local")}
     return public, overlay
 
 
@@ -259,16 +241,14 @@ def main() -> None:
     parser.add_argument(
         "results",
         type=Path,
-        help="glass-edges output folder that close-contour also ran in "
-        "(closed.json, detections.json)",
+        help="glass-edges output folder that close-contour also ran in (closed.json, detections.json)",
     )
     parser.add_argument("image", type=Path, help="Photo to draw the overlay on")
     parser.add_argument(
         "--angle",
         type=float,
         default=0.0,
-        help="Datum line angle in degrees from the board's x axis, "
-        "counter-clockwise on the board (default: 0)",
+        help="Datum line angle in degrees from the board's x axis, counter-clockwise on the board (default: 0)",
     )
     parser.add_argument(
         "--output-dir",
@@ -284,15 +264,10 @@ def main() -> None:
         output_dir.mkdir(parents=True, exist_ok=True)
         if not cv2.imwrite(str(output_dir / "boxing_overlay.png"), overlay):
             raise OSError(f"Could not write image: {output_dir / 'boxing_overlay.png'}")
-        (output_dir / "boxing.json").write_text(
-            json.dumps(result, indent=2, allow_nan=False) + "\n"
-        )
+        (output_dir / "boxing.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     except (OSError, ValueError, KeyError, cv2.error) as error:
         parser.exit(2, f"boxing: {error}\n")
-    print(
-        f"Length (A) {result['length_mm']:.2f} mm, width (B) {result['width_mm']:.2f} mm; "
-        f"results in {output_dir}"
-    )
+    print(f"Length (A) {result['length_mm']:.2f} mm, width (B) {result['width_mm']:.2f} mm; results in {output_dir}")
 
 
 if __name__ == "__main__":

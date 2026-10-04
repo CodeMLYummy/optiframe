@@ -39,7 +39,9 @@ export class AppError extends Error {
 @Injectable({ providedIn: 'root' })
 export class I18n {
   readonly lang = signal<Lang>(initialLang());
-  private readonly language = computed(() => LANGUAGES.find((l) => l.code === this.lang()) ?? LANGUAGES[0]);
+  private readonly language = computed(
+    () => LANGUAGES.find((l) => l.code === this.lang()) ?? LANGUAGES[0],
+  );
 
   constructor() {
     effect(() => {
@@ -56,10 +58,13 @@ export class I18n {
 
   /** Message in the current language, `{name}` replaced by `params.name`. */
   readonly t = (key: MessageKey, params: Record<string, string | number> = {}): string =>
-    this.language().messages[key].replace(/\{(\w+)\}/g, (m, name: string) => (name in params ? String(params[name]) : m));
+    this.language().messages[key].replace(/\{(\w+)\}/g, (m, name: string) =>
+      name in params ? String(params[name]) : m,
+    );
 
   /** Number formatted for the current language (decimal comma in French and Spanish). */
-  readonly num = (value: number, digits = '1.1-1'): string => formatNumber(value, this.lang(), digits);
+  readonly num = (value: number, digits = '1.1-1'): string =>
+    formatNumber(value, this.lang(), digits);
 
   /** User-facing message for an error. In French the server's message is kept: it names the exact problem. */
   readonly error = (e: unknown): string => {
