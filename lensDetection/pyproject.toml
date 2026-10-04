@@ -18,6 +18,7 @@ ronchi = "lensdetection.ronchi:main"
 charuco = "lensdetection.charuco:main"
 glass-edges = "lensdetection.glass_edges:main"
 close-contour = "lensdetection.close_contour:main"
+boxing = "lensdetection.boxing:main"
 ronchi-edges = "lensdetection.ronchi_edges:main"
 
 [build-system]

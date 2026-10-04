@@ -3,11 +3,101 @@
 import argparse
 import base64
 import math
+import re
+import subprocess
 import tkinter as tk
+from dataclasses import dataclass
 
 import cv2
 
 from lensdetection.aruco import DICTIONARIES
+
+
+@dataclass(frozen=True)
+class Monitor:
+    name: str
+    width_px: int
+    width_mm: int
+    height_px: int
+    x: int
+    y: int
+    primary: bool
+
+
+_MONITOR_RE = re.compile(
+    r"^\s*\d+:\s+(?P<label>\S+)\s+"
+    r"(?P<width_px>\d+)/(?P<width_mm>\d+)x"
+    r"(?P<height_px>\d+)/\d+"
+    r"(?P<x>[+-]\d+)(?P<y>[+-]\d+)\s+(?P<name>\S+)\s*$"
+)
+
+
+def parse_xrandr_monitors(output: str) -> list[Monitor]:
+    """Parse the physical geometry from `xrandr --listactivemonitors`."""
+    monitors = []
+    for line in output.splitlines():
+        match = _MONITOR_RE.match(line)
+        if match is None:
+            continue
+        values = match.groupdict()
+        monitors.append(
+            Monitor(
+                name=values["name"],
+                width_px=int(values["width_px"]),
+                width_mm=int(values["width_mm"]),
+                height_px=int(values["height_px"]),
+                x=int(values["x"]),
+                y=int(values["y"]),
+                primary="*" in values["label"],
+            )
+        )
+    return monitors
+
+
+def select_monitor(
+    monitors: list[Monitor], pointer: tuple[int, int] | None
+) -> Monitor | None:
+    """Select the monitor under the pointer, then the primary or sole monitor."""
+    if pointer is not None:
+        pointer_x, pointer_y = pointer
+        for monitor in monitors:
+            if (
+                monitor.x <= pointer_x < monitor.x + monitor.width_px
+                and monitor.y <= pointer_y < monitor.y + monitor.height_px
+            ):
+                return monitor
+    for monitor in monitors:
+        if monitor.primary:
+            return monitor
+    if len(monitors) == 1:
+        return monitors[0]
+    return None
+
+
+def detect_pixels_per_mm(
+    pointer: tuple[int, int] | None,
+) -> tuple[float, str] | None:
+    """Read per-monitor physical dimensions from RandR when available."""
+    try:
+        result = subprocess.run(
+            ["xrandr", "--listactivemonitors"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return None
+    if result.returncode != 0:
+        return None
+
+    monitor = select_monitor(parse_xrandr_monitors(result.stdout), pointer)
+    if monitor is None or monitor.width_px <= 0 or monitor.width_mm <= 0:
+        return None
+    return (
+        monitor.width_px / monitor.width_mm,
+        f"RandR {monitor.name}: {monitor.width_px} px / {monitor.width_mm} mm",
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -59,9 +149,7 @@ def parse_args() -> argparse.Namespace:
         parser.error("square and marker sizes must be positive")
     if args.marker_mm >= args.square_mm:
         parser.error("marker size must be smaller than square size")
-    dictionary = cv2.aruco.getPredefinedDictionary(
-        DICTIONARIES[args.dictionary]
-    )
+    dictionary = cv2.aruco.getPredefinedDictionary(DICTIONARIES[args.dictionary])
     marker_count = (args.squares_x * args.squares_y) // 2
     if marker_count > len(dictionary.bytesList):
         parser.error("the selected dictionary does not have enough marker IDs")
@@ -92,14 +180,24 @@ def main() -> None:
     screen_width_px = root.winfo_screenwidth()
     screen_height_px = root.winfo_screenheight()
     screen_width_mm = root.winfo_screenmmwidth()
-    if screen_width_mm <= 0:
+    pointer = (root.winfo_pointerx(), root.winfo_pointery())
+    if pointer == (-1, -1):
+        pointer = None
+    detected_scale = detect_pixels_per_mm(pointer)
+    if detected_scale is not None:
+        pixels_per_mm, scale_source = detected_scale
+    elif screen_width_mm > 0:
+        pixels_per_mm = screen_width_px / screen_width_mm
+        scale_source = (
+            f"Tk fallback: {screen_width_px} px / {screen_width_mm} mm"
+        )
+    else:
         root.destroy()
         raise RuntimeError(
             "The display did not report its physical width; cannot calculate "
             "the board's on-screen size."
         )
 
-    pixels_per_mm = screen_width_px / screen_width_mm
     board_width_px = round(board_width_mm * pixels_per_mm)
     board_height_px = round(board_height_mm * pixels_per_mm)
     if board_width_px <= screen_width_px and board_height_px <= screen_height_px:
@@ -122,6 +220,7 @@ def main() -> None:
         f"  |  marker: {args.marker_mm:g} mm"
         f"  |  {args.dictionary}"
         f"  |  size: {board_width_mm:g} x {board_height_mm:g} mm"
+        f"  |  scale: {scale_source}"
     )
 
     root.rowconfigure(0, weight=1)
