@@ -20,6 +20,7 @@ glass-edges = "lensdetection.glass_edges:main"
 close-contour = "lensdetection.close_contour:main"
 boxing = "lensdetection.boxing:main"
 ronchi-edges = "lensdetection.ronchi_edges:main"
+demo = "lensdetection.demo:main"
 
 [build-system]
 requires = ["uv_build>=0.12.11,<0.13.0"]

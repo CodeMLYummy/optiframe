@@ -60,7 +60,7 @@ class BoxingTests(unittest.TestCase):
             cv2.imwrite(str(folder / "photo.png"), image)
             run = subprocess.run(
                 [sys.executable, "-m", "lensdetection.boxing", str(folder),
-                 "--image", str(folder / "photo.png")],
+                 str(folder / "photo.png")],
                 capture_output=True, text=True,
             )
             self.assertEqual(run.returncode, 0, run.stderr)
@@ -69,7 +69,7 @@ class BoxingTests(unittest.TestCase):
             self.assertTrue((folder / "boxing_overlay.png").exists())
             missing = subprocess.run(
                 [sys.executable, "-m", "lensdetection.boxing", str(folder / "nope"),
-                 "--image", str(folder / "photo.png")],
+                 str(folder / "photo.png")],
                 capture_output=True, text=True,
             )
             self.assertEqual(missing.returncode, 2)

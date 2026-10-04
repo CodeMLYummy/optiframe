@@ -36,6 +36,17 @@ monitor EDID dimensions can still be approximate. If the board cannot fit at
 that scale, the window reports the required pixel dimensions rather than
 silently shrinking it.
 
+# Demo: photo to measurement
+
+Run the whole pipeline (`glass-edges`, then `close-contour`, then `boxing`) on
+one photo, with all outputs in one folder:
+
+```sh
+uv run demo photo.jpg charuco.example.json --output-dir results
+```
+
+It stops at the first step that fails.
+
 # Glass edge detection
 
 Detect candidate outlines of a flat-ish transparent object lying over a ChArUco
