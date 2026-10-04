@@ -37,7 +37,7 @@ xychart-beta
 |---|---|---|
 | Photo synthétique inclinée (`MeasurementServiceTest`) | 50,0 × 36,0 mm | 50,2 × 36,2 mm |
 | Feuille PDF rastérisée à 300 dpi, déformée en perspective | 52,0 × 37,9 mm | 52,2 × 38,1 mm |
-| Monture STL, deux verres différents (50 × 36 et 46 × 40) | 1 pièce fermée, 4 trous | 1 pièce, 0 défaut de maillage, 4 trous |
+| Monture STL à partir de deux vraies photos (`lens1` + `lens2`, voir plus bas) | 1 pièce fermée | 1 pièce étanche, chaque arête partagée par exactement 2 faces |
 
 Les mesures sont toutes environ 0,2 mm trop grandes : ce biais constant se corrige avec `optiframe.edge-bias-mm`. Sur de vrais verres, l'épaisseur du bord peut ajouter 0,3 à 0,5 mm : sans calibration, on dépasserait la norme.
 
@@ -84,6 +84,21 @@ Valeurs au pied à coulisse : `lens1` 49,5 × 30,5 mm, `lens2` 51,4 × 38,4 mm, 
 - 35 photos sur 47 avec cadre blanc sont mesurées (11 avant le contour polaire) ; les 12 autres sont refusées avec un message clair (8 feuilles non détectées, 4 verres non trouvés).
 - Les dispersions incluent les prises inclinées et zoomées ; ce sont des écarts de répétabilité, pas des écarts à la vraie taille.
 - Les feuilles à rayures (Ronchi) ne permettent pas de détecter le contour.
+
+### Monture STL
+
+Monture générée par l'application à partir de deux vraies photos (`lens1` à droite, `lens2` à gauche, feuille ChArUco Letter), STL téléchargé puis vérifié avec `trimesh`. Les coins identiques du STL sont fusionnés, comme le fait un trancheur ; un maillage fermé valide a chaque arête partagée par exactement 2 faces.
+
+| Version | Triangles | Taille | Pièces | Étanche | Arêtes partagées par plus de 2 faces | Faces d'aire nulle |
+|---|---|---|---|---|---|---|
+| Rainure en tranches de 0,25 mm (avant le 4 octobre) | 97 990 | 4,7 Mo | 27 | non | 3 177 | 4 510 |
+| Fond plat de la rainure en une seule découpe (`ef03479`) | 84 604 | 4,1 Mo | 1 | oui | 2 747 | 3 804 |
+| **Rainure en une seule découpe lissée (`7a6a368`, en ligne)** | **19 674** | **0,96 Mo** | **1** | **oui** | **0** | **0** |
+
+- Même volume dans les trois versions (6,75 cm³) : seule la qualité du maillage change, pas la forme.
+- Corrections : la rainure en V est un seul solide aux parois à 45° (prolongées de 0,1 mm au-delà des faces) au lieu d'une pile de tranches ; cercles, pont et avant des charnières sont extrudés en une seule forme ; la monture est simplifiée à 1 µm près pour retirer les triangles minuscules laissés par les opérations booléennes.
+- Vérifié aussi sur https://optiframe.app (4 octobre) : même résultat, 0 défaut.
+- Encombrement 100 × 60 × 11 mm, posé sur la face avant ; rainure et lèvres pas encore imprimées (voir limites).
 
 > À compléter : contrôle de l'inclinaison de la photo, alerte quand le verre est tourné sur la feuille, nouvelle série de photos sur une feuille imprimée à 100 %.
 
