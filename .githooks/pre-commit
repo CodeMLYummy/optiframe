@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Formats the staged files before each commit: Prettier and ESLint (frontend, docs, config), Ruff (Python),
+# Spotless (Java), shfmt (shell). Fully staged files are fixed and staged again; a file with unstaged changes
+# too is only checked, so the commit never takes changes that were not staged.
+# Enabled by `npm install` in frontend/ (core.hooksPath = .githooks). Skip once: git commit --no-verify.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR)
+[ ${#staged[@]} -eq 0 ] && exit 0
+mapfile -t unstaged < <(git diff --name-only)
+
+fix=() check=()
+for f in "${staged[@]}"; do
+  if printf '%s\n' "${unstaged[@]}" | grep -qxF -- "$f"; then check+=("$f"); else fix+=("$f"); fi
+done
+
+failed=0
+# run LABEL PATTERN FIX_CMD CHECK_CMD: runs the commands on the staged files matching PATTERN (an extended regex).
+run() {
+  local label=$1 pattern=$2 fix_cmd=$3 check_cmd=$4 files
+  mapfile -t files < <(printf '%s\n' "${fix[@]}" | grep -E -- "$pattern" || true)
+  if [ ${#files[@]} -gt 0 ]; then
+    if ! eval "$fix_cmd" '"${files[@]}"'; then
+      echo "pre-commit: $label could not fix: ${files[*]}" >&2
+      failed=1
+    fi
+    git add -- "${files[@]}"
+  fi
+  mapfile -t files < <(printf '%s\n' "${check[@]}" | grep -E -- "$pattern" || true)
+  if [ ${#files[@]} -gt 0 ] && ! eval "$check_cmd" '"${files[@]}"'; then
+    echo "pre-commit: $label: partly staged files need formatting (format them, then stage): ${files[*]}" >&2
+    failed=1
+  fi
+}
+
+need() {
+  command -v "$1" >/dev/null || [ -x "$1" ] || {
+    echo "pre-commit: $1 not found. $2" >&2
+    exit 1
+  }
+}
+
+# ESLint runs from frontend/: paths relative to it (options, starting with --, kept).
+eslint_frontend() {
+  local args=() f
+  for f in "$@"; do [ "${f#--}" = "$f" ] && args+=("${f#frontend/}") || args+=("$f"); done
+  (cd frontend && node_modules/.bin/eslint --no-warn-ignored "${args[@]}")
+}
+
+ruff_fix() { ruff format --quiet "$@" && ruff check --fix --quiet "$@"; }
+ruff_check() { ruff format --check --quiet "$@" && ruff check --quiet "$@"; }
+
+# Spotless takes the files as a regex of absolute paths.
+spotless() {
+  local goal=$1 regex
+  shift
+  regex=$(printf '%s\n' "$@" | sed "s|^|$PWD/|; s|[.]|\\\\.|g" | paste -sd '|')
+  (cd backend && ./mvnw -q "spotless:$goal" "-DspotlessFiles=$regex")
+}
+
+# Prettier: everything it knows, except what .prettierignore excludes.
+if printf '%s\n' "${staged[@]}" | grep -qE '\.(ts|js|mjs|cjs|json|jsonc|html|css|scss|md|ya?ml)$'; then
+  need frontend/node_modules/.bin/prettier "Run: cd frontend && npm ci"
+  run Prettier '\.(ts|js|mjs|cjs|json|jsonc|html|css|scss|md|ya?ml)$' \
+    'frontend/node_modules/.bin/prettier --write --ignore-unknown --log-level warn' \
+    'frontend/node_modules/.bin/prettier --check --ignore-unknown --log-level warn'
+  # ESLint: the Angular app (TypeScript and templates), paths relative to frontend/.
+  run ESLint '^frontend/src/.*\.(ts|html)$' \
+    'eslint_frontend --fix' \
+    'eslint_frontend'
+fi
+
+if printf '%s\n' "${staged[@]}" | grep -qE '\.py$'; then
+  need ruff "Install it: pipx install ruff (or uv tool install ruff)"
+  run Ruff '\.py$' 'ruff_fix' 'ruff_check'
+fi
+
+if printf '%s\n' "${staged[@]}" | grep -qE '^backend/.*\.java$|^backend/pom\.xml$'; then
+  run Spotless '^backend/.*\.java$|^backend/pom\.xml$' 'spotless apply' 'spotless check'
+fi
+
+if printf '%s\n' "${staged[@]}" | grep -qE '\.sh$|^\.githooks/'; then
+  if command -v shfmt >/dev/null; then
+    run shfmt '\.sh$|^\.githooks/' 'shfmt -w' 'shfmt -d'
+  else
+    echo "pre-commit: shfmt not found, shell scripts not formatted (CI checks them). Install: https://github.com/mvdan/sh" >&2
+  fi
+fi
+
+exit $failed
