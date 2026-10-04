@@ -1,0 +1,12 @@
+# Generated, vendored or binary content: never reformatted.
+**/node_modules/
+**/dist/
+**/.angular/
+backend/target/
+**/package-lock.json
+**/.venv/
+lensDetection/results_*/
+lensDetection/photos*/
+qrcode.svg
+.idea/
+.claude/

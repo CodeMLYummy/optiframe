@@ -1,0 +1,13 @@
+# Python formatting and lint (lensDetection/, training/): `ruff format` then `ruff check --fix`.
+line-length = 120
+target-version = "py311"
+extend-exclude = ["lensDetection/results_*", "**/.venv"]
+
+[lint]
+# Pyflakes, pycodestyle errors, import order, pyupgrade, bugbear. Listed in full: ruff's defaults change between versions.
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
+ignore = [
+  "E741",  # l, I, O as names: used for lens/image math (L, I...) in the prototypes
+  "E731",  # small named lambdas for one-line helpers
+  "B905",  # zip() without strict=: the zipped lists are built together
+]
