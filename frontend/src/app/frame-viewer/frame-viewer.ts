@@ -37,7 +37,8 @@ export class FrameViewer {
     const sun = new DirectionalLight(0xffffff, 2);
     sun.position.set(80, 120, 200);
     this.scene.add(sun);
-    this.camera.position.set(0, -40, 260);
+    // Three-quarter view: the temples go 140 mm back, they would be hidden seen from straight ahead.
+    this.camera.position.set(170, 60, 190);
 
     afterNextRender(() => this.init());
     effect(() => {
@@ -58,6 +59,7 @@ export class FrameViewer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
+    this.controls.target.set(0, 0, -45);
     this.renderer.setAnimationLoop(() => {
       const { clientWidth: w, clientHeight: h } = canvas;
       if (canvas.width !== Math.round(w * this.renderer!.getPixelRatio())) {

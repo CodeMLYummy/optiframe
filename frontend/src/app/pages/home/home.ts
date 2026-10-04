@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { download, lensPairSvg, stlBlob } from '../../core/exports';
-import { FrameResult, generateFrame } from '../../core/frame-generator';
+import { FrameResult, TEMPLE, generateFrame } from '../../core/frame-generator';
 import {
   COMFORT_BRIDGE_MM,
   DEFAULT_BRIDGE_MM,
@@ -129,5 +129,14 @@ export class Home {
       return;
     }
     download(new Blob([lensPairSvg(R.contour, L.contour)], { type: 'image/svg+xml' }), 'contours-paire.svg');
+  }
+
+  protected readonly templeLengthMm = TEMPLE.lengthMm;
+
+  protected downloadTemplesStl(): void {
+    const f = this.frame();
+    if (f) {
+      download(stlBlob(f.templesPrintGeometry), 'branches.stl');
+    }
   }
 }

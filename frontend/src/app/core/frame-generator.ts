@@ -38,11 +38,33 @@ const GROOVE_RAYS = 720;
 const MESH_TOLERANCE_MM = 0.001;
 const LUG = { widthMm: 4, heightMm: 8, depthMm: 6, pinDiameterMm: 1.6 };
 
+/**
+ * Temples (branches), a separate print: a fork whose two ears go above and below the lug, held by a pin through
+ * the three holes (paper clip or 1.75 mm filament, tight in the lug, free in the ears). Straight, then bent down
+ * behind the ear. Lengths are measured from the pin.
+ */
+export const TEMPLE = {
+  lengthMm: 140,
+  bendAtMm: 100,
+  bendDeg: 25,
+  heightMm: 5,
+  thicknessMm: 3.5,
+  /** Thickness of each ear of the fork. */
+  earMm: 2.2,
+  /** Gap around the lug, above, below and behind. */
+  clearanceMm: 0.3,
+  pinHoleMm: 1.9,
+};
+
 export interface FrameResult {
   /** Model coordinates, for the preview. */
   geometry: BufferGeometry;
   /** Same mesh rotated front face down on the bed, ready to print. */
   printGeometry: BufferGeometry;
+  /** Front with both temples pinned and open, for the preview only. */
+  previewGeometry: BufferGeometry;
+  /** Both temples lying flat side by side, ready to print (separate file). */
+  templesPrintGeometry: BufferGeometry;
   /** Inner outline at the bottom of the groove, per lens, in model coordinates (for the coherence overlay). */
   grooveOutlines: { eye: LensContour['eye']; pointsMm: Vec2[] }[];
   /** Through holes of the printed part: 2 lens openings + 2 pin holes. */
@@ -140,9 +162,26 @@ export async function generateFrame(
     }
     const printFrame = keep(keep(frame.rotate([0, 180, 0])).translate(0, 0, T));
 
+    // Temples: side profile (u behind the pin, v up) extruded through the thickness, then pinned to each lug.
+    const temple = buildTemple(CrossSection, Manifold, keep);
+    const pinZ = -LUG.depthMm / 2;
+    const worn = lugXs.map((x) => keep(keep(temple.rotate([0, 90, 0])).translate(x - TEMPLE.thicknessMm / 2, y, pinZ)));
+    const tb = temple.boundingBox();
+    const pitch = tb.max[1] - tb.min[1] + 5;
+    const templesPrint = keep(Manifold.union([temple, keep(temple.translate(0, pitch, 0))]));
+    if (templesPrint.decompose().map(keep).length !== 2) {
+      throw new Error('Temples overlap on the print bed');
+    }
+    if (worn.some((w) => keep(frame.intersect(w)).volume() > 0)) {
+      throw new Error('Temple fork collides with the frame');
+    }
+    const preview = keep(Manifold.union([frame, ...worn]));
+
     return {
       geometry: toGeometry(frame),
       printGeometry: toGeometry(printFrame),
+      previewGeometry: toGeometry(preview),
+      templesPrintGeometry: toGeometry(templesPrint),
       grooveOutlines,
       genus: frame.genus(),
       triangles: frame.numTri(),
@@ -153,6 +192,46 @@ export async function generateFrame(
       g.delete();
     }
   }
+}
+
+/**
+ * One temple in its side profile: x = u (mm behind the pin), y = v (up), z through the thickness (0 to
+ * TEMPLE.thicknessMm), lying flat as printed. The fork clears the lug: the ears stop short of the frame's back face
+ * whatever the angle, and the bridge of the fork stays outside the lug's turning circle.
+ */
+function buildTemple(
+  CrossSection: ManifoldToplevel['CrossSection'],
+  Manifold: ManifoldToplevel['Manifold'],
+  keep: <T extends { delete(): void }>(x: T) => T,
+): Manifold {
+  const t = TEMPLE;
+  const half = t.thicknessMm / 2;
+  const gap = LUG.heightMm / 2 + t.clearanceMm;
+  const top = gap + t.earMm;
+  // Ears turn about the pin: their front corners must stay behind the frame's back face (pin is depth / 2 behind).
+  const earFront = Math.sqrt((LUG.depthMm / 2 - t.clearanceMm) ** 2 - half ** 2);
+  // Fork bridge: beyond the lug's farthest corner from the pin.
+  const bridge0 = Math.hypot(LUG.widthMm / 2, LUG.depthMm / 2) + t.clearanceMm;
+  const bridge1 = bridge0 + 3;
+  const rect = (u0: number, u1: number, v0: number, v1: number) =>
+    keep(CrossSection.square([u1 - u0, v1 - v0]).translate(u0, v0));
+  const h = t.heightMm / 2;
+  const bend = (t.bendDeg * Math.PI) / 180;
+  const rest = t.lengthMm - t.bendAtMm;
+  const tip: Vec2 = [t.bendAtMm + rest * Math.cos(bend), -rest * Math.sin(bend)];
+  const disc = (c: Vec2) => keep(keep(CrossSection.circle(h, 32)).translate(c));
+  const profile = keep(
+    CrossSection.union([
+      rect(-earFront, bridge1, gap, top),
+      rect(-earFront, bridge1, -top, -gap),
+      keep(CrossSection.hull([rect(bridge0, bridge1, -top, top), rect(bridge1 + 12, bridge1 + 13, -h, h)])),
+      rect(bridge0, t.bendAtMm, -h, h),
+      keep(CrossSection.hull([disc([t.bendAtMm, 0]), disc(tip)])),
+    ]),
+  );
+  const body = keep(profile.extrude(t.thicknessMm));
+  const pin = keep(keep(keep(Manifold.cylinder(2 * top + 2, t.pinHoleMm / 2, -1, 24, true)).rotate([90, 0, 0])).translate(0, 0, half));
+  return keep(body.subtract(pin));
 }
 
 /**

@@ -113,9 +113,14 @@
   }
 
   @if (frame(); as f) {
-    <app-frame-viewer [geometry]="f.geometry" />
+    <app-frame-viewer [geometry]="f.previewGeometry" />
     <p class="status">{{ f.triangles }} triangles · {{ f.volumeMm3 / 1000 | number: '1.1-1' }} cm³ de filament</p>
     <button class="button primary wide" (click)="downloadStl()">Télécharger monture.stl</button>
+    <button class="button wide" (click)="downloadTemplesStl()">Télécharger branches.stl</button>
+    <p class="status">
+      Branches de {{ templeLengthMm }} mm, à imprimer à plat. Fixez chaque branche à son tenon avec un trombone ou un bout
+      de filament de 1,75 mm : serré dans le tenon, libre dans la fourche.
+    </p>
   }
 </section>
 
