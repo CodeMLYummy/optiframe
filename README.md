@@ -99,6 +99,18 @@ cloudflared tunnel --url http://localhost:4200
 
 Tests : `cd backend && ./mvnw test` (mesure de bout en bout sur une photo synthétique inclinée) et `cd frontend && npm test`.
 
+### Formatage et intégration continue
+
+| Code                                        | Outil                      | Corriger                                                 |
+| ------------------------------------------- | -------------------------- | -------------------------------------------------------- |
+| TypeScript, HTML, CSS, JSON, YAML, Markdown | Prettier, ESLint (Angular) | `cd frontend && npm run format && npm run lint -- --fix` |
+| Java, `pom.xml`                             | Spotless (Eclipse)         | `cd backend && ./mvnw spotless:apply`                    |
+| Python                                      | Ruff                       | `ruff format . && ruff check --fix .`                    |
+| Shell                                       | shfmt                      | `shfmt -w deploy/*.sh .githooks/*`                       |
+
+- `npm install` dans `frontend/` active le hook `.githooks/pre-commit` : les fichiers indexés sont formatés avant chaque commit (Ruff et shfmt doivent être installés pour le Python et le shell).
+- GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) vérifie le formatage, le lint, les tests et le build de chaque push et pull request. Le déploiement reste fait par Cloud Build sur `main`.
+
 ## Licence
 
 [MIT](LICENSE). Les bibliothèques utilisées gardent leurs licences : voir [Données et IA](docs/donnees-ia.md).

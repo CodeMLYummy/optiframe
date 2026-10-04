@@ -1,0 +1,4 @@
+# Formatting-only commits, skipped by git blame (GitHub reads this file; locally:
+# git config blame.ignoreRevsFile .git-blame-ignore-revs).
+# style: apply Prettier, ESLint, Spotless and Ruff
+f2ba3b598f0c0238c1c0e67ae5a6dc21376416d7
