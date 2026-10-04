@@ -12,6 +12,7 @@ frozen as it was when its results were recorded; the reasoning and results are i
 | v3 | `v3_segmenter_tuning/` | Why does the backend's classical segmenter over-measure? | Shadow leak; fixed with Canny 40/100 + darker-than-mean 25 (ported to Java) |
 | SAM | `sam_eval/` | Can Segment Anything outline the lens? | Only with a box prompt (filled IoU 0.96–0.98); points and automatic mode fail |
 | v4 | `v5_polar_contour/seg_clear.py` (`v4`) | Clear lenses on the blank window: close the rim ring and fill it? | **No.** 3–10 / 34: the faint rim has gaps and cables touch it, so the fill fails or floods |
+| v6 | `v6_corner_overlay/` | Diagnostic: how good is the sub-pixel ChArUco corner detection on every photo? | Detection is sharp (×8 insets) but the sheet isn't a plane: inlier RMS ~1.4 px, outliers on 64 / 67 photos (blur, curl); side columns found 42–55 % vs 70–75 % for top/bottom rows |
 | v5 | `v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar contour, dynamic programming)? | **Yes.** 28 / 34 blank windows (backend today: 7); lens 1 50.18 ± 0.99 × 31.33 ± 0.98, lens 2 51.51 ± 0.64 × 38.20 ± 0.48 mm; red lens within 0.8 mm of its colour mask |
 
 ## Setup
@@ -104,6 +105,20 @@ star-shaped outlines only; on steep shots the path can take the lens's top edge 
 
 `photos3_labelling/` holds the one-off scripts that labelled and renamed `photos3` and wrote the
 `index.csv` files; they ran on the original camera names and are kept as a record, not to re-run.
+
+## v6 — corner detection overlay (`v6_corner_overlay/`)
+
+```bash
+.venv/bin/python prototypes/v6_corner_overlay/corner_overlay.py            # all of photos1-3
+```
+
+Diagnostic only, numbers left raw (no print-scale or edge correction). One overlay per photo in
+`results_v6/<folder>/` (plus `contact.jpg`) and `results_v6/corners.csv`: detected chessboard corners (sub-pixel
+cross; green = used for the homography, orange = on the lens-window edge, skipped like the backend), RANSAC
+outliers (red squares), board corners not found (red ×, at their fitted position), each inlier's reprojection error
+(magenta arrow ×20), the projected lens window, detected markers, ×8 insets of three corners, and a stats line
+(corners used / outliers / expected, inlier RMS, camera). Board per folder: the printed 12×17 sheet for
+`photos2`/`photos3`, the 8×6 screen board for `photos1`.
 
 ## SAM evaluation (`sam_eval/`)
 

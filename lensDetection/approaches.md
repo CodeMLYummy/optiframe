@@ -31,6 +31,7 @@ we recommend next. Started 2026-10-03 with the review of Richard's `lensDetectio
 | v3 → A2 | 10-04 | `prototypes/v3_segmenter_tuning/` → `backend/.../ClassicalSegmenter.java` (commit `a865b76`) | App: stop the classical segmenter leaking into the lens shadow | ✅ A spread 4.6 → 2.0 mm, B 57.2–57.7 mm (excl. steep shot) |
 | v4 | 10-04 | `prototypes/v5_polar_contour/seg_clear.py` | Clear lenses: close the rim ring, fill, open away cables | ❌ 3–10 / 34 (gaps, cables) |
 | v5 | 10-04 | `prototypes/v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar dynamic programming) | ✅ 28 / 34 vs 7 for the backend; std < 1 mm per lens |
+| v6 | 10-04 | `prototypes/v6_corner_overlay/` | Diagnostic overlay of the sub-pixel corner detection on all photos | Detection sharp; sheet not flat (~1.4 px inlier RMS); side columns found only 42–55 % |
 | v5 → A3 | 10-04 | `backend/.../ClassicalSegmenter.java` | App: v5 replaces the threshold segmenter, plus a ±0.6 mm snap to the rim | ✅ 35 / 47 blank-window photos via `/api/measure` (was 11), ~0.3 s each |
 
 ## Context
@@ -208,6 +209,21 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
   | `lens2` long × short | — | 51.29 ± 0.57 × 38.21 ± 0.52 mm (16) |
   | Red lens A / B vs colour prototype | +0.5 mm, steep shot +4 mm | −0.6 … +1.0 mm |
   | Server time per photo | | ~0.3 s |
+
+### Calibration against calipers, print scale, and v6
+- Caliper values (one decimal): `lens1` 49.5 × 30.5, `lens2` 51.4 × 38.4, red 55.7 × 46.5 mm. The red lens
+  is not the 54 × 37 of the Zenni #451321 listing.
+- **The Letter sheet was printed at 97.87 %** (5 squares = 73.4 mm instead of 75.0, same both ways): every
+  measurement on `photos2`/`photos3` is 2.2 % too large. As measured: MAE 0.92 mm, signed +0.73 mm (40
+  photos). With the true scale: **MAE 0.80 mm, signed −0.21 mm**; red −0.10 × +0.02 mm on average. The
+  app is calibrated; the paper wasn't. → Reprint at 100 % and check 5 squares = 75.0 mm.
+- Remaining per-photo outliers, by cause: lens rotated on the sheet (axis box inflates the short side,
+  +1.8–2.5 mm), cable across the lens with side light (inner of a double edge, −1.1…−2.3 mm), steep or
+  close shots (side wall, +1.9–2.3 mm).
+- **v6** (corner overlay on every photo): sub-pixel corners land on the saddle points, but the sheet isn't
+  a plane (paper curling off the screen, top corners), so the homography fits at ~1.4 px RMS on inliers
+  (~0.13 mm) and rejects corners on 64 / 67 photos (blur, curl). The 1-column sides are weak: left 42 %,
+  right 55 % of corners found vs 70–75 % for the top and bottom rows → a 3-square side border would help.
 
 ## Lessons
 
