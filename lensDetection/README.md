@@ -85,7 +85,8 @@ objects or simplify their outlines.
 
 The output directory contains `overlay.png` (numbered green outlines),
 `mask.png` (filled candidate regions), `residual.png` (background difference),
-and `detections.json` (pixel contours, board-plane contours in millimeters,
+`edges.png` (observed edges left after template matching removes the board's
+own straight edges, leaving curved rims), and `detections.json` (pixel contours, board-plane contours in millimeters,
 areas, perimeters, and alignment diagnostics). Board coordinates start at the
 board's top-left outer corner, with x rightward and y downward. Measurements
 are **board-plane projections**, not corrected dimensions of raised or curved

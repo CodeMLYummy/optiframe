@@ -16,7 +16,7 @@ def load_board(path: Path) -> cv2.aruco.CharucoBoard:
     """Read physical board dimensions matching the charuco generator."""
     data = json.loads(path.read_text())
     if not isinstance(data, dict):
-        raise TypeError("Board JSON must be an object.")
+        raise ValueError("Board JSON must be an object.")
     required = ("squares_x", "squares_y", "square_mm", "marker_mm", "dictionary")
     missing = [key for key in required if key not in data]
     if missing:
@@ -132,14 +132,82 @@ def render_background(
     return expected, footprint, pixels_per_square
 
 
+def remove_board_edges(
+    observed: np.ndarray,
+    expected: np.ndarray,
+    footprint: np.ndarray,
+    pixels_per_square: float,
+    min_score: float = 0.6,
+) -> np.ndarray:
+    """Return observed edges left after template-matching away the board's edges.
+
+    The rendered board's edge map is cut into tiles. Each tile is matched against
+    the observed edge map in a small search window, which absorbs registration
+    and lens-distortion drift. Where it matches, the straight printed edges are
+    erased, leaving curved edges such as a glass rim.
+    """
+    observed_edges = cv2.Canny(cv2.GaussianBlur(observed, (5, 5), 1.0), 50, 150)
+    expected_edges = cv2.Canny(expected, 50, 150)
+    radius = max(2, round(pixels_per_square * 0.08))
+    grow = np.ones((3, 3), np.uint8)
+    # Pad with the search radius so shifted tiles never leave the arrays.
+    observed_map = cv2.copyMakeBorder(
+        (cv2.dilate(observed_edges, grow) > 0).astype(np.float32),
+        *(radius,) * 4,
+        cv2.BORDER_CONSTANT,
+    )
+    template_map = cv2.copyMakeBorder(
+        (expected_edges > 0).astype(np.float32), *(radius,) * 4, cv2.BORDER_CONSTANT
+    )
+    erase_map = cv2.dilate(template_map, np.ones((5, 5), np.uint8))
+    remaining = observed_edges.copy()
+    height, width = observed_edges.shape
+    tile = max(16, round(pixels_per_square / 2))
+    for y in range(0, height, tile):
+        for x in range(0, width, tile):
+            y1, x1 = min(y + tile, height), min(x + tile, width)
+            if cv2.countNonZero(footprint[y:y1, x:x1]) == 0:
+                continue
+            patch = template_map[radius + y : radius + y1, radius + x : radius + x1]
+            expected_pixels = float(patch.sum())
+            if expected_pixels < tile * 0.5:
+                continue
+            window = observed_map[y : y1 + 2 * radius, x : x1 + 2 * radius]
+            # Fraction of the board's edge pixels that have an observed edge nearby;
+            # extra observed edges (the glass) do not lower it.
+            scores = cv2.matchTemplate(window, patch, cv2.TM_CCORR) / expected_pixels
+            _, score, _, (left, top) = cv2.minMaxLoc(scores)
+            if score < min_score:
+                continue
+            # (left, top) == (radius, radius) means no shift from the render.
+            y0, x0 = y + 2 * radius - top, x + 2 * radius - left
+            shifted = erase_map[y0 : y0 + (y1 - y), x0 : x0 + (x1 - x)]
+            remaining[y:y1, x:x1][shifted > 0] = 0
+    remaining[footprint == 0] = 0
+    # Drop short leftovers (printed-edge slivers, noise) that cannot be a rim.
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(
+        remaining, connectivity=8
+    )
+    for label in range(1, count):
+        if max(stats[label, cv2.CC_STAT_WIDTH], stats[label, cv2.CC_STAT_HEIGHT]) < (
+            pixels_per_square * 0.3
+        ):
+            remaining[labels == label] = 0
+    return remaining
+
+
 def detect_glass(
     image: np.ndarray,
     board: cv2.aruco.CharucoBoard,
     threshold: float = 30.0,
     min_area_mm2: float | None = None,
     reference: np.ndarray | None = None,
-) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray]:
-    """Return candidate contours, a filled mask, overlay, and residual image."""
+) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Return candidate contours, a filled mask, overlay, residual, and edge image.
+
+    The edge image holds observed edges that remain after template matching
+    removes the ChArUco board's own edges.
+    """
     if not math.isfinite(threshold) or not 0 < threshold < 255:
         raise ValueError("Residual threshold must be between 0 and 255.")
     if min_area_mm2 is not None and (
@@ -196,6 +264,9 @@ def detect_glass(
     evidence = ((residual >= threshold) & valid & (pattern_edges == 0)).astype(
         np.uint8
     ) * 255
+    # Rims that cross a printed edge are recovered from the leftover edges.
+    glass_edges = remove_board_edges(gray, expected, footprint, pixels_per_square)
+    evidence = cv2.bitwise_or(evidence, glass_edges)
     size = max(3, round(pixels_per_square * 0.12) | 1)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
     connected = cv2.morphologyEx(evidence, cv2.MORPH_CLOSE, kernel)
@@ -265,7 +336,7 @@ def detect_glass(
         "background_source": "reference" if reference is not None else "rendered_board",
         "candidates": candidates,
     }
-    return result, mask, overlay, residual_image
+    return result, mask, overlay, residual_image, glass_edges
 
 
 def read_image(path: Path) -> np.ndarray:
@@ -300,7 +371,7 @@ def main() -> None:
     try:
         outputs = [
             args.output_dir / name
-            for name in ("detections.json", "mask.png", "overlay.png", "residual.png")
+            for name in ("detections.json", "mask.png", "overlay.png", "residual.png", "edges.png")
         ]
         inputs = {
             path.resolve()
@@ -312,11 +383,11 @@ def main() -> None:
         board = load_board(args.board)
         image = read_image(args.image)
         reference = read_image(args.reference) if args.reference is not None else None
-        result, mask, overlay, residual = detect_glass(
+        result, mask, overlay, residual, edges = detect_glass(
             image, board, args.threshold, args.min_area_mm2, reference
         )
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        for path, output in zip(outputs[1:], (mask, overlay, residual)):
+        for path, output in zip(outputs[1:], (mask, overlay, residual, edges)):
             if not cv2.imwrite(str(path), output):
                 raise OSError(f"Could not write image: {path}")
         outputs[0].write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
