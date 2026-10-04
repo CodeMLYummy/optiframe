@@ -98,3 +98,7 @@ cloudflared tunnel --url http://localhost:4200
 ```
 
 Tests : `cd backend && ./mvnw test` (mesure de bout en bout sur une photo synthétique inclinée) et `cd frontend && npm test`.
+
+## Licence
+
+[MIT](LICENSE). Les bibliothèques utilisées gardent leurs licences : voir [Données et IA](docs/donnees-ia.md).
