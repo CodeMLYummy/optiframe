@@ -1,0 +1,18 @@
+{
+  "name": "OptiFrame ChArUco",
+  "dictionary": "DICT_5X5_250",
+  "charuco": {
+    "squaresX": 12,
+    "squaresY": 17,
+    "squareMm": 15,
+    "markerMm": 11,
+    "legacyPattern": false
+  },
+  "lensWindow": { "xMm": 30, "yMm": 45, "widthMm": 120, "heightMm": 165 },
+  "ronchi": { "periodMm": 2 },
+  "checkSquares": 10,
+  "papers": {
+    "a4": { "widthMm": 210, "heightMm": 297 },
+    "letter": { "widthMm": 215.9, "heightMm": 279.4 }
+  }
+}
