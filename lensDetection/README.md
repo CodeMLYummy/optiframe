@@ -66,28 +66,35 @@ photos with at least about 12 pixels per square. A visible rim, reflection,
 shadow, tint, or pattern distortion is necessary: perfectly clear glass with
 no visible optical effect cannot be detected from an image alone.
 
-For better background suppression, take a second photo without the glass,
-preferably with the camera, focus, lighting, and board unchanged:
+The detector works in four steps:
 
-```sh
-uv run glass-edges photo.jpg board.example.json \
-  --reference bare-board.jpg --threshold 25 --min-area-mm2 100
-```
+1. **High-pass**: the photo minus a heavy blur, amplified, so thin details such
+   as a glass rim stand out (`highpass.png`).
+2. **Hough circle transform**: finds the round shape over the board. The
+   board's own printed edges are removed from the Canny edges first so they do
+   not win the vote: an edge pixel is erased only if it lies near an edge of the
+   board rendered from the JSON (a margin absorbs drift) *and* runs along one of
+   the board's two axes, so a rim crossing a printed edge at an angle survives; the best circle is the one whose ring has edges all
+   the way around.
+3. **Canny edges isolated to the round edge**: only edges within `--tolerance`
+   of the circle's radius are kept as the starting set (`edges.png`).
+4. **Ellipse**: an ellipse is fitted to those edges over a few passes, each
+   keeping a narrower ring around the previous fit, so stray edges stop pulling
+   it. The final ellipse is the outline, and `edges.png` keeps only the edges
+   on it. Gaps where the rim crosses a printed edge do not matter.
 
-The reference must have the same image dimensions; it is aligned using the
-board. Without it, the expected pattern is rendered from the JSON. The detector
-fits a robust board homography, matches black/white brightness levels, suppresses
-printed edges, and connects remaining residuals into candidate contours.
-`--threshold` is a grayscale difference between 0 and 255 (default 30);
-lower values increase sensitivity and false positives. The minimum enclosed
-area defaults to one board square. Morphological gap filling can merge nearby
-objects or simplify their outlines.
+The glass need not be a perfect circle (spectacle lenses are not); the Hough
+circle only locates it, and the ellipse gives the shape. `--tolerance` (default
+0.3 of the circle's radius) is the initial ring width.
+`--min-radius-mm` / `--max-radius-mm` bound the circle search (defaults: 0.4
+board squares to half the board's short side). The minimum enclosed area
+(`--min-area-mm2`) defaults to one board square.
 
-The output directory contains `overlay.png` (numbered green outlines),
-`mask.png` (filled candidate regions), `residual.png` (background difference),
-`edges.png` (observed edges left after template matching removes the board's
-own straight edges, leaving curved rims), and `detections.json` (pixel contours, board-plane contours in millimeters,
-areas, perimeters, and alignment diagnostics). Board coordinates start at the
+The output directory contains `overlay.png` (Hough circle in orange, isolated
+edges in red, fitted ellipse outline in green), `mask.png` (filled outline), `highpass.png`,
+`edges.png` (Canny edges isolated to the ellipse), and `detections.json`
+(Hough circle, fitted ellipse, pixel contour, board-plane contour in millimeters, area,
+perimeter, and alignment diagnostics). Board coordinates start at the
 board's top-left outer corner, with x rightward and y downward. Measurements
 are **board-plane projections**, not corrected dimensions of raised or curved
 glass. Use an undistorted image for measurement; camera lens distortion, glare,
@@ -99,6 +106,31 @@ or exact glass boundary.
 Exit status is 0 when candidates are found, 1 when none are found (diagnostic
 outputs are still written), and 2 for invalid inputs or processing failures.
 Existing output files are replaced, so use a separate directory per image.
+
+## Closing the contour with a Bezier spline
+
+The isolated rim edges usually have gaps where the rim crosses a printed edge.
+`close-contour` reads a `glass-edges` output folder (`edges.png` and the fitted
+ellipse in `detections.json`) and closes the rim with a cubic Bezier spline:
+
+```sh
+uv run glass-edges photo.jpg board.example.json --output-dir results/photo
+uv run close-contour results/photo --image photo.jpg
+```
+
+The rim is cut into `--knots` angular spans (default 48) measured relative to
+the fitted ellipse; each span with edge pixels becomes a knot at the median edge
+radius. Empty spans are interpolated across the gap, and a closed Catmull-Rom
+spline is converted to cubic Bezier segments through all the knots. It writes
+`closed.svg` (1 path, pixel units), `closed.json` (Bezier segments in pixels,
+the sampled contour in board millimeters, area, perimeter, which segments were
+bridged), `closed_mask.png`, `closed_overlay.png` (green: measured rim, blue: bridged
+gaps, red: input edges; drawn on `--image` when given), and
+`closed_highpass_overlay.png` (the same drawing on the folder's `highpass.png`).
+Exit status is 1 when less than `--min-coverage` (default 0.5) of the rim was
+measured, since the bridge would then be mostly a guess, and 2 on invalid input.
+Bridged gaps follow the ellipse-like interpolation, so wide gaps can cut inside
+or outside the real rim.
 
 # Ronchi glass edge detection
 

@@ -1,4 +1,4 @@
-"""Find candidate glass outlines by removing a known ChArUco background."""
+"""Find a round glass outline over a ChArUco board: high-pass, Hough circle, Canny."""
 
 import argparse
 import json
@@ -132,211 +132,288 @@ def render_background(
     return expected, footprint, pixels_per_square
 
 
-def remove_board_edges(
-    observed: np.ndarray,
+def high_pass(gray: np.ndarray, pixels_per_square: float, gain: float = 2.0) -> np.ndarray:
+    """Subtract a heavy blur and amplify, so faint thin details such as a glass
+    rim stand out against the board's broad black and white areas."""
+    sigma = float(np.clip(pixels_per_square * 0.1, 2.0, 25.0))
+    background = cv2.GaussianBlur(gray, (0, 0), sigma).astype(np.float32)
+    detail = (gray.astype(np.float32) - background) * gain + 128
+    return np.clip(detail, 0, 255).astype(np.uint8)
+
+
+def board_axis_angles(homography: np.ndarray, xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
+    """Image directions (radians, shape (n, 2)) of the board's x and y axes at pixels."""
+    q = np.linalg.inv(homography) @ np.stack([xs, ys, np.ones(len(xs))])
+    q = q / q[2]
+    p = homography @ q
+    w = p[2]
+    angles = []
+    for column in (0, 1):
+        h = homography[:, column]
+        dx = (h[0] - p[0] / w * h[2]) / w
+        dy = (h[1] - p[1] / w * h[2]) / w
+        angles.append(np.arctan2(dy, dx))
+    return np.stack(angles, axis=1)
+
+
+def rim_candidate_edges(
+    detail: np.ndarray,
     expected: np.ndarray,
     footprint: np.ndarray,
     pixels_per_square: float,
-    min_score: float = 0.6,
+    homography: np.ndarray,
+    max_angle_degrees: float = 20.0,
 ) -> np.ndarray:
-    """Return observed edges left after template-matching away the board's edges.
+    """Canny edges of the high-pass image, minus the board's own printed edges.
 
-    The rendered board's edge map is cut into tiles. Each tile is matched against
-    the observed edge map in a small search window, which absorbs registration
-    and lens-distortion drift. Where it matches, the straight printed edges are
-    erased, leaving curved edges such as a glass rim.
+    The rendered board's edges are dilated into a band wide enough to absorb
+    registration and lens-distortion drift. Inside the band, an edge pixel is
+    printed pattern only if it also runs along one of the board's two axes;
+    a rim crossing a printed edge at an angle keeps its pixels there.
     """
-    observed_edges = cv2.Canny(cv2.GaussianBlur(observed, (5, 5), 1.0), 50, 150)
-    expected_edges = cv2.Canny(expected, 50, 150)
-    radius = max(2, round(pixels_per_square * 0.08))
-    grow = np.ones((3, 3), np.uint8)
-    # Pad with the search radius so shifted tiles never leave the arrays.
-    observed_map = cv2.copyMakeBorder(
-        (cv2.dilate(observed_edges, grow) > 0).astype(np.float32),
-        *(radius,) * 4,
-        cv2.BORDER_CONSTANT,
+    blurred = cv2.GaussianBlur(detail, (0, 0), 2.0)
+    edges = cv2.Canny(blurred, 40, 120)
+    radius = max(2, round(pixels_per_square * 0.04))
+    band = cv2.dilate(
+        cv2.Canny(expected, 50, 150), np.ones((2 * radius + 1,) * 2, np.uint8)
     )
-    template_map = cv2.copyMakeBorder(
-        (expected_edges > 0).astype(np.float32), *(radius,) * 4, cv2.BORDER_CONSTANT
-    )
-    erase_map = cv2.dilate(template_map, np.ones((5, 5), np.uint8))
-    remaining = observed_edges.copy()
-    height, width = observed_edges.shape
-    tile = max(16, round(pixels_per_square / 2))
-    for y in range(0, height, tile):
-        for x in range(0, width, tile):
-            y1, x1 = min(y + tile, height), min(x + tile, width)
-            if cv2.countNonZero(footprint[y:y1, x:x1]) == 0:
-                continue
-            patch = template_map[radius + y : radius + y1, radius + x : radius + x1]
-            expected_pixels = float(patch.sum())
-            if expected_pixels < tile * 0.5:
-                continue
-            window = observed_map[y : y1 + 2 * radius, x : x1 + 2 * radius]
-            # Fraction of the board's edge pixels that have an observed edge nearby;
-            # extra observed edges (the glass) do not lower it.
-            scores = cv2.matchTemplate(window, patch, cv2.TM_CCORR) / expected_pixels
-            _, score, _, (left, top) = cv2.minMaxLoc(scores)
-            if score < min_score:
-                continue
-            # (left, top) == (radius, radius) means no shift from the render.
-            y0, x0 = y + 2 * radius - top, x + 2 * radius - left
-            shifted = erase_map[y0 : y0 + (y1 - y), x0 : x0 + (x1 - x)]
-            remaining[y:y1, x:x1][shifted > 0] = 0
-    remaining[footprint == 0] = 0
-    # Drop short leftovers (printed-edge slivers, noise) that cannot be a rim.
-    count, labels, stats, _ = cv2.connectedComponentsWithStats(
-        remaining, connectivity=8
-    )
+    ys, xs = np.nonzero((edges > 0) & (band > 0))
+    if xs.size:
+        smooth = blurred.astype(np.float32)
+        gx = cv2.Sobel(smooth, cv2.CV_32F, 1, 0, ksize=3)[ys, xs]
+        gy = cv2.Sobel(smooth, cv2.CV_32F, 0, 1, ksize=3)[ys, xs]
+        tangent = np.arctan2(gy, gx) + np.pi / 2
+        axes = board_axis_angles(homography, xs.astype(np.float64), ys.astype(np.float64))
+        # Angle between lines, folded into [0, 90] degrees.
+        difference = np.abs((tangent[:, None] - axes + np.pi / 2) % np.pi - np.pi / 2)
+        printed = (difference < math.radians(max_angle_degrees)).any(axis=1)
+        edges[ys[printed], xs[printed]] = 0
+    edges[footprint == 0] = 0
+    # Drop specks and short slivers that cannot be part of a rim.
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(edges, connectivity=8)
     for label in range(1, count):
         if max(stats[label, cv2.CC_STAT_WIDTH], stats[label, cv2.CC_STAT_HEIGHT]) < (
-            pixels_per_square * 0.3
+            pixels_per_square * 0.1
         ):
-            remaining[labels == label] = 0
-    return remaining
+            edges[labels == label] = 0
+    return edges
+
+
+def ring_coverage(
+    ys: np.ndarray, xs: np.ndarray, circle: tuple, tolerance: float, bins: int
+) -> float:
+    """Fraction of angular bins around a circle that hold an edge pixel."""
+    cx, cy, radius = circle
+    dx, dy = xs - cx, ys - cy
+    near = np.abs(np.hypot(dx, dy) - radius) <= tolerance * radius
+    if not near.any():
+        return 0.0
+    angle = np.arctan2(dy[near], dx[near])
+    index = ((angle + np.pi) / (2 * np.pi) * bins).astype(int) % bins
+    return float(np.unique(index).size) / bins
+
+
+def find_round_edge(
+    edges: np.ndarray,
+    min_radius: float,
+    max_radius: float,
+    tolerance: float,
+    bins: int = 72,
+    min_coverage: float = 0.6,
+    max_circles: int = 30,
+) -> tuple[tuple[float, float, float], float] | None:
+    """Hough circle transform over the rim-candidate edges.
+
+    Returns the circle (cx, cy, radius) whose ring is supported by edge pixels
+    all the way around, together with that coverage, or None.
+    """
+    ys, xs = np.nonzero(edges)
+    if xs.size == 0:
+        return None
+    scale = min(1.0, 1000 / max(edges.shape))
+    small = cv2.resize(
+        edges, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA
+    )
+    small = cv2.normalize(cv2.GaussianBlur(small, (0, 0), 3), None, 0, 255, cv2.NORM_MINMAX)
+    circles = cv2.HoughCircles(
+        small,
+        cv2.HOUGH_GRADIENT,
+        dp=2,
+        minDist=max(4.0, min_radius * scale * 0.5),
+        param1=60,
+        param2=10,
+        minRadius=max(1, int(min_radius * scale)),
+        maxRadius=max(2, math.ceil(max_radius * scale)),
+    )
+    if circles is None:
+        return None
+    best = None
+    for cx, cy, radius in circles[0][:max_circles] / scale:
+        circle = (float(cx), float(cy), float(radius))
+        coverage = ring_coverage(ys, xs, circle, tolerance, bins)
+        if best is None or coverage > best[1]:
+            best = (circle, coverage)
+    if best is None or best[1] < min_coverage:
+        return None
+    return best
+
+
+def ellipse_offsets(ys: np.ndarray, xs: np.ndarray, ellipse: tuple) -> np.ndarray:
+    """Distance of points from an ellipse, relative to its size (0 = on it)."""
+    (cx, cy), (width, height), degrees = ellipse
+    angle = math.radians(degrees)
+    dx, dy = xs - cx, ys - cy
+    u = (dx * math.cos(angle) + dy * math.sin(angle)) / (width / 2)
+    v = (-dx * math.sin(angle) + dy * math.cos(angle)) / (height / 2)
+    return np.abs(np.hypot(u, v) - 1.0)
+
+
+def isolate_round_edge(
+    edges: np.ndarray, circle: tuple, tolerance: float, final_tolerance: float = 0.1
+) -> tuple[np.ndarray, tuple | None]:
+    """Fit an ellipse to the edges on the Hough circle's ring and keep only its edges.
+
+    Starting from the circle, the ring is narrowed over a few passes so that
+    stray edges stop pulling the fit. Returns the isolated edge image and the
+    final ellipse ((cx, cy), (width, height), degrees), or None.
+    """
+    cx, cy, radius = circle
+    ys, xs = np.nonzero(edges)
+    ellipse = ((cx, cy), (2 * radius, 2 * radius), 0.0)
+    keep = None
+    for step in (tolerance, (tolerance + final_tolerance) / 2, final_tolerance):
+        keep = ellipse_offsets(ys, xs, ellipse) <= step
+        if keep.sum() < 20:
+            return np.zeros_like(edges), None
+        points = np.stack([xs[keep], ys[keep]], axis=1).astype(np.float32)
+        points = np.ascontiguousarray(points[:: len(points) // 5000 + 1])
+        ellipse = cv2.fitEllipse(points)
+    if not all(math.isfinite(v) for v in (*ellipse[0], *ellipse[1])) or min(ellipse[1]) <= 0:
+        return np.zeros_like(edges), None
+    keep = ellipse_offsets(ys, xs, ellipse) <= final_tolerance
+    isolated = np.zeros_like(edges)
+    isolated[ys[keep], xs[keep]] = 255
+    return isolated, ellipse
 
 
 def detect_glass(
     image: np.ndarray,
     board: cv2.aruco.CharucoBoard,
-    threshold: float = 30.0,
     min_area_mm2: float | None = None,
-    reference: np.ndarray | None = None,
+    min_radius_mm: float | None = None,
+    max_radius_mm: float | None = None,
+    tolerance: float = 0.3,
 ) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Return candidate contours, a filled mask, overlay, residual, and edge image.
+    """Return candidates, a filled mask, overlay, high-pass image, and rim edges.
 
-    The edge image holds observed edges that remain after template matching
-    removes the ChArUco board's own edges.
+    Steps: locate the board; high-pass filter to bring out details; Hough circle
+    transform to find the round edge over the board; Canny edges isolated to
+    that edge and fitted with an ellipse, with the board's own printed edges
+    removed.
     """
-    if not math.isfinite(threshold) or not 0 < threshold < 255:
-        raise ValueError("Residual threshold must be between 0 and 255.")
     if min_area_mm2 is not None and (
         not math.isfinite(min_area_mm2) or min_area_mm2 <= 0
     ):
         raise ValueError("Minimum area must be finite and positive.")
+    for name, value in (("Minimum radius", min_radius_mm), ("Maximum radius", max_radius_mm)):
+        if value is not None and (not math.isfinite(value) or value <= 0):
+            raise ValueError(f"{name} must be finite and positive.")
+    if not math.isfinite(tolerance) or not 0 < tolerance < 1:
+        raise ValueError("Ring tolerance must be between 0 and 1.")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     homography, inlier_count, reprojection_rms = locate_board(gray, board)
     expected, footprint, pixels_per_square = render_background(
         gray.shape, board, homography
     )
-    if reference is not None:
-        if reference.shape != image.shape:
-            raise ValueError(
-                "Reference and glass images must have identical dimensions."
-            )
-        reference_gray = cv2.cvtColor(reference, cv2.COLOR_BGR2GRAY)
-        reference_h, _, _ = locate_board(reference_gray, board)
-        expected = cv2.warpPerspective(
-            reference_gray,
-            homography @ np.linalg.inv(reference_h),
-            (gray.shape[1], gray.shape[0]),
-            borderValue=255,
-        )
-        reference_valid = cv2.warpPerspective(
-            np.full(gray.shape, 255, np.uint8),
-            homography @ np.linalg.inv(reference_h),
-            (gray.shape[1], gray.shape[0]),
-            flags=cv2.INTER_NEAREST,
-        )
-        footprint = cv2.bitwise_and(footprint, reference_valid)
+    square = board.getSquareLength()
+    sx, sy = board.getChessboardSize()
+    pixels_per_mm = pixels_per_square / square
+    min_radius_mm = square * 0.4 if min_radius_mm is None else min_radius_mm
+    max_radius_mm = min(sx, sy) * square / 2 if max_radius_mm is None else max_radius_mm
+    if min_radius_mm >= max_radius_mm:
+        raise ValueError("Minimum radius must be smaller than maximum radius.")
 
-    observed = cv2.GaussianBlur(gray, (5, 5), 1.0).astype(np.float32)
-    background = cv2.GaussianBlur(expected, (5, 5), 1.0).astype(np.float32)
-    valid = footprint != 0
-    # Robust black/white levels tolerate a minority of glass-covered board pixels.
-    dark = valid & (background < 50)
-    light = valid & (background > 205)
-    if dark.sum() < 50 or light.sum() < 50:
-        raise ValueError("Not enough visible black and white board regions.")
-    black = float(np.median(observed[dark]))
-    white = float(np.median(observed[light]))
-    expected_black = float(np.median(background[dark]))
-    expected_white = float(np.median(background[light]))
-    if white - black < 40:
-        raise ValueError("Board contrast is too low for reliable glass detection.")
-    gain = (white - black) / (expected_white - expected_black)
-    predicted = (background - expected_black) * gain + black
-    residual = np.abs(observed - predicted)
-
-    # Registration/antialiasing errors at printed edges are not glass evidence.
-    pattern_edges = cv2.Canny(expected, 50, 150)
-    pattern_edges = cv2.dilate(pattern_edges, np.ones((3, 3), np.uint8))
-    evidence = ((residual >= threshold) & valid & (pattern_edges == 0)).astype(
-        np.uint8
-    ) * 255
-    # Rims that cross a printed edge are recovered from the leftover edges.
-    glass_edges = remove_board_edges(gray, expected, footprint, pixels_per_square)
-    evidence = cv2.bitwise_or(evidence, glass_edges)
-    size = max(3, round(pixels_per_square * 0.12) | 1)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
-    connected = cv2.morphologyEx(evidence, cv2.MORPH_CLOSE, kernel)
-    connected = cv2.bitwise_and(connected, footprint)
-    contours, _ = cv2.findContours(
-        connected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    detail = high_pass(gray, pixels_per_square)
+    candidate_edges = rim_candidate_edges(
+        detail, expected, footprint, pixels_per_square, homography
     )
-    minimum = board.getSquareLength() ** 2 if min_area_mm2 is None else min_area_mm2
-    inverse = np.linalg.inv(homography)
+    found = find_round_edge(
+        candidate_edges,
+        min_radius_mm * pixels_per_mm,
+        max_radius_mm * pixels_per_mm,
+        tolerance,
+    )
     mask = np.zeros(gray.shape, np.uint8)
     overlay = image.copy()
+    edges = np.zeros(gray.shape, np.uint8)
     candidates = []
-    border = cv2.subtract(
-        footprint,
-        cv2.erode(
-            footprint,
-            np.ones((3, 3), np.uint8),
-            borderType=cv2.BORDER_CONSTANT,
-            borderValue=0,
-        ),
-    )
-    for contour in sorted(contours, key=cv2.contourArea, reverse=True):
-        if len(contour) < 3:
-            continue
-        physical = cv2.perspectiveTransform(contour.astype(np.float32), inverse)
-        area_mm2 = abs(cv2.contourArea(physical))
-        if not math.isfinite(area_mm2) or area_mm2 < minimum:
-            continue
-        candidate_mask = np.zeros(gray.shape, np.uint8)
-        cv2.drawContours(candidate_mask, [contour], -1, 255, cv2.FILLED)
-        # Clipped contours have no trustworthy closed boundary.
-        if cv2.countNonZero(cv2.bitwise_and(candidate_mask, border)):
-            continue
-        number = len(candidates) + 1
-        cv2.drawContours(mask, [contour], -1, 255, cv2.FILLED)
-        cv2.drawContours(overlay, [contour], -1, (0, 255, 0), 2)
-        x, y, width, height = cv2.boundingRect(contour)
-        cv2.putText(
+    circle_info = None
+    if found is not None:
+        circle, coverage = found
+        edges, ellipse = isolate_round_edge(candidate_edges, circle, tolerance)
+        circle_info = {
+            "center_px": [circle[0], circle[1]],
+            "radius_px": circle[2],
+            "edge_coverage": coverage,
+        }
+        points = np.empty((0, 2), np.float32)
+        if ellipse is not None:
+            (ex, ey), (ew, eh), degrees = ellipse
+            circle_info["ellipse"] = {
+                "center_px": [ex, ey],
+                "axes_px": [ew, eh],
+                "angle_degrees": degrees,
+            }
+            polygon = cv2.ellipse2Poly(
+                (round(ex), round(ey)), (round(ew / 2), round(eh / 2)), round(degrees), 0, 360, 2
+            )
+            points = polygon.astype(np.float32)
+        cv2.circle(
             overlay,
-            str(number),
-            (x, max(15, y - 5)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (0, 255, 0),
+            (round(circle[0]), round(circle[1])),
+            round(circle[2]),
+            (0, 200, 255),
             2,
         )
-        candidates.append(
-            {
-                "id": number,
-                "contour_px": contour.reshape(-1, 2).tolist(),
-                "contour_board_mm": physical.reshape(-1, 2).tolist(),
-                "area_mm2": area_mm2,
-                "perimeter_mm": float(cv2.arcLength(physical, True)),
-                "bounding_box_px": [x, y, width, height],
-            }
-        )
-    residual_image = np.clip(residual, 0, 255).astype(np.uint8)
-    residual_image[~valid] = 0
+        overlay[edges > 0] = (0, 0, 255)
+        if len(points) >= 3:
+            contour = np.round(points).astype(np.int32).reshape(-1, 1, 2)
+            inverse = np.linalg.inv(homography)
+            physical = cv2.perspectiveTransform(points.reshape(-1, 1, 2), inverse)
+            area_mm2 = abs(cv2.contourArea(physical))
+            minimum = square**2 if min_area_mm2 is None else min_area_mm2
+            h, w = gray.shape
+            xi = np.clip(contour[:, 0, 0], 0, w - 1)
+            yi = np.clip(contour[:, 0, 1], 0, h - 1)
+            clipped = bool(np.any(footprint[yi, xi] == 0))
+            if math.isfinite(area_mm2) and area_mm2 >= minimum and not clipped:
+                cv2.drawContours(mask, [contour], -1, 255, cv2.FILLED)
+                cv2.drawContours(overlay, [contour], -1, (0, 255, 0), 2)
+                x, y, width, height = cv2.boundingRect(contour)
+                cv2.putText(
+                    overlay, "1", (x, max(15, y - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2
+                )
+                candidates.append(
+                    {
+                        "id": 1,
+                        "contour_px": contour.reshape(-1, 2).tolist(),
+                        "contour_board_mm": physical.reshape(-1, 2).tolist(),
+                        "area_mm2": area_mm2,
+                        "perimeter_mm": float(cv2.arcLength(physical, True)),
+                        "bounding_box_px": [x, y, width, height],
+                    }
+                )
     result = {
         "status": "candidates_found" if candidates else "no_candidates",
         "image_size_px": [gray.shape[1], gray.shape[0]],
         "board_to_image_homography": homography.tolist(),
         "board_inlier_corners": inlier_count,
         "board_reprojection_rms_px": reprojection_rms,
-        "residual_threshold": threshold,
-        "min_area_mm2": minimum,
-        "background_source": "reference" if reference is not None else "rendered_board",
+        "min_area_mm2": square**2 if min_area_mm2 is None else min_area_mm2,
+        "hough_circle": circle_info,
         "candidates": candidates,
     }
-    return result, mask, overlay, residual_image, glass_edges
+    return result, mask, overlay, detail, edges
 
 
 def read_image(path: Path) -> np.ndarray:
@@ -355,39 +432,52 @@ def main() -> None:
         type=Path,
         default=Path("results/" + str(datetime.now()).replace(" ", "_")),
     )
-    parser.add_argument("--reference", type=Path, help="Optional photo without glass")
-    parser.add_argument(
-        "--threshold",
-        type=float,
-        default=30.0,
-        help="Grayscale residual threshold (default: 30)",
-    )
     parser.add_argument(
         "--min-area-mm2",
         type=float,
         help="Minimum candidate area (default: one board square)",
     )
+    parser.add_argument(
+        "--min-radius-mm",
+        type=float,
+        help="Smallest glass radius to look for (default: 0.4 board squares)",
+    )
+    parser.add_argument(
+        "--max-radius-mm",
+        type=float,
+        help="Largest glass radius to look for (default: half the board's short side)",
+    )
+    parser.add_argument(
+        "--tolerance",
+        type=float,
+        default=0.3,
+        help="Ring half-width around the Hough circle, as a fraction of its "
+        "radius (default: 0.3)",
+    )
     args = parser.parse_args()
     try:
         outputs = [
             args.output_dir / name
-            for name in ("detections.json", "mask.png", "overlay.png", "residual.png", "edges.png")
+            for name in ("detections.json", "mask.png", "overlay.png", "highpass.png", "edges.png")
         ]
         inputs = {
             path.resolve()
-            for path in (args.image, args.board, args.reference)
-            if path is not None
+            for path in (args.image, args.board)
         }
         if any(path.resolve() in inputs for path in outputs):
             raise ValueError("Output paths must not overwrite input files.")
         board = load_board(args.board)
         image = read_image(args.image)
-        reference = read_image(args.reference) if args.reference is not None else None
-        result, mask, overlay, residual, edges = detect_glass(
-            image, board, args.threshold, args.min_area_mm2, reference
+        result, mask, overlay, detail, edges = detect_glass(
+            image,
+            board,
+            args.min_area_mm2,
+            args.min_radius_mm,
+            args.max_radius_mm,
+            args.tolerance,
         )
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        for path, output in zip(outputs[1:], (mask, overlay, residual, edges)):
+        for path, output in zip(outputs[1:], (mask, overlay, detail, edges)):
             if not cv2.imwrite(str(path), output):
                 raise OSError(f"Could not write image: {path}")
         outputs[0].write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
@@ -396,7 +486,7 @@ def main() -> None:
     print(f"{len(result['candidates'])} candidate(s); results in {args.output_dir}")
     if not result["candidates"]:
         parser.exit(
-            1, "No glass outline found; inspect residual.png or improve lighting.\n"
+            1, "No glass outline found; inspect highpass.png and edges.png or improve lighting.\n"
         )
 
 
