@@ -27,11 +27,12 @@ Outputs go to gitignored `lensDetection/results_*` folders.
 
 - `lensDetection/photos1/` (committed): 3 photos of a clear lens on a ChArUco board shown on a monitor
   (8×6 squares, `4X4_50`), no paper. Used by v0, v1, SAM.
-- Second session, 14 photos `20261003_212010.jpg` … `20261003_212145.jpg` (**not committed**, ~4 MB each,
-  currently in George's `~/Downloads`): red-tinted lens on the printed OptiFrame ChArUco sheet
+- `lensDetection/photos2/` (committed, Git LFS): second session, 14 photos `20261003_212010.jpg` …
+  `20261003_212145.jpg`, red-tinted lens on the printed OptiFrame ChArUco sheet
   (`training/make_charuco_sheet.py`, Letter), paper over a lit monitor. 7 blank window, 6 Ronchi window,
-  1 Ronchi-only sheet. Used by v2, v3 and the backend runs. Share them via Git LFS or a drive before
-  relying on them.
+  1 Ronchi-only sheet. Used by v2, v3 and the backend runs. Camera originals (Samsung S22 Ultra, main
+  camera 23 mm eq., 1×, 4000×1868, EXIF kept). A first pass used recompressed copies; results matched
+  within 0.03 mm.
 
 ## v1 — rim line (`v1_rim_line/rim_proto.py`)
 
@@ -51,7 +52,7 @@ pixels only.
 ## v2 — colour on the ChArUco sheet (`v2_colour_charuco/red_proto.py`)
 
 ```bash
-.venv/bin/python prototypes/v2_colour_charuco/red_proto.py ~/Downloads/20261003_21*.jpg
+.venv/bin/python prototypes/v2_colour_charuco/red_proto.py photos2/*.jpg
 ```
 
 ChArUco detection with the sheet layout from `backend/src/main/resources/sheet-layout-charuco.json` →

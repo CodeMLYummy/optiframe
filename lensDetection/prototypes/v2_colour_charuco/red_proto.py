@@ -1,6 +1,6 @@
 """v2 prototype: measure a tinted lens on the printed OptiFrame ChArUco sheet (board-plane mm).
 
-usage (from lensDetection/): .venv/bin/python prototypes/v2_colour_charuco/red_proto.py ~/Downloads/20261003_21*.jpg
+usage (from lensDetection/): .venv/bin/python prototypes/v2_colour_charuco/red_proto.py photos2/*.jpg
 Writes overlays, contours (mm) and measurements.json to lensDetection/results_red/.
 """
 import json, sys, cv2, numpy as np

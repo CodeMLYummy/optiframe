@@ -96,7 +96,7 @@ checkerboard photos (done by a sub-agent; reference = v1 outlines, a proxy, not 
   Not tried on the blank-window sheet (should be easier) nor deployed (ONNX Runtime Web / backend).
 
 ### v2 — printed ChArUco sheet, tinted lens by colour
-Second session: 14 photos of a red-tinted lens on the printed sheet (`training/make_charuco_sheet.py`,
+Second session (`photos2/`, camera originals from the S22 Ultra, main camera 1×): 14 photos of a red-tinted lens on the printed sheet (`training/make_charuco_sheet.py`,
 Letter, 12×17 × 15 mm squares, `DICT_5X5_250`, 120×165 mm lens window), paper over a lit monitor.
 7 blank window, 6 Ronchi window, 1 Ronchi-only sheet.
 
@@ -115,6 +115,9 @@ Letter, 12×17 × 15 mm squares, `DICT_5X5_250`, 120×165 mm lens window), paper
   can't have a 46.5 mm minimum width, so rotation isn't the cause: probably a different lens, or the
   retailer spec is wrong. Print scaling could explain ~+4 % but not +26 %. → caliper the lens.
 - Validates the sheet → mm part; colour segmentation itself only works for tinted lenses.
+- Note: v2 and A1–A2 were first run on recompressed copies (no EXIF, ~350–600 KB). Re-run on the camera
+  originals (2026-10-04): v2 gives A 46.56 ± 0.79, B 56.63 ± 0.47 mm; the backend gives the same A/B
+  within 0.03 mm (steep shot `212021`: B −0.24 mm). The tables here keep the first-run values.
 
 ### A1 — app: ChArUco sheet in the rectifier
 Before: the backend only loaded `sheet-layout.json` (A4, 8 markers `DICT_4X4_50`), so every photo of
@@ -186,7 +189,7 @@ Letter paper (bottom markers end at 285 mm).
 
 - [ ] Caliper the red lens; check 10 squares = 150 mm; set `edge-bias-mm`.
 - [ ] Photograph clear lenses on the blank-window sheet (straight down + a few tilted).
-- [ ] Commit the second photo session (Git LFS or shared drive) so tuning is reproducible.
+- [x] Commit the second photo session (`photos2/`, Git LFS), as camera originals.
 - [ ] Tilt check in `MeasurementService`.
 - [ ] Ronchi-sheet error message.
 - [ ] **Generate synthetic training images.** Random lens shapes from the usual frame families (oval,
