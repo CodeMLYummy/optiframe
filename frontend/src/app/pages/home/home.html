@@ -1,8 +1,45 @@
 <section class="card intro">
+  <h2>Feuille de référence</h2>
+  <label class="field">
+    Format du papier
+    <select [value]="sheet.input().paper" (change)="setPaper($event)">
+      <option value="letter">Letter (8,5 × 11 po)</option>
+      <option value="a4">A4</option>
+    </select>
+  </label>
+  <a class="button wide" [href]="sheet.pdf()" target="_blank" download>Télécharger la feuille à imprimer</a>
+  <p class="status">
+    Imprimez à 100 %, puis mesurez 10 cases du damier (en ligne droite) : {{ nominalTenSquaresMm }} mm attendus.
+    Beaucoup d'imprimantes réduisent un peu la feuille ; indiquez ce que vous mesurez.
+  </p>
+  <div class="choice" role="radiogroup" aria-label="Taille d'impression">
+    <label class="check">
+      <input type="radio" name="size-mode" [checked]="sheet.input().mode === 'squares'" (change)="setSizeMode('squares')" />
+      Longueur de 10 cases
+    </label>
+    <label class="check">
+      <input type="radio" name="size-mode" [checked]="sheet.input().mode === 'percent'" (change)="setSizeMode('percent')" />
+      Échelle d'impression
+    </label>
+  </div>
+  <label class="field">
+    @if (sheet.input().mode === 'squares') {
+      Longueur mesurée de 10 cases (mm)
+      <input type="number" inputmode="decimal" min="120" max="180" step="0.1" placeholder="150"
+        [value]="sheet.input().tenSquaresMm ?? ''" (input)="setSize($event)" />
+    } @else {
+      Échelle d'impression (%)
+      <input type="number" inputmode="decimal" min="80" max="120" step="0.01" placeholder="100"
+        [value]="sheet.input().percent ?? ''" (input)="setSize($event)" />
+    }
+  </label>
+  @if (sheet.scale(); as s) {
+    <p class="status">Échelle utilisée pour les mesures : {{ s * 100 | number: '1.2-2' }} %</p>
+  } @else {
+    <p class="error" role="alert">Valeur invalide : 10 cases doivent mesurer entre 120 et 180 mm (échelle 80 à 120 %).</p>
+  }
   <p>
-    Posez le verre, face bombée vers le haut, au centre de la
-    feuille de référence (<a href="feuille-charuco-letter.pdf" target="_blank">Letter</a> ou
-    <a href="feuille-charuco-a4.pdf" target="_blank">A4</a>, imprimée à 100 %), sur un fond éclairé. Côté nasal vers le centre de la monture.
+    Posez la feuille sur un fond éclairé, puis le verre, face bombée vers le haut, au centre du cadre. Côté nasal vers le centre de la monture.
     <strong>Alignez le verre bien droit sur les repères horizontaux du cadre</strong> : la largeur A et la hauteur B
     sont mesurées selon les axes de la feuille, un verre tourné donne des valeurs trop grandes. Cadrez toute la feuille.
   </p>

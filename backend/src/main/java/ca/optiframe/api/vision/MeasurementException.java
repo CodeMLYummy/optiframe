@@ -4,7 +4,8 @@ package ca.optiframe.api.vision;
 public class MeasurementException extends RuntimeException {
 
 	public enum Code {
-		IMAGE_UNREADABLE, MARKERS_NOT_FOUND, SCALE_CHECK_FAILED, PHOTO_BLURRY, LENS_NOT_FOUND, LENS_OUT_OF_WINDOW
+		IMAGE_UNREADABLE, MARKERS_NOT_FOUND, SCALE_CHECK_FAILED, PHOTO_BLURRY, LENS_NOT_FOUND, LENS_OUT_OF_WINDOW,
+		PRINT_SCALE_INVALID
 	}
 
 	private final Code code;

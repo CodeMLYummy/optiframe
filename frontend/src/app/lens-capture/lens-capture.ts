@@ -5,6 +5,7 @@ import { contourSvg, download } from '../core/exports';
 import { Eye, ellipseContour } from '../core/lens';
 import { MeasureService } from '../core/measure.service';
 import { SessionStore } from '../core/session.store';
+import { SheetSettings } from '../core/sheet-settings';
 
 @Component({
   selector: 'app-lens-capture',
@@ -17,6 +18,7 @@ export class LensCapture {
 
   private readonly api = inject(MeasureService);
   private readonly store = inject(SessionStore);
+  private readonly sheet = inject(SheetSettings);
 
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -31,10 +33,15 @@ export class LensCapture {
     if (!file) {
       return;
     }
+    const scale = this.sheet.scale();
+    if (scale === null) {
+      this.error.set("Taille d'impression de la feuille invalide : vérifiez la longueur des 10 cases (en haut).");
+      return;
+    }
     this.busy.set(true);
     this.error.set(null);
     try {
-      const response = await this.api.measure(file, this.eye());
+      const response = await this.api.measure(file, this.eye(), scale);
       this.store.set(this.eye(), { contour: response.contour, response });
     } catch (e) {
       this.error.set((e as Error).message);

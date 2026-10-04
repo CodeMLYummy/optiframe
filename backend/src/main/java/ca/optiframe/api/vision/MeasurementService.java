@@ -61,11 +61,31 @@ public class MeasurementService {
 		this.measurer = measurer;
 	}
 
+	/** Printed size / nominal size accepted for the sheet: outside, the sheet is not the OptiFrame sheet at all. */
+	static final double MIN_PRINT_SCALE = 0.8;
+	static final double MAX_PRINT_SCALE = 1.2;
+
 	/**
 	 * @param method "auto" (model if available), "classical" or "onnx"
 	 */
 	public MeasureResponse measure(byte[] imageBytes, Eye eye, String method) {
+		return measure(imageBytes, eye, method, null);
+	}
+
+	/**
+	 * @param method "auto" (model if available), "classical" or "onnx"
+	 * @param printScale printed size of the sheet / its nominal size, as entered in the app; null for the server's
+	 *        {@code optiframe.print-scale}
+	 */
+	public MeasureResponse measure(byte[] imageBytes, Eye eye, String method, Double printScale) {
 		long start = System.currentTimeMillis();
+		double scale = printScale != null ? printScale : props.printScale();
+		if (!(scale >= MIN_PRINT_SCALE && scale <= MAX_PRINT_SCALE)) {
+			throw new MeasurementException(Code.PRINT_SCALE_INVALID, String.format(Locale.FRENCH,
+					"Échelle d'impression invalide (%.1f %%). Mesurez 10 cases de la feuille : elles doivent faire "
+							+ "entre 120 et 180 mm.",
+					scale * 100));
+		}
 		checkImageHeader(imageBytes);
 		Mat photo = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.IMREAD_COLOR);
 		if (photo.empty()) {
@@ -99,7 +119,7 @@ public class MeasurementService {
 		}
 
 		// The rectified image is in the sheet's nominal mm; a sheet printed smaller holds more pixels per real mm.
-		ContourMeasurer.Measurement m = measurer.measure(mask, ppm / props.printScale(), eye, props.edgeBiasMm());
+		ContourMeasurer.Measurement m = measurer.measure(mask, ppm / scale, eye, props.edgeBiasMm());
 		saveForDataset(window, mask);
 
 		List<MeasureResponse.Step> steps = List.of(
@@ -112,7 +132,7 @@ public class MeasurementService {
 		log.info("Measured {} with {}: A={} B={} mm ({} markers, {} points, err {} mm, {} ms)", eye, segmenter.name(),
 				String.format("%.2f", c.aMm()), String.format("%.2f", c.bMm()), sheet.markerIds().size(),
 				sheet.pointsUsed(), String.format("%.3f", sheet.reprojectionErrorMm()), elapsed);
-		return new MeasureResponse(c, segmenter.name(), ppm, sheet.markerIds().size(), sheet.reprojectionErrorMm(),
+		return new MeasureResponse(c, segmenter.name(), ppm, scale, sheet.markerIds().size(), sheet.reprojectionErrorMm(),
 				sharpness, m.rotatedAMm(), m.rotatedBMm(), steps, elapsed);
 	}
 

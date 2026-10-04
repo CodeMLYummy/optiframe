@@ -12,10 +12,12 @@ const MAX_SIDE_PX = 4000;
 export class MeasureService {
   private readonly http = inject(HttpClient);
 
-  async measure(file: File, eye: Eye): Promise<MeasureResponse> {
+  /** @param printScale printed size / nominal size of the reference sheet, from the user's settings */
+  async measure(file: File, eye: Eye, printScale: number): Promise<MeasureResponse> {
     const form = new FormData();
     form.append('image', await prepareImage(file), 'photo.jpg');
     form.append('eye', eye);
+    form.append('printScale', String(printScale));
     try {
       return await firstValueFrom(this.http.post<MeasureResponse>(`${environment.apiUrl}/api/measure`, form));
     } catch (e) {

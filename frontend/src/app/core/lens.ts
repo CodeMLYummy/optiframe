@@ -22,6 +22,8 @@ export interface MeasureResponse {
   contour: LensContour;
   method: string;
   pxPerMm: number;
+  /** Printed size / nominal size of the sheet used for this measurement (1 = true size). */
+  printScale: number;
   markersFound: number;
   reprojectionErrorMm: number;
   sharpness: number;

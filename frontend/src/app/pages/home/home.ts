@@ -14,6 +14,7 @@ import {
   splitPd,
 } from '../../core/pd';
 import { PdInput, SessionStore } from '../../core/session.store';
+import { NOMINAL_TEN_SQUARES_MM, Paper, SheetSettings, SizeMode } from '../../core/sheet-settings';
 import { FrameViewer } from '../../frame-viewer/frame-viewer';
 import { LensCapture } from '../../lens-capture/lens-capture';
 
@@ -24,6 +25,8 @@ import { LensCapture } from '../../lens-capture/lens-capture';
 })
 export class Home {
   protected readonly store = inject(SessionStore);
+  protected readonly sheet = inject(SheetSettings);
+  protected readonly nominalTenSquaresMm = NOMINAL_TEN_SQUARES_MM;
   protected readonly frame = signal<FrameResult | null>(null);
   protected readonly generating = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -67,6 +70,20 @@ export class Home {
   protected readonly canGenerate = computed(
     () => this.store.bothMeasured() && !this.generating() && (this.placement()?.bridgeMm ?? 0) >= MIN_BRIDGE_MM,
   );
+
+  protected setPaper(event: Event): void {
+    this.sheet.update({ paper: (event.target as HTMLSelectElement).value as Paper });
+  }
+
+  protected setSizeMode(mode: SizeMode): void {
+    this.sheet.update({ mode });
+  }
+
+  protected setSize(event: Event): void {
+    const value = (event.target as HTMLInputElement).valueAsNumber;
+    const v = Number.isFinite(value) && value > 0 ? value : null;
+    this.sheet.update(this.sheet.input().mode === 'squares' ? { tenSquaresMm: v } : { percent: v });
+  }
 
   protected setPd(field: keyof Omit<PdInput, 'perEye'>, event: Event): void {
     const value = (event.target as HTMLInputElement).valueAsNumber;

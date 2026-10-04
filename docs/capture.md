@@ -20,7 +20,7 @@ flowchart TB
 3. Poser le verre au centre du cadre blanc, **bien droit, aligné sur les repères horizontaux** : A et B sont mesurés selon les axes de la feuille, un verre tourné de quelques degrés donne des valeurs trop grandes (jusqu'à +2,5 mm mesuré sur nos photos).
 4. Photographier toute la feuille, de face.
 
-Si l'imprimante réduit la feuille malgré le réglage 100 % (la nôtre l'imprime à 97,87 % : 10 cases = 146,8 mm), régler `OPTIFRAME_PRINT_SCALE` = longueur mesurée de 10 cases ÷ 150 (ici 0,9787) ; sinon toutes les mesures sont trop grandes du même pourcentage.
+Si l'imprimante réduit la feuille malgré le réglage 100 % (la nôtre l'imprime à 97,87 % : 10 cases = 146,8 mm), indiquer dans l'application, bloc « Feuille de référence », la longueur mesurée de 10 cases (ou l'échelle d'impression en %) ; sinon toutes les mesures sont trop grandes du même pourcentage. Le réglage est gardé sur le téléphone et envoyé avec chaque photo (`printScale`) ; le serveur refuse une échelle hors de 80–120 %. Sans valeur envoyée, le serveur utilise `OPTIFRAME_PRINT_SCALE` (1,0 par défaut).
 
 Le damier (12 × 17 cases de 15 mm, `DICT_5X5_250`) est identique sur Letter et A4 : les positions sont en mm du damier, le serveur n'a pas besoin de connaître le format du papier. Ses coins sont détectés au sous-pixel (jusqu'à 68 points hors du cadre, contre 32 pour l'ancienne feuille à 8 marqueurs), même si une partie du damier sort de la photo.
 

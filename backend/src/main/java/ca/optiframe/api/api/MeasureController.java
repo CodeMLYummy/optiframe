@@ -28,8 +28,9 @@ public class MeasureController {
 
 	@PostMapping(path = "/measure", consumes = "multipart/form-data")
 	public MeasureResponse measure(@RequestParam MultipartFile image, @RequestParam Eye eye,
-			@RequestParam(defaultValue = "auto") String method) throws IOException {
-		return service.measure(image.getBytes(), eye, method);
+			@RequestParam(defaultValue = "auto") String method,
+			@RequestParam(required = false) Double printScale) throws IOException {
+		return service.measure(image.getBytes(), eye, method, printScale);
 	}
 
 	@GetMapping("/sheet")
