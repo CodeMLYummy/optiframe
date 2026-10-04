@@ -41,7 +41,24 @@ xychart-beta
 
 Les mesures sont toutes environ 0,2 mm trop grandes : ce biais constant se corrige avec `optiframe.edge-bias-mm`. Sur de vrais verres, l'épaisseur du bord peut ajouter 0,3 à 0,5 mm : sans calibration, on dépasserait la norme.
 
-> À compléter : verres réels mesurés au pied à coulisse, plusieurs prises par verre, avant et après calibration de `edge-bias-mm`.
+### Photos réelles (verre teinté rouge, feuille ChArUco Letter rétroéclairée)
+
+Même verre sur 5 photos prises à la main, cadre blanc, méthode classique, via `/api/measure` (4 octobre) :
+
+| Photo | A (mm) | B (mm) | Remarque |
+|---|---|---|---|
+| 212010 | 46,41 | 56,90 | |
+| 212014 | 47,80 | 57,30 | |
+| 212017 | 47,04 | 57,70 | |
+| 212021 | 48,20 | 61,60 | prise très inclinée : la face supérieure du verre s'ajoute au contour |
+| 212023 | 48,35 | 57,20 | |
+
+- Redressement : 37 à 58 marqueurs, écart d'ajustement 0,17 à 0,29 mm. 3 photos sur 14 refusées avec un message clair (2 trop inclinées, 1 feuille sans marqueurs).
+- Dispersion : 2 mm sur A, 0,8 mm sur B (hors prise inclinée). Le prototype par couleur donne 46,65 ± 0,77 × 56,69 ± 0,45 mm sur 11 photos.
+- Corrigé en cours de route : l'ombre du verre était prise pour le verre (jusqu'à +4 mm). Seuils relevés dans `ClassicalSegmenter`, test de non-régression ajouté.
+- Détail des essais, prototypes et recommandations : [`lensDetection/approaches.md`](../lensDetection/approaches.md).
+
+> À compléter : valeurs au pied à coulisse de ce verre (pour calibrer `edge-bias-mm`), verres transparents, contrôle de l'inclinaison de la photo.
 
 ## Limites connues
 

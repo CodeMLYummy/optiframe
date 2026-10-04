@@ -1,0 +1,7 @@
+# Regenerated or downloaded: see README.md
+sam_eval/ckpt/
+sam_eval/gt/
+sam_eval/overlays/
+sam_eval/sam2src/
+sam_eval/.venv/
+__pycache__/
