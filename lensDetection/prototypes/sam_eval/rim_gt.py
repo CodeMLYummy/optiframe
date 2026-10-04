@@ -8,7 +8,7 @@ GAP = int(__import__('os').environ.get('GAP', 151))  # work at half resolution (
 out = Path(sys.argv[1]); photos = sys.argv[2:]
 
 for f in photos:
-    name = Path(f).name[13:22]
+    name = Path(f).stem[-6:]  # HHMMSS of <lens>_<sheet>_<YYYYMMDD-HHMMSS>.jpg
     img = cv2.imread(f); small = cv2.resize(img, None, fx=SCALE, fy=SCALE, interpolation=cv2.INTER_AREA)
     gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)

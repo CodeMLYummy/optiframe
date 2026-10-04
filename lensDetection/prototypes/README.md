@@ -25,10 +25,15 @@ Outputs go to gitignored `lensDetection/results_*` folders.
 
 ### Photos
 
-- `lensDetection/photos1/` (committed): 3 photos of a clear lens on a ChArUco board shown on a monitor
-  (8×6 squares, `4X4_50`), no paper. Used by v0, v1, SAM.
-- `lensDetection/photos2/` (committed, Git LFS): second session, 14 photos `20261003_212010.jpg` …
-  `20261003_212145.jpg`, red-tinted lens on the printed OptiFrame ChArUco sheet
+All photos are in Git LFS, named `<lens>_<sheet>_<YYYYMMDD-HHMMSS>.jpg` (camera time kept), with an
+`index.csv` per folder (original name, labels, and for `photos3` tilt, zoom and v5 measurements).
+Lenses: `clear0` (session 1), `red`, `lens1` / `lens2` (session 3, clear), `nolens`. Sheets: `screen-charuco`
+(board on a monitor), `charuco-blank`, `charuco-ronchi`, `ronchi` (Ronchi-only, no markers).
+
+- `lensDetection/photos1/`: 3 photos of a clear lens on a ChArUco board shown on a monitor
+  (8×6 squares, `4X4_50`), no paper, plus the board alone. Used by v0, v1, SAM.
+- `lensDetection/photos2/`: second session, 14 photos `red_*_20261003-212010.jpg` …
+  `red_ronchi_20261003-212145.jpg`, red-tinted lens on the printed OptiFrame ChArUco sheet
   (`training/make_charuco_sheet.py`, Letter), paper over a lit monitor. 7 blank window, 6 Ronchi window,
   1 Ronchi-only sheet. Used by v2, v3 and the backend runs. Camera originals (Samsung S22 Ultra, main
   camera 23 mm eq., 1×, 4000×1868, EXIF kept). A first pass used recompressed copies; results matched
@@ -37,7 +42,7 @@ Outputs go to gitignored `lensDetection/results_*` folders.
 ## v1 — rim line (`v1_rim_line/rim_proto.py`)
 
 ```bash
-WEAK=20 .venv/bin/python prototypes/v1_rim_line/rim_proto.py results_rim photos1/*.jpg
+WEAK=20 .venv/bin/python prototypes/v1_rim_line/rim_proto.py results_rim photos1/clear0_*.jpg
 ```
 
 1. Top-hat + black-hat (15 px ellipse at half resolution): responds to thin lines, cancels step edges.
@@ -87,7 +92,7 @@ git clone https://github.com/facebookresearch/sam2.git sam2src   # tested at 2b9
 mkdir ckpt   # download into ckpt/:
 #   sam2.1_hiera_tiny.pt, sam2.1_hiera_small.pt  (https://dl.fbaipublicfiles.com/segment_anything_2/092824/)
 #   sam_vit_b_01ec64.pth                         (https://dl.fbaipublicfiles.com/segment_anything/)
-.venv/bin/python rim_gt.py gt ../../photos1/*.jpg     # proxy ground truth (v1 outlines) into gt/
+.venv/bin/python rim_gt.py gt ../../photos1/clear0_*.jpg     # proxy ground truth (v1 outlines) into gt/
 .venv/bin/python run_sam.py sam2t sam2s vitb           # writes results CSV + overlays/
 .venv/bin/python summarize.py results.csv iou_fill,bnd_mean_px prompt=b_box
 ```

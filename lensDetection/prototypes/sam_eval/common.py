@@ -4,6 +4,8 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 PHOTOS = HERE.parents[1] / "photos1"  # lensDetection/photos1
+# Ids as in results.csv (former Pixel names PXL_20261004_<id>.MP.jpg); files are now
+# photos1/clear0_screen-charuco_20261004-<first 6 digits>.jpg.
 NAMES = ["005615746", "005617784", "005621479"]
 FULL = (3072, 4080)  # H, W
 EVAL_SCALE = 0.5     # metrics computed on a 2040x1536 frame, distances reported in full-res px
@@ -14,7 +16,7 @@ BBOX = {"005615746": [1300, 1128, 1340, 944],
 
 
 def load(n):
-    return cv2.imread(str(PHOTOS / f"PXL_20261004_{n}.MP.jpg"))
+    return cv2.imread(str(PHOTOS / f"clear0_screen-charuco_20261004-{n[:6]}.jpg"))
 
 
 def gt_mask(n):
@@ -23,14 +25,14 @@ def gt_mask(n):
     (same lens, both shot top-down)."""
     H, W = int(FULL[0] * EVAL_SCALE), int(FULL[1] * EVAL_SCALE)
     if n == "005617784":
-        src = cv2.imread(str(HERE / "gt" / "gt_005615746.png"), 0)
+        src = cv2.imread(str(HERE / "gt" / "gt_005615.png"), 0)
         ys, xs = np.nonzero(src)
         crop = src[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
         x, y, w, h = [int(round(v * EVAL_SCALE)) for v in BBOX[n]]
         m = np.zeros((H, W), np.uint8)
         m[y:y + h, x:x + w] = cv2.resize(crop, (w, h), interpolation=cv2.INTER_NEAREST)
         return m > 0
-    src = cv2.imread(str(HERE / "gt" / f"gt_{n}.png"), 0)
+    src = cv2.imread(str(HERE / "gt" / f"gt_{n[:6]}.png"), 0)
     return cv2.resize(src, (W, H), interpolation=cv2.INTER_NEAREST) > 0
 
 
