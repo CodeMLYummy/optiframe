@@ -93,15 +93,24 @@ export async function generateFrame(
 
       // V-groove built from thin slices: 45 degree walls, printable without supports.
       const n = Math.ceil(T / SLICE_MM);
-      for (let i = 0; i < n; i++) {
-        const z0 = i * SLICE_MM;
-        const zMid = z0 + SLICE_MM / 2;
-        const off = Math.min(grooveOffset, -p.frontLipMm + (T - zMid), -p.backLipMm + zMid);
+      const offsetAt = (i: number) => {
+        const zMid = i * SLICE_MM + SLICE_MM / 2;
+        return Math.min(grooveOffset, -p.frontLipMm + (T - zMid), -p.backLipMm + zMid);
+      };
+      for (let i = 0; i < n; ) {
+        // Consecutive slices with the same offset (the flat bottom of the groove) become one cut: overlapping
+        // cuts with coincident walls leave edges shared by 4+ faces once the STL is welded (non-manifold).
+        const off = offsetAt(i);
+        let j = i + 1;
+        while (j < n && Math.abs(offsetAt(j) - off) < 1e-9) {
+          j++;
+        }
         // Slices overlap a little: slices that only touch face to face leave internal membranes.
-        const bottom = i === 0 ? -0.1 : z0 - 0.01;
-        const top = i === n - 1 ? T + 0.1 : z0 + SLICE_MM + 0.01;
+        const bottom = i === 0 ? -0.1 : i * SLICE_MM - 0.01;
+        const top = j === n ? T + 0.1 : j * SLICE_MM + 0.01;
         const slice = keep(outline.offset(off, 'Round'));
         holes.push(keep(keep(slice.extrude(top - bottom)).translate(0, 0, bottom)));
+        i = j;
       }
       const groove = keep(outline.offset(grooveOffset, 'Round'));
       grooveOutlines.push({ eye: lens.eye, pointsMm: groove.toPolygons()[0] ?? [] });
