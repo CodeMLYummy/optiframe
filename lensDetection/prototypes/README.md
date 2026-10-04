@@ -142,6 +142,9 @@ the true print scale (73.4 / 75). Per-photo results in `results_v7_v9/measuremen
 The fold check averages the error over all corners, RANSAC outliers included; single-marker corners (v7, v9)
 add outliers and trip it. On the 36 photos all variants measure, MAE is 0.81–0.83 mm for every setting.
 
+`pictures.py` renders, for the photos v8 rescues (or any given photos), base vs v8 corner detection (v6 overlay)
+and the lens outline v8 measures with its error against the caliper, into `results_v7_v9/v8_pictures/`.
+
 ## SAM evaluation (`sam_eval/`)
 
 Written by a sub-agent in an isolated worktree; `results.csv` holds all 243 runs (3 models × 10 prompts ×

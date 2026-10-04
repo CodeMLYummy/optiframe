@@ -56,8 +56,8 @@ def on_window_edge(x, y, margin=0.5):
             and W["yMm"] - margin <= y <= W["yMm"] + W["heightMm"] + margin)
 
 
-def measure(gray, img, det):
-    """(status, A, B, corners used, mean reprojection mm) like /api/measure."""
+def measure(gray, img, det, images=None):
+    """(status, A, B, corners used, mean reprojection mm) like /api/measure; fills `images` (window, mask) if given."""
     corners, ids, _, _ = det.detectBoard(gray)
     if ids is None:
         return "MARKERS_NOT_FOUND", None, None, 0, None
@@ -77,6 +77,8 @@ def measure(gray, img, det):
     x, y, w, h = (int(round(v * PPM)) for v in (W["xMm"], W["yMm"], W["widthMm"], W["heightMm"]))
     window = rect[y:y + h, x:x + w]
     mask = seg_clear.v5(window, PPM)
+    if images is not None:
+        images.update(window=window, mask=mask)
     if not mask.any():
         return "LENS_NOT_FOUND", None, None, int(keep.sum()), err_mm
     bx, by, bw, bh = cv2.boundingRect(mask)
