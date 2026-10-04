@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
 import { lensPairSvg } from '../../core/exports';
+import { I18n } from '../../core/i18n/i18n';
 import { ellipseContour } from '../../core/lens';
 import { SessionStore } from '../../core/session.store';
 import { Home } from './home';
@@ -14,6 +15,8 @@ describe('Home lens pair export', () => {
       imports: [Home],
       providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
+    // The test browser reports English: the texts below are the French ones.
+    TestBed.inject(I18n).lang.set('fr');
   });
 
   afterEach(() => {

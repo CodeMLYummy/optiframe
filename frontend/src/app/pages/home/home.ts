@@ -1,9 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { download, lensPairSvg, stlBlob } from '../../core/exports';
 import { FrameResult, TEMPLE, generateFrame } from '../../core/frame-generator';
+import { MessageKey } from '../../core/i18n/fr';
+import { I18n } from '../../core/i18n/i18n';
 import {
   COMFORT_BRIDGE_MM,
   DEFAULT_BRIDGE_MM,
@@ -22,7 +23,7 @@ import { LensCapture } from '../../lens-capture/lens-capture';
 
 @Component({
   selector: 'app-home',
-  imports: [DecimalPipe, RouterLink, LensCapture, FrameViewer, FitCheck, FacePreview],
+  imports: [RouterLink, LensCapture, FrameViewer, FitCheck, FacePreview],
   templateUrl: './home.html',
 })
 export class Home {
@@ -31,7 +32,13 @@ export class Home {
   protected readonly nominalTenSquaresMm = NOMINAL_TEN_SQUARES_MM;
   protected readonly frame = signal<FrameResult | null>(null);
   protected readonly generating = signal(false);
-  protected readonly error = signal<string | null>(null);
+  protected readonly i18n = inject(I18n);
+  /** Kept as a key, so it follows a change of language. */
+  private readonly errorKey = signal<MessageKey | null>(null);
+  protected readonly error = computed(() => {
+    const key = this.errorKey();
+    return key ? this.i18n.t(key) : null;
+  });
   protected readonly hasSteps = computed(() => Object.values(this.store.lenses()).some((s) => s?.response));
   protected readonly defaultBridgeMm = DEFAULT_BRIDGE_MM;
 
@@ -61,10 +68,10 @@ export class Home {
       return null;
     }
     if (b < MIN_BRIDGE_MM) {
-      return `PD trop petit pour ces verres : il ne reste que ${b.toFixed(1)} mm pour le pont (minimum ${MIN_BRIDGE_MM} mm).`;
+      return this.i18n.t('frame.pdTooSmall', { mm: this.i18n.num(b), min: MIN_BRIDGE_MM });
     }
     if (b < COMFORT_BRIDGE_MM.min || b > COMFORT_BRIDGE_MM.max) {
-      return `Pont de ${b.toFixed(1)} mm, hors de la plage habituelle (${COMFORT_BRIDGE_MM.min} à ${COMFORT_BRIDGE_MM.max} mm). Vérifiez le PD et la taille des verres.`;
+      return this.i18n.t('frame.bridgeUnusual', { mm: this.i18n.num(b), min: COMFORT_BRIDGE_MM.min, max: COMFORT_BRIDGE_MM.max });
     }
     return null;
   });
@@ -106,12 +113,12 @@ export class Home {
       return;
     }
     this.generating.set(true);
-    this.error.set(null);
+    this.errorKey.set(null);
     try {
       this.frame.set(await generateFrame(R.contour, L.contour, placement.pd));
     } catch (e) {
       console.error(e);
-      this.error.set('Impossible de générer la monture avec ces contours. Reprenez les photos.');
+      this.errorKey.set('frame.failed');
     } finally {
       this.generating.set(false);
     }
@@ -127,7 +134,7 @@ export class Home {
   protected downloadLensPairSvg(): void {
     const { L, R } = this.store.lenses();
     if (!L || !R) {
-      this.error.set("Mesurez les deux verres avant d'exporter leurs contours.");
+      this.errorKey.set('pair.missing');
       return;
     }
     download(new Blob([lensPairSvg(R.contour, L.contour)], { type: 'image/svg+xml' }), 'contours-paire.svg');

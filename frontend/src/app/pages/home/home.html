@@ -1,47 +1,45 @@
 <section class="card intro">
-  <h2>Feuille de référence</h2>
+  <h2>{{ i18n.t('sheet.title') }}</h2>
   <label class="field">
-    Format du papier
+    {{ i18n.t('sheet.paper') }}
     <select [value]="sheet.input().paper" (change)="setPaper($event)">
-      <option value="letter">Letter (8,5 × 11 po)</option>
-      <option value="a4">A4</option>
+      <option value="letter">{{ i18n.t('sheet.letter') }}</option>
+      <option value="a4">{{ i18n.t('sheet.a4') }}</option>
     </select>
   </label>
-  <a class="button wide" [href]="sheet.pdf()" target="_blank" download>Télécharger la feuille à imprimer</a>
+  <a class="button wide" [href]="sheet.pdf()" target="_blank" download>{{ i18n.t('sheet.download') }}</a>
   <p class="status">
-    Imprimez à 100 %, puis mesurez 10 cases du damier (en ligne droite) : {{ nominalTenSquaresMm }} mm attendus.
-    Beaucoup d'imprimantes réduisent un peu la feuille ; indiquez ce que vous mesurez.
+    {{ i18n.t('sheet.printHint', { mm: nominalTenSquaresMm }) }}
   </p>
-  <div class="choice" role="radiogroup" aria-label="Taille d'impression">
+  <div class="choice" role="radiogroup" [attr.aria-label]="i18n.t('sheet.sizeMode')">
     <label class="check">
       <input type="radio" name="size-mode" [checked]="sheet.input().mode === 'squares'" (change)="setSizeMode('squares')" />
-      Longueur de 10 cases
+      {{ i18n.t('sheet.modeSquares') }}
     </label>
     <label class="check">
       <input type="radio" name="size-mode" [checked]="sheet.input().mode === 'percent'" (change)="setSizeMode('percent')" />
-      Échelle d'impression
+      {{ i18n.t('sheet.modePercent') }}
     </label>
   </div>
   <label class="field">
     @if (sheet.input().mode === 'squares') {
-      Longueur mesurée de 10 cases (mm)
+      {{ i18n.t('sheet.squaresLabel') }}
       <input type="number" inputmode="decimal" min="120" max="180" step="0.1" placeholder="150"
         [value]="sheet.input().tenSquaresMm ?? ''" (input)="setSize($event)" />
     } @else {
-      Échelle d'impression (%)
+      {{ i18n.t('sheet.percentLabel') }}
       <input type="number" inputmode="decimal" min="80" max="120" step="0.01" placeholder="100"
         [value]="sheet.input().percent ?? ''" (input)="setSize($event)" />
     }
   </label>
   @if (sheet.scale(); as s) {
-    <p class="status">Échelle utilisée pour les mesures : {{ s * 100 | number: '1.2-2' }} %</p>
+    <p class="status">{{ i18n.t('sheet.scaleUsed', { percent: i18n.num(s * 100, '1.2-2') }) }}</p>
   } @else {
-    <p class="error" role="alert">Valeur invalide : 10 cases doivent mesurer entre 120 et 180 mm (échelle 80 à 120 %).</p>
+    <p class="error" role="alert">{{ i18n.t('sheet.invalid') }}</p>
   }
   <p>
-    Posez la feuille sur un fond éclairé, puis le verre, face bombée vers le haut, au centre du cadre. Côté nasal vers le centre de la monture.
-    <strong>Alignez le verre bien droit sur les repères horizontaux du cadre</strong> : la largeur A et la hauteur B
-    sont mesurées selon les axes de la feuille, un verre tourné donne des valeurs trop grandes. Cadrez toute la feuille.
+    {{ i18n.t('sheet.placement') }}
+    <strong>{{ i18n.t('sheet.alignStrong') }}</strong>{{ i18n.t('sheet.alignRest') }}
   </p>
 </section>
 
@@ -49,52 +47,51 @@
 <app-lens-capture eye="L" />
 
 <section class="card">
-  <h2>Contours des verres</h2>
+  <h2>{{ i18n.t('pair.title') }}</h2>
   <button class="button wide" [disabled]="!store.bothMeasured()" (click)="downloadLensPairSvg()">
-    Télécharger la paire en SVG 1:1
+    {{ i18n.t('pair.download') }}
   </button>
   <p class="status">
-    Les deux contours sont réunis dans un seul fichier, à leur taille mesurée.
-    Imprimez à 100 %, sans ajuster à la page. L'espacement entre les verres ne représente pas le pont de la monture.
+    {{ i18n.t('pair.hint') }}
   </p>
   @if (!store.bothMeasured()) {
-    <p class="status">Mesurez les deux verres pour exporter la paire.</p>
+    <p class="status">{{ i18n.t('pair.measureBoth') }}</p>
   }
 </section>
 
 <section class="card">
-  <h2>Monture</h2>
+  <h2>{{ i18n.t('frame.title') }}</h2>
   @if (!store.pd().perEye) {
     <label class="field">
-      Écart pupillaire du patient (PD, mm)
-      <input type="number" inputmode="decimal" min="40" max="80" step="0.5" placeholder="ex. 63"
+      {{ i18n.t('frame.pd') }}
+      <input type="number" inputmode="decimal" min="40" max="80" step="0.5" [placeholder]="i18n.t('frame.pdExample')"
         [value]="store.pd().totalMm ?? ''" (input)="setPd('totalMm', $event)" />
     </label>
   } @else {
     <div class="pd-split">
       <label class="field">
-        PD droit (OD)
-        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" placeholder="ex. 31.5"
+        {{ i18n.t('frame.pdRight') }}
+        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" [placeholder]="i18n.t('frame.pdHalfExample')"
           [value]="store.pd().rightMm ?? ''" (input)="setPd('rightMm', $event)" />
       </label>
       <label class="field">
-        PD gauche (OG)
-        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" placeholder="ex. 31.5"
+        {{ i18n.t('frame.pdLeft') }}
+        <input type="number" inputmode="decimal" min="20" max="40" step="0.5" [placeholder]="i18n.t('frame.pdHalfExample')"
           [value]="store.pd().leftMm ?? ''" (input)="setPd('leftMm', $event)" />
       </label>
     </div>
   }
   <label class="check">
     <input type="checkbox" [checked]="store.pd().perEye" (change)="setPerEye($event)" />
-    PD par œil
+    {{ i18n.t('frame.perEye') }}
   </label>
 
   @if (placement(); as p) {
     <p class="status">
       @if (usesPd()) {
-        Pont calculé : <strong>{{ p.bridgeMm | number: '1.1-1' }} mm</strong>
+        {{ i18n.t('frame.bridge') }} <strong>{{ i18n.num(p.bridgeMm) }} mm</strong>
       } @else {
-        Sans PD : pont standard de {{ defaultBridgeMm }} mm.
+        {{ i18n.t('frame.standardBridge', { mm: defaultBridgeMm }) }}
       }
     </p>
   }
@@ -103,10 +100,10 @@
   }
 
   <button class="button primary wide" [disabled]="!canGenerate()" (click)="generate()">
-    {{ generating() ? 'Génération…' : 'Générer la monture' }}
+    {{ i18n.t(generating() ? 'frame.generating' : 'frame.generate') }}
   </button>
   @if (!store.bothMeasured()) {
-    <p class="status">Mesurez les deux verres d'abord.</p>
+    <p class="status">{{ i18n.t('frame.measureFirst') }}</p>
   }
   @if (error(); as message) {
     <p class="error" role="alert">{{ message }}</p>
@@ -114,12 +111,11 @@
 
   @if (frame(); as f) {
     <app-frame-viewer [geometry]="f.previewGeometry" />
-    <p class="status">{{ f.triangles }} triangles · {{ f.volumeMm3 / 1000 | number: '1.1-1' }} cm³ de filament</p>
-    <button class="button primary wide" (click)="downloadStl()">Télécharger monture.stl</button>
-    <button class="button wide" (click)="downloadTemplesStl()">Télécharger branches.stl</button>
+    <p class="status">{{ i18n.t('frame.stats', { triangles: f.triangles, cm3: i18n.num(f.volumeMm3 / 1000) }) }}</p>
+    <button class="button primary wide" (click)="downloadStl()">{{ i18n.t('frame.downloadFront') }}</button>
+    <button class="button wide" (click)="downloadTemplesStl()">{{ i18n.t('frame.downloadTemples') }}</button>
     <p class="status">
-      Branches de {{ templeLengthMm }} mm, à imprimer à plat. Fixez chaque branche à son tenon avec un trombone ou un bout
-      de filament de 1,75 mm : serré dans le tenon, libre dans la fourche.
+      {{ i18n.t('frame.templesHint', { mm: templeLengthMm }) }}
     </p>
   }
 </section>
@@ -128,21 +124,20 @@
   @if (store.lenses().R; as r) {
     @if (store.lenses().L; as l) {
       <section class="card">
-        <h2>Vérification : verres et monture</h2>
+        <h2>{{ i18n.t('fit.title') }}</h2>
         <p class="status">
-          Le contour mesuré de chaque verre est superposé au cercle de la monture générée. Le fond de la rainure doit
-          être à la même distance du verre tout autour, et la lèvre avant doit recouvrir le bord du verre.
+          {{ i18n.t('fit.intro') }}
         </p>
         <app-fit-check [frame]="f" [right]="r.contour" [left]="l.contour" />
       </section>
     }
   }
   <section class="card">
-    <h2>Aperçu sur le visage</h2>
+    <h2>{{ i18n.t('face.title') }}</h2>
     <app-face-preview [outline]="f.frontOutline" [pdMm]="framePdMm()" (usePd)="applyFacePd($event)" />
   </section>
 }
 
 @if (hasSteps()) {
-  <p class="center"><a routerLink="/pas-a-pas">Voir le pas à pas</a></p>
+  <p class="center"><a routerLink="/pas-a-pas">{{ i18n.t('steps.link') }}</a></p>
 }

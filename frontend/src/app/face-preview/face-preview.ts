@@ -1,9 +1,10 @@
 import { Component, DestroyRef, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import type { FaceLandmarker, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
 import type { Vec2 } from 'manifold-3d';
 
 import { FacePlacement, placeOnFace } from '../core/face-fit';
+import { MessageKey } from '../core/i18n/fr';
+import { I18n } from '../core/i18n/i18n';
 
 type Mode = 'idle' | 'loading' | 'live' | 'photo';
 
@@ -16,27 +17,26 @@ const SMOOTHING = 0.4;
  */
 @Component({
   selector: 'app-face-preview',
-  imports: [DecimalPipe],
   template: `
     <div class="actions">
-      <button class="button primary" [disabled]="mode() === 'loading'" (click)="startCamera()">Essayer sur le visage</button>
+      <button class="button primary" [disabled]="mode() === 'loading'" (click)="startCamera()">{{ i18n.t('face.tryOn') }}</button>
       <label class="button" [class.disabled]="mode() === 'loading'">
-        Importer un selfie
+        {{ i18n.t('face.importSelfie') }}
         <input type="file" accept="image/*" (change)="onPhoto($event)" [disabled]="mode() === 'loading'" hidden />
       </label>
     </div>
-    <p class="status">Analyse faite sur le téléphone : l'image n'est envoyée nulle part ni enregistrée.</p>
+    <p class="status">{{ i18n.t('face.privacy') }}</p>
     @if (mode() === 'loading') {
-      <p class="status">Chargement du suivi du visage…</p>
+      <p class="status">{{ i18n.t('face.loading') }}</p>
     }
-    @if (error(); as message) {
-      <p class="error" role="alert">{{ message }}</p>
+    @if (error(); as key) {
+      <p class="error" role="alert">{{ i18n.t(key) }}</p>
     }
 
     <div class="stage" [class.mirror]="mode() === 'live'" [hidden]="mode() !== 'live' && mode() !== 'photo'">
       <video #video playsinline muted [hidden]="mode() !== 'live'"></video>
       @if (photoUrl(); as url) {
-        <img #photo [src]="url" alt="Selfie importé" (load)="detectPhoto()" />
+        <img #photo [src]="url" [alt]="i18n.t('face.selfieAlt')" (load)="detectPhoto()" />
       }
       @if (placement(); as p) {
         <svg [attr.viewBox]="'0 0 ' + size().w + ' ' + size().h" preserveAspectRatio="none" aria-hidden="true">
@@ -50,17 +50,17 @@ const SMOOTHING = 0.4;
     @if (mode() === 'live' || mode() === 'photo') {
       @if (placement(); as p) {
         <p class="status">
-          Taille réelle, échelle donnée par l'iris (± 5 %). PD estimé sur l'image : {{ p.pdMm | number: '1.0-0' }} mm (± 3 mm).
+          {{ i18n.t('face.scale', { pd: i18n.num(p.pdMm, '1.0-0') }) }}
           @if (pdMm(); as pd) {
-            PD de la monture : {{ pd | number: '1.1-1' }} mm.
+            {{ i18n.t('face.framePd', { pd: i18n.num(pd) }) }}
           }
-          <button class="link" (click)="usePd.emit(p.pdMm)">Utiliser ce PD</button>
+          <button class="link" (click)="usePd.emit(p.pdMm)">{{ i18n.t('face.usePd') }}</button>
         </p>
       } @else if (mode() === 'live') {
-        <p class="status">Placez votre visage de face, yeux ouverts, bien éclairé.</p>
+        <p class="status">{{ i18n.t('face.position') }}</p>
       }
       @if (mode() === 'live') {
-        <button class="button wide" (click)="stop()">Arrêter la caméra</button>
+        <button class="button wide" (click)="stop()">{{ i18n.t('face.stop') }}</button>
       }
     }
   `,
@@ -82,7 +82,8 @@ export class FacePreview {
   readonly usePd = output<number>();
 
   protected readonly mode = signal<Mode>('idle');
-  protected readonly error = signal<string | null>(null);
+  protected readonly i18n = inject(I18n);
+  protected readonly error = signal<MessageKey | null>(null);
   protected readonly photoUrl = signal<string | null>(null);
   protected readonly placement = signal<FacePlacement | null>(null);
   protected readonly size = signal({ w: 1, h: 1 });
@@ -122,7 +123,7 @@ export class FacePreview {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
     } catch {
       this.mode.set('idle');
-      this.error.set('Caméra refusée ou indisponible : importez plutôt un selfie.');
+      this.error.set('face.cameraDenied');
       return;
     }
     this.stream = stream;
@@ -189,7 +190,7 @@ export class FacePreview {
     this.size.set({ w: img.naturalWidth, h: img.naturalHeight });
     this.update(landmarker.detect(img), img.naturalWidth, img.naturalHeight, false);
     if (!this.placement()) {
-      this.error.set('Aucun visage trouvé : photo de face, yeux ouverts, bien éclairée.');
+      this.error.set('face.noFace');
     }
   }
 
@@ -233,7 +234,7 @@ export class FacePreview {
       console.error(e);
       this.landmarker = undefined;
       this.mode.set('idle');
-      this.error.set("Le suivi du visage ne fonctionne pas sur ce navigateur. Essayez Chrome ou Safari à jour.");
+      this.error.set('face.unsupported');
       return null;
     }
   }

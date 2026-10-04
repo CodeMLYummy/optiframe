@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
+import { I18n, LANGUAGES, Lang } from './core/i18n/i18n';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +9,11 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  protected readonly i18n = inject(I18n);
+  protected readonly languages = LANGUAGES;
+
+  protected setLang(event: Event): void {
+    this.i18n.lang.set((event.target as HTMLSelectElement).value as Lang);
+  }
+}

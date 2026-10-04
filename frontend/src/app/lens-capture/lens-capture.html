@@ -3,17 +3,17 @@
 
   <div class="actions">
     <label class="button primary" [class.disabled]="busy()">
-      📷 Prendre une photo
+      {{ i18n.t('lens.takePhoto') }}
       <input type="file" accept="image/*" capture="environment" (change)="onFile($event)" [disabled]="busy()" hidden />
     </label>
     <label class="button" [class.disabled]="busy()">
-      Importer
+      {{ i18n.t('lens.import') }}
       <input type="file" accept="image/*" (change)="onFile($event)" [disabled]="busy()" hidden />
     </label>
   </div>
 
   @if (busy()) {
-    <p class="status">Analyse de la photo…</p>
+    <p class="status">{{ i18n.t('lens.analyzing') }}</p>
   }
   @if (error(); as message) {
     <p class="error" role="alert">{{ message }}</p>
@@ -21,32 +21,32 @@
 
   @if (slot(); as s) {
     <dl class="measures">
-      <div><dt>A</dt><dd>{{ s.contour.aMm | number: '1.1-1' }} mm</dd></div>
-      <div><dt>B</dt><dd>{{ s.contour.bMm | number: '1.1-1' }} mm</dd></div>
-      <div><dt>Périmètre</dt><dd>{{ s.contour.perimeterMm | number: '1.0-0' }} mm</dd></div>
+      <div><dt>A</dt><dd>{{ i18n.num(s.contour.aMm) }} mm</dd></div>
+      <div><dt>B</dt><dd>{{ i18n.num(s.contour.bMm) }} mm</dd></div>
+      <div><dt>{{ i18n.t('lens.perimeter') }}</dt><dd>{{ i18n.num(s.contour.perimeterMm, '1.0-0') }} mm</dd></div>
     </dl>
     @if (controlImage(); as img) {
-      <img class="control" [src]="img" alt="Image de contrôle : contour détecté" />
+      <img class="control" [src]="img" [alt]="i18n.t('lens.controlAlt')" />
     } @else {
-      <p class="status">Verre de test (ellipse 50 × 36 mm)</p>
+      <p class="status">{{ i18n.t('lens.testLens') }}</p>
     }
     @if (spread(); as sp) {
       <div class="takes">
         <p [class.ok]="sp.aMm <= tolerance && sp.bMm <= tolerance" [class.warn]="sp.aMm > tolerance || sp.bMm > tolerance">
-          {{ sp.takes }} photos de ce verre : écart A {{ sp.aMm | number: '1.1-1' }} mm, B {{ sp.bMm | number: '1.1-1' }} mm
-          {{ sp.aMm <= tolerance && sp.bMm <= tolerance ? '✓ cohérent' : '⚠ plus de ' + tolerance + ' mm : reprenez la photo' }}
+          {{ i18n.t('lens.takesSpread', { n: sp.takes, a: i18n.num(sp.aMm), b: i18n.num(sp.bMm) }) }}
+          {{ sp.aMm <= tolerance && sp.bMm <= tolerance ? i18n.t('lens.takesOk') : i18n.t('lens.takesWarn', { mm: tolerance }) }}
         </p>
         <ol>
           @for (t of takes(); track $index) {
-            <li>A {{ t.aMm | number: '1.1-1' }} × B {{ t.bMm | number: '1.1-1' }} mm{{ $last ? ' (utilisée)' : '' }}</li>
+            <li>{{ i18n.t('lens.take', { a: i18n.num(t.aMm), b: i18n.num(t.bMm) }) }}{{ $last ? i18n.t('lens.takeUsed') : '' }}</li>
           }
         </ol>
-        <button class="link" (click)="clearTakes()">Nouveau verre : oublier ces photos</button>
+        <button class="link" (click)="clearTakes()">{{ i18n.t('lens.clearTakes') }}</button>
       </div>
     } @else if (takes().length === 1) {
-      <p class="status">Reprenez une 2<sup>e</sup> photo de ce verre pour vérifier que la mesure est stable.</p>
+      <p class="status">{{ i18n.t('lens.secondTake') }}</p>
     }
   } @else {
-    <button class="link" (click)="useTestLens()">Utiliser un verre de test</button>
+    <button class="link" (click)="useTestLens()">{{ i18n.t('lens.useTestLens') }}</button>
   }
 </section>

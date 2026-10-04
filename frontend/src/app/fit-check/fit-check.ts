@@ -1,8 +1,8 @@
-import { Component, computed, input } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { Component, computed, inject, input } from '@angular/core';
 
 import { GapStats, gap } from '../core/coherence';
 import { DEFAULT_FRAME, FrameResult } from '../core/frame-generator';
+import { I18n } from '../core/i18n/i18n';
 import { LensContour } from '../core/lens';
 
 interface EyeFit {
@@ -22,11 +22,10 @@ const FIT_TOLERANCE_MM = 0.1;
  */
 @Component({
   selector: 'app-fit-check',
-  imports: [DecimalPipe],
   template: `
     @for (f of fits(); track f.title) {
       <figure>
-        <svg [attr.viewBox]="f.viewBox" role="img" [attr.aria-label]="'Contour et monture superposés, ' + f.title">
+        <svg [attr.viewBox]="f.viewBox" role="img" [attr.aria-label]="i18n.t('fit.aria', { lens: f.title })">
           <g transform="scale(1,-1)">
             <path class="lip" [attr.d]="f.paths.lip" />
             <path class="groove" [attr.d]="f.paths.groove" />
@@ -36,22 +35,18 @@ const FIT_TOLERANCE_MM = 0.1;
         <figcaption>
           <strong>{{ f.title }}</strong>
           <span [class.ok]="isOk(f.groove, expectedGroove)" [class.warn]="!isOk(f.groove, expectedGroove)">
-            Verre → fond de rainure : {{ f.groove.meanMm | number: '1.2-2' }} mm
-            (min {{ f.groove.minMm | number: '1.2-2' }}, max {{ f.groove.maxMm | number: '1.2-2' }}),
-            prévu {{ expectedGroove | number: '1.1-1' }} mm
+            {{ i18n.t('fit.groove', stats(f.groove, expectedGroove)) }}
           </span>
           <span [class.ok]="isOk(f.lip, expectedLip)" [class.warn]="!isOk(f.lip, expectedLip)">
-            Lèvre avant sur le bord du verre : {{ f.lip.meanMm | number: '1.2-2' }} mm
-            (min {{ f.lip.minMm | number: '1.2-2' }}, max {{ f.lip.maxMm | number: '1.2-2' }}),
-            prévu {{ expectedLip | number: '1.1-1' }} mm
+            {{ i18n.t('fit.lip', stats(f.lip, expectedLip)) }}
           </span>
         </figcaption>
       </figure>
     }
     <p class="status legend">
-      <span class="key contour"></span> contour mesuré
-      <span class="key groove"></span> fond de la rainure
-      <span class="key lip"></span> ouverture de la lèvre avant
+      <span class="key contour"></span> {{ i18n.t('fit.keyContour') }}
+      <span class="key groove"></span> {{ i18n.t('fit.keyGroove') }}
+      <span class="key lip"></span> {{ i18n.t('fit.keyLip') }}
     </p>
   `,
   styles: `
@@ -74,6 +69,8 @@ export class FitCheck {
   readonly right = input.required<LensContour>();
   readonly left = input.required<LensContour>();
 
+  protected readonly i18n = inject(I18n);
+
   protected readonly expectedGroove = DEFAULT_FRAME.clearanceMm + DEFAULT_FRAME.grooveDepthMm;
   protected readonly expectedLip = DEFAULT_FRAME.frontLipMm;
 
@@ -90,7 +87,7 @@ export class FitCheck {
       const [x0, x1, y0, y1] = [Math.min(...xs) - m, Math.max(...xs) + m, Math.min(...ys) - m, Math.max(...ys) + m];
       return [
         {
-          title: eye === 'R' ? 'Verre droit (OD)' : 'Verre gauche (OG)',
+          title: this.i18n.t(eye === 'R' ? 'lens.R' : 'lens.L'),
           // The group flips y (contours are y up): the view box covers -y1..-y0.
           viewBox: `${x0} ${-y1} ${x1 - x0} ${y1 - y0}`,
           paths: { contour: path(lens.pointsMm), groove: path(f.grooveMm), lip: path(f.lipMm) },
@@ -101,6 +98,11 @@ export class FitCheck {
       ];
     }),
   );
+
+  protected stats(g: GapStats, expected: number): Record<string, string> {
+    const n = (v: number) => this.i18n.num(v, '1.2-2');
+    return { mean: n(g.meanMm), min: n(g.minMm), max: n(g.maxMm), expected: this.i18n.num(expected) };
+  }
 
   protected isOk(g: GapStats, expected: number): boolean {
     return Math.abs(g.minMm - expected) <= FIT_TOLERANCE_MM && Math.abs(g.maxMm - expected) <= FIT_TOLERANCE_MM;

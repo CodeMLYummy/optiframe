@@ -1,6 +1,13 @@
 <header>
-  <h1>OptiFrame</h1>
-  <p>Du verre recyclé à la monture imprimée en 3D</p>
+  <div class="title">
+    <h1>OptiFrame</h1>
+    <select class="lang" (change)="setLang($event)" [attr.aria-label]="i18n.t('app.language')">
+      @for (l of languages; track l.code) {
+        <option [value]="l.code" [selected]="l.code === i18n.lang()">{{ l.name }}</option>
+      }
+    </select>
+  </div>
+  <p>{{ i18n.t('app.tagline') }}</p>
 </header>
 <main>
   <router-outlet />

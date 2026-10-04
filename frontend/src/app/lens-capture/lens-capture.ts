@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 
 import { JURY_TOLERANCE_MM, spread } from '../core/coherence';
+import { AppError, I18n } from '../core/i18n/i18n';
 import { Eye, ellipseContour } from '../core/lens';
 import { MeasureService } from '../core/measure.service';
 import { SessionStore } from '../core/session.store';
@@ -9,7 +9,7 @@ import { SheetSettings } from '../core/sheet-settings';
 
 @Component({
   selector: 'app-lens-capture',
-  imports: [DecimalPipe],
+  imports: [],
   templateUrl: './lens-capture.html',
   styleUrl: './lens-capture.css',
 })
@@ -19,11 +19,14 @@ export class LensCapture {
   private readonly api = inject(MeasureService);
   private readonly store = inject(SessionStore);
   private readonly sheet = inject(SheetSettings);
+  protected readonly i18n = inject(I18n);
 
   protected readonly busy = signal(false);
-  protected readonly error = signal<string | null>(null);
+  /** Kept untranslated, so it follows a change of language. */
+  private readonly failure = signal<unknown>(null);
+  protected readonly error = computed(() => (this.failure() ? this.i18n.error(this.failure()) : null));
   protected readonly slot = computed(() => this.store.lenses()[this.eye()]);
-  protected readonly title = computed(() => (this.eye() === 'R' ? 'Verre droit (OD)' : 'Verre gauche (OG)'));
+  protected readonly title = computed(() => this.i18n.t(this.eye() === 'R' ? 'lens.R' : 'lens.L'));
   protected readonly controlImage = computed(() => this.slot()?.response?.steps.at(-1)?.imageDataUrl);
   protected readonly takes = computed(() => this.store.takes()[this.eye()]);
   /** Spread of A and B between the photos of this lens, once there are at least two. */
@@ -43,23 +46,23 @@ export class LensCapture {
     }
     const scale = this.sheet.scale();
     if (scale === null) {
-      this.error.set("Taille d'impression de la feuille invalide : vérifiez la longueur des 10 cases (en haut).");
+      this.failure.set(new AppError('lens.badScale'));
       return;
     }
     this.busy.set(true);
-    this.error.set(null);
+    this.failure.set(null);
     try {
       const response = await this.api.measure(file, this.eye(), scale);
       this.store.set(this.eye(), { contour: response.contour, response });
     } catch (e) {
-      this.error.set((e as Error).message);
+      this.failure.set(e);
     } finally {
       this.busy.set(false);
     }
   }
 
   protected useTestLens(): void {
-    this.error.set(null);
+    this.failure.set(null);
     this.store.set(this.eye(), { contour: ellipseContour(this.eye()) });
   }
 }

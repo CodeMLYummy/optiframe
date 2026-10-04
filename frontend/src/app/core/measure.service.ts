@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { AppError, isMessageKey } from './i18n/i18n';
 import { ApiError, Eye, MeasureResponse } from './lens';
 
 /** Longest side sent to the server: enough for about 10 px/mm on the A4 sheet, light enough for mobile data. */
@@ -21,7 +22,7 @@ export class MeasureService {
     try {
       return await firstValueFrom(this.http.post<MeasureResponse>(`${environment.apiUrl}/api/measure`, form));
     } catch (e) {
-      throw new Error(errorMessage(e));
+      throw toAppError(e);
     }
   }
 }
@@ -36,19 +37,19 @@ async function prepareImage(file: File): Promise<Blob> {
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Impossible de lire l'image."))), 'image/jpeg', 0.92),
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new AppError('error.unreadableImage'))), 'image/jpeg', 0.92),
   );
 }
 
-function errorMessage(e: unknown): string {
+/** The server's error code picks the translated message; its own (French) message is kept for French. */
+function toAppError(e: unknown): AppError {
   if (e instanceof HttpErrorResponse) {
     if (e.status === 0) {
-      return 'Serveur injoignable. Vérifiez la connexion et réessayez.';
+      return new AppError('error.unreachable');
     }
     const body = e.error as Partial<ApiError> | null;
-    if (body?.message) {
-      return body.message;
-    }
+    const key = `error.${body?.code}`;
+    return new AppError(isMessageKey(key) ? key : 'error.unexpected', body?.message);
   }
-  return 'Erreur inattendue. Réessayez.';
+  return e instanceof AppError ? e : new AppError('error.unexpected');
 }
