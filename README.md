@@ -1,16 +1,16 @@
 # OptiFrame YCrunch
 
-Du verre de lunettes recyclé à la monture imprimée en 3D. Défi CodeML 2026, Santé Numérique Sans Frontières.
+From recycled eyeglass lenses to a 3D-printed frame. CodeML 2026 Challenge, Santé Numérique Sans Frontières.
 
-- **Application :** https://optiframe.app
-- **Précision visée :** 0,5 mm sur A, B et le pont, selon la norme ISO 12870 (le jury accorde le maximum à 1 mm). Voir [Validation](docs/validation.md).
+- **Application:** https://optiframe.app
+- **Target accuracy:** 0.5 mm for A, B, and the bridge, according to ISO 12870. The jury awards maximum points at 1 mm. See [Validation](docs/validation.md).
 
 ```mermaid
 flowchart LR
-    A[/"Photo d'un verre<br/>sur la feuille"/] --> B["Mesures en mm<br/>A, B, périmètre"]
-    B --> C(["Contour SVG 1:1<br/>pour vérifier sur papier"])
-    B --> D["Monture 3D<br/>pour deux verres"]
-    D --> E(["monture.stl<br/>prête à imprimer"])
+    A[/"Photo of a lens<br/>on the sheet"/] --> B["Measurements in mm<br/>A, B, perimeter"]
+    B --> C(["1:1 SVG outline<br/>for paper verification"])
+    B --> D["3D frame<br/>for two lenses"]
+    D --> E(["frame.stl<br/>ready to print"])
 
     classDef result fill:#dcfce7,stroke:#15803d,color:#0b3d1c
     class C,E result
@@ -18,41 +18,41 @@ flowchart LR
 
 ### Architecture
 
-Trois parties : l'**application** sur le téléphone, le **serveur** qui mesure, et l'**entraînement** du modèle d'IA, fait une seule fois à l'avance.
+Three parts: the **application** on the phone, the **server** that performs the measurements, and the **AI model training**, which is done once in advance.
 
 ```mermaid
 flowchart TB
-    subgraph PHONE["Téléphone : application web (Angular)"]
-        CAM[/"Caméra ou import de photo"/]
-        CARDS["Fiche par verre<br/>mesures + image de contrôle"]
-        GEN["Générateur de monture<br/>(manifold-3d)"]
-        VIEW["Aperçu 3D<br/>(three.js)"]
-        EXP(["Téléchargements<br/>monture.stl, contour.svg"])
+    subgraph PHONE["Phone: web application (Angular)"]
+        CAM[/"Camera or photo import"/]
+        CARDS["Lens card<br/>measurements + control image"]
+        GEN["Frame generator<br/>(manifold-3d)"]
+        VIEW["3D preview<br/>(three.js)"]
+        EXP(["Downloads<br/>frame.stl, outline.svg"])
     end
 
-    subgraph SERVER["Serveur : API (Spring Boot)"]
-        RECT["Redressement<br/>marqueurs ArUco (OpenCV)"]
-        SEG["Détection du verre<br/>modèle IA ou méthode classique"]
-        MEAS["Mesure<br/>contour en mm, A, B, périmètre"]
+    subgraph SERVER["Server: API (Spring Boot)"]
+        RECT["Correction<br/>ArUco markers (OpenCV)"]
+        SEG["Lens detection<br/>AI model or classical method"]
+        MEAS["Measurement<br/>contour in mm, A, B, perimeter"]
     end
 
-    subgraph TRAIN["Entraînement (Python, Colab)"]
-        DATA[("Jeu de données<br/>photos + masques")]
-        MODEL[("Modèle U-Net<br/>exporté en ONNX")]
+    subgraph TRAIN["Training (Python, Colab)"]
+        DATA[("Dataset<br/>photos + masks")]
+        MODEL[("U-Net model<br/>exported to ONNX")]
     end
 
-    SHEET[("Feuille de référence<br/>sheet-layout.json")]
+    SHEET[("Reference sheet<br/>sheet-layout.json")]
 
     CAM -- "photo" --> RECT
     RECT --> SEG --> MEAS
-    MEAS -- "contour en mm" --> CARDS
-    CARDS -- "verre droit + verre gauche" --> GEN
+    MEAS -- "contour in mm" --> CARDS
+    CARDS -- "right lens + left lens" --> GEN
     GEN --> VIEW
     GEN --> EXP
-    MEAS -. "photos auto-étiquetées" .-> DATA
+    MEAS -. "auto-labeled photos" .-> DATA
     DATA --> MODEL
     MODEL -. "lens-seg.onnx" .-> SEG
-    SHEET -. "position des marqueurs" .-> RECT
+    SHEET -. "marker positions" .-> RECT
 
     classDef phone fill:#dbeafe,stroke:#1d4ed8,color:#0b1f4d
     classDef server fill:#dcfce7,stroke:#15803d,color:#0b3d1c
@@ -62,55 +62,55 @@ flowchart TB
     class DATA,MODEL train
 ```
 
-Bleu : sur le téléphone. Vert : sur le serveur. Orange : préparé à l'avance. Les cylindres sont des fichiers ou des données.
+Blue: on the phone. Green: on the server. Orange: prepared in advance. Cylinders represent files or data.
 
-| Dossier     | Contenu                                                         |
-| ----------- | --------------------------------------------------------------- |
-| `frontend/` | Application Angular 22 (PWA)                                    |
-| `backend/`  | API Spring Boot 4, `POST /api/measure`                          |
-| `training/` | Feuille de référence, jeu de données, entraînement, export ONNX |
+| Folder      | Contents                                        |
+| ----------- | ----------------------------------------------- |
+| `frontend/` | Angular 22 application (PWA)                    |
+| `backend/`  | Spring Boot 4 API, `POST /api/measure`          |
+| `training/` | Reference sheet, dataset, training, ONNX export |
 
 ### Documentation
 
-| Page                                     | Contenu                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| [Fonctionnement](docs/fonctionnement.md) | Parcours de l'utilisateur, contrôles de la photo, images de contrôle |
-| [Monture](docs/monture.md)               | Génération de la monture, tenue du verre dans le cercle, conventions |
-| [Capture](docs/capture.md)               | Feuille de référence, éclairage, prise de vue                        |
-| [Données et IA](docs/donnees-ia.md)      | Collecte auto-étiquetée, entraînement, outils et licences            |
-| [Validation](docs/validation.md)         | Écarts mesurés, limites connues et parades                           |
-| [Déploiement](docs/deploiement.md)       | Cloud Run, Cloud Build, variables d'environnement                    |
+| Page                                   | Contents                                                          |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| [How it works](docs/fonctionnement.md) | User workflow, photo checks, control images                       |
+| [Frame](docs/monture.md)               | Frame generation, keeping the lens inside the circle, conventions |
+| [Capture](docs/capture.md)             | Reference sheet, lighting, photography                            |
+| [Data and AI](docs/donnees-ia.md)      | Auto-labeled collection, training, tools, and licenses            |
+| [Validation](docs/validation.md)       | Measured deviations, known limitations, and mitigations           |
+| [Deployment](docs/deploiement.md)      | Cloud Run, Cloud Build, environment variables                     |
 
-### Lancer en local
+### Run locally
 
 ```bash
 # API (Java 25+)
 cd backend && ./mvnw spring-boot:run          # http://localhost:8080
 
-# App (Node 22.22+, 24.15+ ou 26+)
+# App (Node 22.22+, 24.15+ or 26+)
 cd frontend && npm install && npm start       # http://localhost:4200
 
-# Feuille de référence
+# Reference sheet
 cd training && pip install -r requirements.txt && python make_sheet.py
 
-# Tester sur un téléphone (la caméra exige HTTPS)
+# Test on a phone (the camera requires HTTPS)
 cloudflared tunnel --url http://localhost:4200
 ```
 
-Tests : `cd backend && ./mvnw test` (mesure de bout en bout sur une photo synthétique inclinée) et `cd frontend && npm test`.
+Tests: `cd backend && ./mvnw test` (end-to-end measurement on a synthetic tilted photo) and `cd frontend && npm test`.
 
-### Formatage et intégration continue
+### Formatting and continuous integration
 
-| Code                                        | Outil                      | Corriger                                                 |
+| Code                                        | Tool                       | Fix                                                      |
 | ------------------------------------------- | -------------------------- | -------------------------------------------------------- |
 | TypeScript, HTML, CSS, JSON, YAML, Markdown | Prettier, ESLint (Angular) | `cd frontend && npm run format && npm run lint -- --fix` |
 | Java, `pom.xml`                             | Spotless (Eclipse)         | `cd backend && ./mvnw spotless:apply`                    |
 | Python                                      | Ruff                       | `ruff format . && ruff check --fix .`                    |
 | Shell                                       | shfmt                      | `shfmt -w deploy/*.sh .githooks/*`                       |
 
-- `npm install` dans `frontend/` active le hook `.githooks/pre-commit` : les fichiers indexés sont formatés avant chaque commit (Ruff et shfmt doivent être installés pour le Python et le shell).
-- GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) vérifie le formatage, le lint, les tests et le build de chaque push et pull request. Le déploiement reste fait par Cloud Build sur `main`.
+- Running `npm install` in `frontend/` activates the `.githooks/pre-commit` hook: staged files are formatted before each commit (Ruff and shfmt must be installed for Python and shell files).
+- GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) checks formatting, linting, tests, and the build on every push and pull request. Deployment remains handled by Cloud Build on `main`.
 
-## Licence
+## License
 
-[MIT](LICENSE). Les bibliothèques utilisées gardent leurs licences : voir [Données et IA](docs/donnees-ia.md).
+[MIT](LICENSE). The libraries used retain their own licenses; see [Data and AI](docs/donnees-ia.md).
