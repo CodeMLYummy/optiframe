@@ -30,6 +30,22 @@
     } @else {
       <p class="status">Verre de test (ellipse 50 × 36 mm)</p>
     }
+    @if (spread(); as sp) {
+      <div class="takes">
+        <p [class.ok]="sp.aMm <= tolerance && sp.bMm <= tolerance" [class.warn]="sp.aMm > tolerance || sp.bMm > tolerance">
+          {{ sp.takes }} photos de ce verre : écart A {{ sp.aMm | number: '1.1-1' }} mm, B {{ sp.bMm | number: '1.1-1' }} mm
+          {{ sp.aMm <= tolerance && sp.bMm <= tolerance ? '✓ cohérent' : '⚠ plus de ' + tolerance + ' mm : reprenez la photo' }}
+        </p>
+        <ol>
+          @for (t of takes(); track $index) {
+            <li>A {{ t.aMm | number: '1.1-1' }} × B {{ t.bMm | number: '1.1-1' }} mm{{ $last ? ' (utilisée)' : '' }}</li>
+          }
+        </ol>
+        <button class="link" (click)="clearTakes()">Nouveau verre : oublier ces photos</button>
+      </div>
+    } @else if (takes().length === 1) {
+      <p class="status">Reprenez une 2<sup>e</sup> photo de ce verre pour vérifier que la mesure est stable.</p>
+    }
   } @else {
     <button class="link" (click)="useTestLens()">Utiliser un verre de test</button>
   }

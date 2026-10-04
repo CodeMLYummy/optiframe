@@ -15,12 +15,13 @@ import {
 } from '../../core/pd';
 import { PdInput, SessionStore } from '../../core/session.store';
 import { NOMINAL_TEN_SQUARES_MM, Paper, SheetSettings, SizeMode } from '../../core/sheet-settings';
+import { FitCheck } from '../../fit-check/fit-check';
 import { FrameViewer } from '../../frame-viewer/frame-viewer';
 import { LensCapture } from '../../lens-capture/lens-capture';
 
 @Component({
   selector: 'app-home',
-  imports: [DecimalPipe, RouterLink, LensCapture, FrameViewer],
+  imports: [DecimalPipe, RouterLink, LensCapture, FrameViewer, FitCheck],
   templateUrl: './home.html',
 })
 export class Home {

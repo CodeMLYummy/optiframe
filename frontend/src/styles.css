@@ -7,6 +7,8 @@
   --accent: #2d6cdf;
   --accent-text: #ffffff;
   --error: #b42318;
+  --ok: #157f3b;
+  --warn: #a15c00;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -18,6 +20,8 @@
     --muted: #9aa7b6;
     --accent: #5b93f0;
     --error: #ff8a80;
+    --ok: #6fd99a;
+    --warn: #ffb74d;
   }
 }
 * {
@@ -133,6 +137,14 @@ h3 {
 }
 .error {
   color: var(--error);
+  font-weight: 600;
+}
+.ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+.warn {
+  color: var(--warn);
   font-weight: 600;
 }
 .center {

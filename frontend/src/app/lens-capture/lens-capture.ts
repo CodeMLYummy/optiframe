@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
+import { JURY_TOLERANCE_MM, spread } from '../core/coherence';
 import { Eye, ellipseContour } from '../core/lens';
 import { MeasureService } from '../core/measure.service';
 import { SessionStore } from '../core/session.store';
@@ -24,6 +25,14 @@ export class LensCapture {
   protected readonly slot = computed(() => this.store.lenses()[this.eye()]);
   protected readonly title = computed(() => (this.eye() === 'R' ? 'Verre droit (OD)' : 'Verre gauche (OG)'));
   protected readonly controlImage = computed(() => this.slot()?.response?.steps.at(-1)?.imageDataUrl);
+  protected readonly takes = computed(() => this.store.takes()[this.eye()]);
+  /** Spread of A and B between the photos of this lens, once there are at least two. */
+  protected readonly spread = computed(() => (this.takes().length >= 2 ? spread(this.takes()) : null));
+  protected readonly tolerance = JURY_TOLERANCE_MM;
+
+  protected clearTakes(): void {
+    this.store.clearTakes(this.eye());
+  }
 
   protected async onFile(event: Event): Promise<void> {
     const inputEl = event.target as HTMLInputElement;

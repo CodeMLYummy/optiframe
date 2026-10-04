@@ -124,6 +124,21 @@
   }
 </section>
 
+@if (frame(); as f) {
+  @if (store.lenses().R; as r) {
+    @if (store.lenses().L; as l) {
+      <section class="card">
+        <h2>Vérification : verres et monture</h2>
+        <p class="status">
+          Le contour mesuré de chaque verre est superposé au cercle de la monture générée. Le fond de la rainure doit
+          être à la même distance du verre tout autour, et la lèvre avant doit recouvrir le bord du verre.
+        </p>
+        <app-fit-check [frame]="f" [right]="r.contour" [left]="l.contour" />
+      </section>
+    }
+  }
+}
+
 @if (hasSteps()) {
   <p class="center"><a routerLink="/pas-a-pas">Voir le pas à pas</a></p>
 }

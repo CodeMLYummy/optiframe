@@ -65,8 +65,11 @@ export interface FrameResult {
   previewGeometry: BufferGeometry;
   /** Both temples lying flat side by side, ready to print (separate file). */
   templesPrintGeometry: BufferGeometry;
-  /** Inner outline at the bottom of the groove, per lens, in model coordinates (for the coherence overlay). */
-  grooveOutlines: { eye: LensContour['eye']; pointsMm: Vec2[] }[];
+  /**
+   * Per lens, in the lens's own coordinates (same as its contour): the bottom of the groove and the opening of the
+   * front lip, for the contour/frame coherence check.
+   */
+  fit: { eye: LensContour['eye']; grooveMm: Vec2[]; lipMm: Vec2[] }[];
   /** Through holes of the printed part: 2 lens openings + 2 pin holes. */
   genus: number;
   triangles: number;
@@ -107,7 +110,7 @@ export async function generateFrame(
 
     const solids: Manifold[] = [];
     const holes: Manifold[] = [];
-    const grooveOutlines: FrameResult['grooveOutlines'] = [];
+    const fit: FrameResult['fit'] = [];
     const rims: CrossSection[] = [];
 
     for (const { lens, cx } of lenses) {
@@ -122,8 +125,9 @@ export async function generateFrame(
         throw new Error(`Groove cut is not a valid solid: ${cut.status()}`);
       }
       holes.push(cut);
-      const groove = keep(outline.offset(grooveOffset, 'Round'));
-      grooveOutlines.push({ eye: lens.eye, pointsMm: groove.toPolygons()[0] ?? [] });
+      const inLens = (c: CrossSection) => (c.toPolygons()[0] ?? []).map(([x, y]) => [x - cx, y] as Vec2);
+      const lip = keep(outline.offset(-p.frontLipMm, 'Round'));
+      fit.push({ eye: lens.eye, grooveMm: inLens(keep(outline.offset(grooveOffset, 'Round'))), lipMm: inLens(lip) });
     }
 
     // Bridge and hinge lugs share a line in the upper part of the rims, as on most frames.
@@ -182,7 +186,7 @@ export async function generateFrame(
       printGeometry: toGeometry(printFrame),
       previewGeometry: toGeometry(preview),
       templesPrintGeometry: toGeometry(templesPrint),
-      grooveOutlines,
+      fit,
       genus: frame.genus(),
       triangles: frame.numTri(),
       volumeMm3: frame.volume(),
