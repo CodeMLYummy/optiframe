@@ -1,6 +1,8 @@
 """Generates the ChArUco reference sheets from backend/src/main/resources/sheet-layout-charuco.json.
 
 Usage: python make_charuco_sheet.py  ->  training/sheets/feuille-{charuco,charuco-ronchi,ronchi}-{a4,letter}.pdf
+       python make_charuco_sheet.py --layout sheet-layout-charuco-3.json --tag charuco-3
+           -> another layout (e.g. a candidate not used by the backend yet), feuille-<tag>[-ronchi]-<paper>.pdf
   feuille-charuco-*         lens window left blank (backlight, like the ArUco sheet)
   feuille-charuco-ronchi-*  same board, Ronchi lines (half black, half white) in the lens window
   feuille-ronchi-*          Ronchi lines over the whole board area, no markers. Power only: the lens
@@ -11,6 +13,7 @@ millimetres, so the detector does not need to know which paper was used.
 Print at 100 % (no "fit to page") and check that `checkSquares` squares measure the expected length.
 Board corners touching the lens window are not usable and must be ignored by the detector.
 """
+import argparse
 import json
 from pathlib import Path
 
@@ -108,12 +111,18 @@ def sheet(layout: dict, paper: str, ronchi: bool, out: Path) -> None:
 
 
 def main() -> None:
-    layout = json.loads(LAYOUT.read_text())
+    ap = argparse.ArgumentParser(description="Generate the ChArUco reference sheets.")
+    ap.add_argument("--layout", type=Path, default=LAYOUT, help="layout JSON (default: the backend's)")
+    ap.add_argument("--tag", default="charuco", help="file name tag: feuille-<tag>[-ronchi]-<paper>.pdf")
+    args = ap.parse_args()
+    layout = json.loads(args.layout.read_text())
     OUT.mkdir(exist_ok=True)
     for paper in layout["papers"]:
-        sheet(layout, paper, ronchi=False, out=OUT / f"feuille-charuco-{paper}.pdf")
-        sheet(layout, paper, ronchi=True, out=OUT / f"feuille-charuco-ronchi-{paper}.pdf")
-        ronchi_only(layout, paper, out=OUT / f"feuille-ronchi-{paper}.pdf")
+        sheet(layout, paper, ronchi=False, out=OUT / f"feuille-{args.tag}-{paper}.pdf")
+        sheet(layout, paper, ronchi=True, out=OUT / f"feuille-{args.tag}-ronchi-{paper}.pdf")
+        if args.layout == LAYOUT:
+            # Ronchi-only: no markers and no window, the same for every layout of this board size.
+            ronchi_only(layout, paper, out=OUT / f"feuille-ronchi-{paper}.pdf")
 
 
 if __name__ == "__main__":
