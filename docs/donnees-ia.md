@@ -26,7 +26,7 @@ flowchart LR
 
 ### Jeu de données
 
-- **3 verres** mesurés au pied à coulisse (boxing A × B) : `lens1` 49,5 × 30,5 mm, `lens2` 51,4 × 38,4 mm, `red` (teinté) 55,7 × 46,5 mm.
+- **3 paires de verres** mesurées au pied à coulisse (boxing A × B) : `lens1` 49,5 × 30,5 mm, `lens2` 51,4 × 38,4 mm, `red` (teinté) 55,7 × 46,5 mm.
 - **77 fenêtres redressées** tirées des photos de `lensDetection/photos2/` et `photos3/` (Git LFS). La feuille a été imprimée à 97,87 % ; l'échelle est corrigée avant l'étiquetage.
 - **10 photos exclues**, parce que l'app les refuserait : sans rétroéclairage (3), flou de bougé (4), feuille coupée (2), prise trop inclinée (1). La liste et les raisons sont dans `make_dataset.py`.
 - **Jeu d'entraînement : 24 fenêtres**, soit 23 étiquettes automatiques et 1 étiquette à la main (11 `lens1`, 10 `lens2`, 3 `red`). Validation : 1/5 des fenêtres tiré au hasard (graine fixe).
@@ -56,8 +56,8 @@ Outils, à lancer depuis `lensDetection/` :
 | Photos avec A et B à moins de 1 mm (sur 41 mesurées)                     | 19                | **29**      |
 | Erreur moyenne, photos absentes de l'entraînement                        | 1,55 mm           | **0,87 mm** |
 
-- La validation ne compte que 4 fenêtres, sur les 3 mêmes verres : l'IoU est optimiste. L'erreur en mm sur les photos jamais vues est le chiffre le plus honnête.
-- Le critère du défi (≤ 1 mm d'erreur moyenne sur A et B) est atteint sur nos 3 verres. Il reste à vérifier sur d'autres verres, en particulier les verres très clairs et les verres montés dans une monture.
+- La validation ne compte que 4 fenêtres, sur les 3 mêmes paires de verres : l'IoU est optimiste. L'erreur en mm sur les photos jamais vues est le chiffre le plus honnête.
+- Le critère du défi (≤ 1 mm d'erreur moyenne sur A et B) est atteint sur nos 3 paires de verres. Il reste à vérifier sur d'autres verres, en particulier les verres très clairs et les verres montés dans une monture.
 - Comparaison sur les prises difficiles (reflets, sans rétroéclairage) : pas encore faite.
 
 ### Pistes essayées

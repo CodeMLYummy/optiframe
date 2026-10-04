@@ -117,7 +117,7 @@ flowchart LR
     L1["Le bord du verre est quelques mm<br/>au-dessus de la feuille"] --> I1["Parallaxe : contour agrandi,<br/>jusqu'à +4 mm sur une prise inclinée"] --> F1["Photographier de face et de plus loin ;<br/>pas encore de contrôle d'inclinaison"]
     L2["A et B suivent les axes de la feuille"] --> I2["Verre posé de travers :<br/>jusqu'à +2,5 mm"] --> F2["Consigne d'alignement seulement ;<br/>ni alerte, ni correction, ni refus"]
     L3["Méthode classique réglée<br/>pour le rétroéclairage"] --> I3["Échoue sans lumière<br/>par-dessous"] --> F3["Modèle d'IA,<br/>entraîné sur peu de données"]
-    L4["Petit jeu de données :<br/>24 fenêtres, 3 verres"] --> I4["IoU et erreur en mm<br/>peu représentatifs"] --> F4["Plus de verres et de photos,<br/>images de synthèse"]
+    L4["Petit jeu de données :<br/>24 fenêtres, 3 paires de verres"] --> I4["IoU et erreur en mm<br/>peu représentatifs"] --> F4["Plus de verres et de photos,<br/>images de synthèse"]
     L5["Feuille à rayures (Ronchi)"] --> I5["Contour non détecté,<br/>aucun gain observé"] --> F5["Feuille ChArUco<br/>à fenêtre unie"]
     L6["La mesure se fait<br/>sur le serveur"] --> I6["Connexion nécessaire"] --> F6["Serveur toujours allumé<br/>pendant l'évaluation"]
     L7["Rainure et lèvres<br/>non encore imprimées"] --> I7["Clipsage à confirmer"] --> F7["Impression test,<br/>ajuster DEFAULT_FRAME"]
@@ -131,6 +131,6 @@ flowchart LR
 - **Verre tourné sur la feuille** : A et B sont mesurés le long des axes de la feuille. Un verre posé de travers donne d'autres valeurs (jusqu'à +2,5 mm). L'app demande d'aligner le verre sur les repères, mais elle ne détecte pas la rotation : pas d'alerte, pas de correction automatique, pas de refus. Le rectangle minimal (`rotatedAMm`, `rotatedBMm`) est déjà calculé par le serveur, mais il n'est pas utilisé (#8).
 - **Parallaxe** : le bord du verre est quelques millimètres au-dessus de la feuille, donc il paraît plus grand sur la photo, et encore plus sur une prise inclinée (61,4 mm au lieu d'environ 57 mm sur B pour la photo 212021). Les prises trop inclinées pour que la feuille soit redressée sont refusées. Sinon, l'inclinaison n'est ni mesurée ni signalée.
 - **Feuille Ronchi** : les rayures n'ont pas aidé. La méthode classique ne trouve pas le contour du verre sur ces feuilles, et nous n'avons pas pu les étiqueter pour le modèle. Les PDF restent dans `training/sheets/`, mais l'app utilise la feuille ChArUco à fenêtre unie.
-- **Données d'entraînement** : 24 fenêtres de 3 verres seulement. L'IoU de validation (0,977) est calculée sur 4 fenêtres des mêmes verres, et l'erreur en mm (0,64 mm, 0,87 mm sur les photos jamais vues) sur ces 3 verres. Ces chiffres doivent encore être confirmés sur d'autres verres, surtout les verres très clairs. Détails : [`donnees-ia.md`](donnees-ia.md).
+- **Données d'entraînement** : 24 fenêtres de 3 paires de verres seulement. L'IoU de validation (0,977) est calculée sur 4 fenêtres des mêmes verres, et l'erreur en mm (0,64 mm, 0,87 mm sur les photos jamais vues) sur ces 3 paires de verres. Ces chiffres doivent encore être confirmés sur d'autres verres, surtout les verres très clairs. Détails : [`donnees-ia.md`](donnees-ia.md).
 
 [← Retour au README](../README.md)
