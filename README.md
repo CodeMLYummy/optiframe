@@ -64,22 +64,22 @@ flowchart TB
 
 Blue: on the phone. Green: on the server. Orange: prepared in advance. Cylinders represent files or data.
 
-| Folder | Contents |
-| ----------- | --------------------------------------------------------------- |
-| `frontend/` | Angular 22 application (PWA) |
-| `backend/` | Spring Boot 4 API, `POST /api/measure` |
+| Folder      | Contents                                        |
+| ----------- | ----------------------------------------------- |
+| `frontend/` | Angular 22 application (PWA)                    |
+| `backend/`  | Spring Boot 4 API, `POST /api/measure`          |
 | `training/` | Reference sheet, dataset, training, ONNX export |
 
 ### Documentation
 
-| Page | Contents |
-| ---------------------------------------- | ---------------------------------------------------------------------- |
-| [How it works](docs/fonctionnement.md) | User workflow, photo checks, control images |
-| [Frame](docs/monture.md) | Frame generation, keeping the lens inside the circle, conventions |
-| [Capture](docs/capture.md) | Reference sheet, lighting, photography |
-| [Data and AI](docs/donnees-ia.md) | Auto-labeled collection, training, tools, and licenses |
-| [Validation](docs/validation.md) | Measured deviations, known limitations, and mitigations |
-| [Deployment](docs/deploiement.md) | Cloud Run, Cloud Build, environment variables |
+| Page                                   | Contents                                                          |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| [How it works](docs/fonctionnement.md) | User workflow, photo checks, control images                       |
+| [Frame](docs/monture.md)               | Frame generation, keeping the lens inside the circle, conventions |
+| [Capture](docs/capture.md)             | Reference sheet, lighting, photography                            |
+| [Data and AI](docs/donnees-ia.md)      | Auto-labeled collection, training, tools, and licenses            |
+| [Validation](docs/validation.md)       | Measured deviations, known limitations, and mitigations           |
+| [Deployment](docs/deploiement.md)      | Cloud Run, Cloud Build, environment variables                     |
 
 ### Run locally
 
@@ -101,12 +101,12 @@ Tests: `cd backend && ./mvnw test` (end-to-end measurement on a synthetic tilted
 
 ### Formatting and continuous integration
 
-| Code | Tool | Fix |
+| Code                                        | Tool                       | Fix                                                      |
 | ------------------------------------------- | -------------------------- | -------------------------------------------------------- |
 | TypeScript, HTML, CSS, JSON, YAML, Markdown | Prettier, ESLint (Angular) | `cd frontend && npm run format && npm run lint -- --fix` |
-| Java, `pom.xml` | Spotless (Eclipse) | `cd backend && ./mvnw spotless:apply` |
-| Python | Ruff | `ruff format . && ruff check --fix .` |
-| Shell | shfmt | `shfmt -w deploy/*.sh .githooks/*` |
+| Java, `pom.xml`                             | Spotless (Eclipse)         | `cd backend && ./mvnw spotless:apply`                    |
+| Python                                      | Ruff                       | `ruff format . && ruff check --fix .`                    |
+| Shell                                       | shfmt                      | `shfmt -w deploy/*.sh .githooks/*`                       |
 
 - Running `npm install` in `frontend/` activates the `.githooks/pre-commit` hook: staged files are formatted before each commit (Ruff and shfmt must be installed for Python and shell files).
 - GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) checks formatting, linting, tests, and the build on every push and pull request. Deployment remains handled by Cloud Build on `main`.
