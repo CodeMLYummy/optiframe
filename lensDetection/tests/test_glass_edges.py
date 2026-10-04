@@ -37,7 +37,7 @@ class GlassEdgesTests(unittest.TestCase):
         self.assertEqual(cv2.countNonZero(mask), 0)
 
     def test_glass_rim_and_physical_coordinates(self):
-        result, mask, overlay, residual, edges = detect_glass(self.glass, self.board)
+        result, mask, overlay, detail, edges = detect_glass(self.glass, self.board)
         self.assertEqual(len(result["candidates"]), 1)
         self.assert_outline(mask, self.truth)
         candidate = result["candidates"][0]
@@ -53,7 +53,7 @@ class GlassEdgesTests(unittest.TestCase):
             (physical[:, 1].max() + physical[:, 1].min()) / 2, 75, delta=1
         )
         self.assertEqual(overlay.shape, self.glass.shape)
-        self.assertEqual(residual.shape, self.truth.shape)
+        self.assertEqual(detail.shape, self.truth.shape)
         self.assertEqual(edges.shape, self.truth.shape)
 
     def test_perspective_and_brightness(self):
@@ -78,17 +78,22 @@ class GlassEdgesTests(unittest.TestCase):
                 else:
                     self.assertEqual(result["candidates"], [])
 
-    def test_reference_alignment(self):
-        transform = np.array([[1, 0, 5], [0, 1, 4], [0, 0, 1]], dtype=np.float64)
-        reference = cv2.warpPerspective(
-            self.bare, transform, (800, 600), borderValue=(255, 255, 255)
-        )
-        result, mask, _, _, _ = detect_glass(
-            self.glass, self.board, reference=reference
-        )
-        self.assertEqual(result["background_source"], "reference")
-        self.assertEqual(len(result["candidates"]), 1)
-        self.assert_outline(mask, self.truth)
+    def test_ellipse_fit_and_isolated_edges(self):
+        result, _, _, _, edges = detect_glass(self.glass, self.board)
+        circle = result["hough_circle"]
+        self.assertAlmostEqual(circle["center_px"][0], 400, delta=20)
+        self.assertAlmostEqual(circle["center_px"][1], 300, delta=20)
+        ellipse = circle["ellipse"]
+        self.assertAlmostEqual(ellipse["center_px"][0], 400, delta=3)
+        self.assertAlmostEqual(ellipse["center_px"][1], 300, delta=3)
+        self.assertAlmostEqual(max(ellipse["axes_px"]), 280, delta=12)
+        self.assertAlmostEqual(min(ellipse["axes_px"]), 210, delta=12)
+        ys, xs = np.nonzero(edges)
+        self.assertGreater(len(xs), 500)
+        rim = np.zeros_like(edges)
+        cv2.ellipse(rim, (400, 300), (140, 105), 12, 0, 360, 255, 1)
+        distance = cv2.distanceTransform(255 - rim, cv2.DIST_L2, 3)
+        self.assertLess(distance[ys, xs].max(), 15)
 
     def test_minimum_area_filters_candidates(self):
         result, mask, _, _, _ = detect_glass(self.glass, self.board, min_area_mm2=5000)
@@ -105,16 +110,14 @@ class GlassEdgesTests(unittest.TestCase):
     def test_invalid_inputs(self):
         with self.assertRaisesRegex(ValueError, "six visible"):
             detect_glass(np.full_like(self.bare, 255), self.board)
-        with self.assertRaisesRegex(ValueError, "identical dimensions"):
-            detect_glass(self.glass, self.board, reference=self.bare[:400])
-        for threshold in (0, 255, float("nan"), float("inf")):
-            with (
-                self.subTest(threshold=threshold),
-                self.assertRaisesRegex(ValueError, "threshold"),
-            ):
-                detect_glass(self.glass, self.board, threshold=threshold)
         with self.assertRaisesRegex(ValueError, "Minimum area"):
             detect_glass(self.glass, self.board, min_area_mm2=-1)
+        with self.assertRaisesRegex(ValueError, "Ring tolerance"):
+            detect_glass(self.glass, self.board, tolerance=1.5)
+        with self.assertRaisesRegex(ValueError, "Minimum radius"):
+            detect_glass(
+                self.glass, self.board, min_radius_mm=50, max_radius_mm=20
+            )
 
     def test_board_json_validation(self):
         config = {
@@ -186,7 +189,7 @@ class GlassEdgesTests(unittest.TestCase):
                     for name in (
                         "overlay.png",
                         "mask.png",
-                        "residual.png",
+                        "highpass.png",
                         "edges.png",
                     ):
                         self.assertIsNotNone(cv2.imread(str(output / name)))
