@@ -1,0 +1,24 @@
+[project]
+name = "lensdetection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Richard Demers", email = "richardd1894@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.3",
+    "opencv-python>=5.0.0.93",
+]
+
+[project.scripts]
+lensdetection = "lensdetection:main"
+ronchi = "lensdetection.ronchi:main"
+charuco = "lensdetection.charuco:main"
+glass-edges = "lensdetection.glass_edges:main"
+ronchi-edges = "lensdetection.ronchi_edges:main"
+
+[build-system]
+requires = ["uv_build>=0.12.11,<0.13.0"]
+build-backend = "uv_build"
