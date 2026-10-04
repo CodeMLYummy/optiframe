@@ -280,7 +280,9 @@ def main() -> None:
     parser.add_argument("image", type=Path, help="Photo of glass over a ChArUco board")
     parser.add_argument("board", type=Path, help="JSON with the board's dimensions")
     parser.add_argument(
-        "--output-dir", type=Path, default=Path("results_" + str(datetime.now()))
+        "--output-dir",
+        type=Path,
+        default=Path("results/" + str(datetime.now()).replace(" ", "_")),
     )
     parser.add_argument("--reference", type=Path, help="Optional photo without glass")
     parser.add_argument(
