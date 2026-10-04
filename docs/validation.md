@@ -58,6 +58,20 @@ Même verre sur 5 photos originales (Galaxy S22 Ultra, `lensDetection/photos2/`)
 - Corrigé en cours de route : l'ombre du verre était prise pour le verre (jusqu'à +4 mm). Seuils relevés dans `ClassicalSegmenter`, test de non-régression ajouté.
 - Détail des essais, prototypes et recommandations : [`lensDetection/approaches.md`](../lensDetection/approaches.md).
 
+### Comparaison au pied à coulisse
+
+Valeurs au pied à coulisse : `lens1` 49,5 × 30,5 mm, `lens2` 51,4 × 38,4 mm, verre rouge 55,7 × 46,5 mm. La feuille utilisée pour ces photos était imprimée à 97,87 % (5 cases = 73,4 mm au lieu de 75,0) : les mesures sont ramenées à la vraie échelle de la feuille. Méthode classique (contour polaire lissé), via `/api/measure`, cadre blanc :
+
+| Verre | Photos | Médiane mesurée (mm) | Pied à coulisse (mm) | Erreur moyenne absolue | Photos à ≤ 1 mm sur A et B |
+|---|---|---|---|---|---|
+| `lens1` | 19 | 49,09 × 30,76 | 49,5 × 30,5 | 0,73 mm | 12 / 19 |
+| `lens2` | 16 | 50,94 × 38,46 | 51,4 × 38,4 | 1,02 mm | 9 / 16 |
+| rouge | 5 | 55,70 × 46,62 | 55,7 × 46,5 | 0,67 mm | 3 / 5 |
+| **Total** | **40** | | | **0,84 mm** (biais +0,02 mm) | **24 / 40** |
+
+- Sans biais : les erreurs restantes viennent de la prise de vue (verre tourné sur la feuille, prise très inclinée, double bord éclairé de côté), pas d'un décalage systématique ; `edge-bias-mm` reste à 0.
+- Sur une feuille imprimée à 97,87 %, toutes les mesures sont 2,2 % trop grandes : vérifier que 10 cases mesurent 150 mm avant chaque démonstration.
+
 ### Photos réelles (deux verres transparents, `lensDetection/photos3/`)
 
 119 photos (Galaxy S22 Ultra) de deux verres transparents de formes différentes, sur les trois feuilles Letter, avec ou sans éclairage par-dessous, de face et inclinées (3 à 28°), zoom 1× et 1,58×. Méthode classique (contour polaire), via `/api/measure`. Dimensions du rectangle minimal (indépendantes de la rotation du verre) :
@@ -71,7 +85,7 @@ Même verre sur 5 photos originales (Galaxy S22 Ultra, `lensDetection/photos2/`)
 - Les dispersions incluent les prises inclinées et zoomées ; ce sont des écarts de répétabilité, pas des écarts à la vraie taille.
 - Les feuilles à rayures (Ronchi) ne permettent pas de détecter le contour.
 
-> À compléter : valeurs au pied à coulisse des trois verres (pour calibrer `edge-bias-mm`), contrôle de l'inclinaison de la photo.
+> À compléter : contrôle de l'inclinaison de la photo, alerte quand le verre est tourné sur la feuille, nouvelle série de photos sur une feuille imprimée à 100 %.
 
 ## Limites connues
 

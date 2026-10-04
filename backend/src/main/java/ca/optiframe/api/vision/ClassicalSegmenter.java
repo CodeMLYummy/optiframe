@@ -18,8 +18,8 @@ import org.opencv.imgproc.Moments;
 import org.springframework.stereotype.Component;
 
 /**
- * Finds the lens outline as the best closed path around its centre ("polar contour", prototype v5 in
- * {@code lensDetection/prototypes/v5_polar_contour/}).
+ * Finds the lens outline as the best closed path around its centre ("polar contour", prototypes v5 and v10 in
+ * {@code lensDetection/prototypes/}).
  * <ol>
  * <li>Rim map: black-hat + top-hat about 1.6 mm wide. The rim of a lens, clear or tinted, is a thin line; the lens's
  * shadow, cable shadows and lighting gradients are wide soft bands and barely answer. The map is divided by the
@@ -27,8 +27,11 @@ import org.springframework.stereotype.Component;
  * <li>The map is unrolled around the lens centre (angle x radius) and dynamic programming picks the closed path
  * r(theta) with the most rim evidence, moving at most 0.4 mm per 0.5 degree and paying for every jump: it bridges
  * the gaps of a faint rim and does not follow a cable.</li>
- * <li>The jump cost that keeps the path on the right loop also flattens it (it cuts the ends of the long axis), so
- * each point is then snapped to the strongest rim response within 0.6 mm, and the loop is filled.</li>
+ * <li>The jump cost that keeps the path on the right loop also flattens it (it cuts the ends of the long axis), so a
+ * second path search refines it inside a 0.6 mm band: no jump cost, at most 1 px of radius change per 0.5 degree
+ * (a smooth line that stays on one edge, instead of points jumping between nearby lines), and a small bonus
+ * outward so that of two close lines (bevel and side wall) the outer one, the lens edge, wins. The loop is
+ * filled.</li>
  * </ol>
  * The result is refused (empty mask) when the path lies on rim evidence along less than half of its length.
  * Lenses must be star-shaped around their centre, which spectacle lenses are. Tuned on real rims, which are thin
@@ -54,8 +57,17 @@ public class ClassicalSegmenter implements LensSegmenter {
 	private static final float EVIDENCE = 2;
 	/** Minimum share of the path lying on rim evidence; below it the lens is reported as not found. */
 	private static final double MIN_RIM_COVERAGE = 0.5;
-	/** Band around the path where each point snaps to the strongest rim response; a cable further away cannot. */
-	private static final double SNAP_MM = 0.6;
+	/** Half-width of the refinement band around the first path; a cable further away cannot pull the outline. */
+	private static final double REFINE_BAND_MM = 0.6;
+	/** Largest radius change per 0.5 degree during refinement, in pixels: keeps the outline smooth. */
+	private static final int REFINE_STEP_PX = 1;
+	/** Bonus, in rim-strength units, for being at the outer side of the band: the outer of two close lines wins. */
+	private static final double OUTER_BIAS = 1.0;
+	/**
+	 * Penalty per angle outside the band. Not forbidden: the first path is not forced to close exactly, and its
+	 * start and end radii can differ by more than the band.
+	 */
+	private static final double OFF_BAND_PENALTY = 50;
 
 	@Override
 	public String name() {
@@ -83,9 +95,14 @@ public class ClassicalSegmenter implements LensSegmenter {
 		}
 		Mat mask = Mat.zeros(window.size(), CvType.CV_8UC1);
 		if (path != null && path.coverage() >= MIN_RIM_COVERAGE) {
-			Point[] rounded = Arrays.stream(path.points())
-					.map(p -> new Point(Math.round(p.x), Math.round(p.y)))
-					.toArray(Point[]::new);
+			int[] smooth = refine(path, pxPerMm);
+			Point[] rounded = new Point[ANGLES];
+			for (int t = 0; t < ANGLES; t++) {
+				double theta = 2 * Math.PI * t / ANGLES;
+				double radius = smooth[t] + 0.5;
+				rounded[t] = new Point(Math.round(path.center().x + radius * Math.cos(theta)),
+						Math.round(path.center().y + radius * Math.sin(theta)));
+			}
 			Imgproc.fillPoly(mask, List.of(new MatOfPoint(rounded)), new Scalar(255));
 		}
 		return mask;
@@ -148,7 +165,11 @@ public class ClassicalSegmenter implements LensSegmenter {
 		return new Point(xs[count / 2], ys[count / 2]);
 	}
 
-	record Path(Point[] points, double coverage) {
+	/**
+	 * First-pass loop: its points (for re-centring), its radius per angle, the uncapped polar rim map it was found
+	 * in (angles x radii), the centre it is relative to, and its share of angles on rim evidence.
+	 */
+	record Path(Point[] points, int[] radiusPerAngle, float[] polar, int radii, Point center, double coverage) {
 	}
 
 	/** Closed path r(theta) with the most rim evidence around {@code center}, by dynamic programming. */
@@ -210,25 +231,74 @@ public class ClassicalSegmenter implements LensSegmenter {
 			path[t - 1] = back[t * radii + path[t]];
 		}
 
-		int snap = (int) Math.round(SNAP_MM * pxPerMm);
 		Point[] points = new Point[ANGLES];
+		int[] radiusPerAngle = new int[ANGLES];
 		int onRim = 0;
 		for (int t = 0; t < ANGLES; t++) {
 			int r = path[ANGLES + t];
+			radiusPerAngle[t] = r;
 			if (score[t * radii + r] > EVIDENCE) {
 				onRim++;
 			}
-			int best = r;
-			for (int s = Math.max(0, r - snap); s <= Math.min(radii - 1, r + snap); s++) {
-				if (raw[t * radii + s] > raw[t * radii + best]) {
-					best = s;
-				}
-			}
 			double theta = 2 * Math.PI * t / ANGLES;
-			double radius = best + 0.5;
+			double radius = r + 0.5;
 			points[t] = new Point(center.x + radius * Math.cos(theta), center.y + radius * Math.sin(theta));
 		}
-		return new Path(points, (double) onRim / ANGLES);
+		return new Path(points, radiusPerAngle, raw, radii, center, (double) onRim / ANGLES);
+	}
+
+	/**
+	 * Smooth closed path inside the band around the first path, by dynamic programming over two turns: at most
+	 * {@link #REFINE_STEP_PX} of radius change per angle, no jump cost, capped rim strength plus an outward bonus.
+	 */
+	static int[] refine(Path first, double pxPerMm) {
+		int radii = first.radii();
+		int band = Math.max(1, (int) Math.round(REFINE_BAND_MM * pxPerMm));
+		float[] score = new float[ANGLES * radii];
+		Arrays.fill(score, (float) -OFF_BAND_PENALTY);
+		for (int t = 0; t < ANGLES; t++) {
+			int r0 = first.radiusPerAngle()[t];
+			for (int r = Math.max(0, r0 - band); r <= Math.min(radii - 1, r0 + band); r++) {
+				score[t * radii + r] = (float) (Math.min(first.polar()[t * radii + r], RESPONSE_CAP)
+						+ OUTER_BIAS * (r - r0) / band);
+			}
+		}
+		int rows = 2 * ANGLES;
+		int[] back = new int[rows * radii];
+		double[] acc = new double[radii];
+		for (int r = 0; r < radii; r++) {
+			acc[r] = score[r];
+		}
+		double[] next = new double[radii];
+		for (int t = 1; t < rows; t++) {
+			int row = (t % ANGLES) * radii;
+			for (int r = 0; r < radii; r++) {
+				double best = Double.NEGATIVE_INFINITY;
+				int arg = r;
+				for (int d = -REFINE_STEP_PX; d <= REFINE_STEP_PX; d++) {
+					int from = r - d;
+					if (from >= 0 && from < radii && acc[from] > best) {
+						best = acc[from];
+						arg = from;
+					}
+				}
+				next[r] = best + score[row + r];
+				back[t * radii + r] = arg;
+			}
+			double[] swap = acc;
+			acc = next;
+			next = swap;
+		}
+		int[] path = new int[rows];
+		for (int r = 1; r < radii; r++) {
+			if (acc[r] > acc[path[rows - 1]]) {
+				path[rows - 1] = r;
+			}
+		}
+		for (int t = rows - 1; t > 0; t--) {
+			path[t - 1] = back[t * radii + path[t]];
+		}
+		return Arrays.copyOfRange(path, ANGLES, rows);
 	}
 
 	private static Point centroid(Point[] points) {

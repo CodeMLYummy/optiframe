@@ -2,7 +2,7 @@
 
 What we tried to measure a spectacle lens outline from a phone photo, what worked, what didn't, and what
 we recommend next. Started 2026-10-03 with the review of Richard's `lensDetection/` package (commits
-`2262257`..`9ce9a4e`). Prototype scripts (v0–v5, SAM) are in [`prototypes/`](prototypes/README.md); A1–A3 are changes to the app backend.
+`2262257`..`9ce9a4e`). Prototype scripts (v0–v5, SAM) are in [`prototypes/`](prototypes/README.md); A1–A4 are changes to the app backend.
 
 ## Summary
 
@@ -33,6 +33,7 @@ we recommend next. Started 2026-10-03 with the review of Richard's `lensDetectio
 | v5 | 10-04 | `prototypes/v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar dynamic programming) | ✅ 28 / 34 vs 7 for the backend; std < 1 mm per lens |
 | v7–v9 | 10-04 | `prototypes/v7_v8_v9_detector/` | Detector settings end to end: `minMarkers=1` / `tryRefineMarkers` / both | ➖ coverage +3–4 photos, accuracy unchanged; v8 best, v7/v9 trip the fold check |
 | v6 | 10-04 | `prototypes/v6_corner_overlay/` | Diagnostic overlay of the sub-pixel corner detection on all photos | Detection sharp; sheet not flat (~1.4 px inlier RMS); side columns found only 42–55 % |
+| v10 → A4 | 10-04 | `prototypes/v10_smooth_rim/` → `backend/.../ClassicalSegmenter.java` | Smooth refinement (second path search in a ±0.6 mm band, ≤ 1 px per 0.5°, outer bias) instead of the per-angle snap | ✅ outline ~25 % less jagged; bias −0.21 → +0.02 mm; photos within 1 mm 20 → 24 / 40; MAE 0.80 → 0.84 |
 | v5 → A3 | 10-04 | `backend/.../ClassicalSegmenter.java` | App: v5 replaces the threshold segmenter, plus a ±0.6 mm snap to the rim | ✅ 35 / 47 blank-window photos via `/api/measure` (was 11), ~0.3 s each |
 
 ## Context
@@ -230,6 +231,34 @@ sheets in frame. Labels and per-photo results: `photos3/index.csv`.
   photos 37 → 40 (v7) / 41 (v8) / 40 (v9); MAE on the photos all variants measure is unchanged
   (0.81–0.83 mm). More corners buy coverage, not precision. v7/v9 trip the 0.5 mm fold check, which
   averages over RANSAC outliers too → adopt v8; make the fold check use inliers before trying v9 again.
+
+### v10 → A4 — app: smooth rim refinement
+- **Why:** A3's ±0.6 mm snap lets each of the 720 points jump independently between nearby lines (bevel,
+  side wall, paper texture): a saw-tooth outline, a perimeter ~15 % too long for the 1:1 SVG, and on a
+  double edge (005114) the inner line (−1.1 × −1.1 mm).
+- **v10:** keep the first path search (which loop is the lens); replace the snap by a second path search
+  inside a ±0.6 mm band, with at most 1 px of radius change per 0.5°, no jump cost, and an outer bias of
+  1.0 (rim-strength units, across the band) so the outer of two close lines wins. Leaving the band is
+  penalised, not forbidden: the first path isn't forced to close, so its 0° and 359.5° radii can differ.
+- **Prototype** (54 caliper photos, v8 detector): roughness 0.96 → 0.72 px, perimeter / hull 1.145 →
+  1.098; bias 0 / 1 / 2: MAE 0.85 / 0.80 / 0.79, signed −0.14 / +0.03 / +0.21; 005114 −1.13 × −1.13 →
+  −0.38 × −0.55 (bias 1).
+- **Backend** (same 40 photos via `/api/measure`, true print scale):
+
+  | | A3 (snap) | A4 (v10, bias 1) |
+  |---|---|---|
+  | MAE | 0.80 mm | 0.84 mm |
+  | Signed | −0.21 mm | +0.02 mm |
+  | Both within 1 mm | 20 / 40 | 24 / 40 |
+  | `lens1` (49.5 × 30.5) median | | 49.09 × 30.76 |
+  | `lens2` (51.4 × 38.4) median | | 50.94 × 38.46 |
+  | red (55.7 × 46.5) median | | 55.70 × 46.62 |
+
+  Bias 0.5 gave MAE 0.84, signed −0.05, 22 / 40. Shipped as option 1: no bias, more photos within
+  1 mm, a smooth SVG; the 0.04 mm higher MAE is within noise at 40 photos.
+- **Tests:** the synthetic lens (a drawn 0.5 mm rim, blurred and tilted) reads ~+0.35 mm with the
+  refinement at every bias, so three tests use a 0.4 mm tolerance (`SYNTHETIC_TOLERANCE_MM`, explained in
+  the code); the faint-rim test keeps 0.3 mm. Real lenses are unbiased against calipers.
 
 ## Lessons
 

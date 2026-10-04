@@ -12,6 +12,7 @@ frozen as it was when its results were recorded; the reasoning and results are i
 | v3 | `v3_segmenter_tuning/` | Why does the backend's classical segmenter over-measure? | Shadow leak; fixed with Canny 40/100 + darker-than-mean 25 (ported to Java) |
 | SAM | `sam_eval/` | Can Segment Anything outline the lens? | Only with a box prompt (filled IoU 0.96–0.98); points and automatic mode fail |
 | v4 | `v5_polar_contour/seg_clear.py` (`v4`) | Clear lenses on the blank window: close the rim ring and fill it? | **No.** 3–10 / 34: the faint rim has gaps and cables touch it, so the fill fails or floods |
+| v10 | `v10_smooth_rim/` | Can a second, smooth path search replace v5's jagged per-angle snap? | **Yes.** ~25 % less jagged, perimeter/hull 1.145 → 1.098, unbiased with outer bias 1 (+0.03 mm), double edge fixed on 005114; ported to the backend (A4) |
 | v7–v9 | `v7_v8_v9_detector/` | Do ChArUco detector settings (`minMarkers=1`, `tryRefineMarkers`, both) help end to end? | Coverage, not accuracy: measured 37 → 40 / 41 / 40 of 54; MAE on common photos unchanged (0.81–0.83 mm). v8 (`tryRefineMarkers`) best; v7/v9 trip the fold check |
 | v6 | `v6_corner_overlay/` | Diagnostic: how good is the sub-pixel ChArUco corner detection on every photo? | Detection is sharp (×8 insets) but the sheet isn't a plane: inlier RMS ~1.4 px, outliers on 64 / 67 photos (blur, curl); side columns found 42–55 % vs 70–75 % for top/bottom rows |
 | v5 | `v5_polar_contour/` | Clear lenses: best closed path r(θ) around the centre (polar contour, dynamic programming)? | **Yes.** 28 / 34 blank windows (backend today: 7); lens 1 50.18 ± 0.99 × 31.33 ± 0.98, lens 2 51.51 ± 0.64 × 38.20 ± 0.48 mm; red lens within 0.8 mm of its colour mask |
@@ -120,6 +121,18 @@ outliers (red squares), board corners not found (red ×, at their fitted positio
 (magenta arrow ×20), the projected lens window, detected markers, ×8 insets of three corners, and a stats line
 (corners used / outliers / expected, inlier RMS, camera). Board per folder: the printed 12×17 sheet for
 `photos2`/`photos3`, the 8×6 screen board for `photos1`.
+
+## v10 — smooth rim refinement (`v10_smooth_rim/`)
+
+```bash
+.venv/bin/python prototypes/v10_smooth_rim/smooth_rim.py   # v5 vs v10 (outer bias 0/1/2), 54 caliper photos
+```
+
+Keeps v5's first path search, then refines inside a ±0.6 mm band: dynamic programming over two turns with at
+most 1 px of radius change per 0.5°, no jump cost, capped rim strength plus an outer bias (0, 1, 2) so the outer of
+two close lines wins; outside the band is penalised (50 per angle), not forbidden, because the first path isn't
+forced to close. Reports measured photos, MAE and signed error at the true print scale, roughness (mean |second
+difference| of the radius) and perimeter / hull, and writes v5-vs-v10 edge close-ups to `results_v10/`.
 
 ## v7–v9 — ChArUco detector settings (`v7_v8_v9_detector/`)
 
