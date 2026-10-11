@@ -1,5 +1,8 @@
 # OptiFrame YCrunch
 
+> **Active development has moved to [George-Fam/optiframe](https://github.com/George-Fam/optiframe).**
+> This repository is the CodeML 2026 hackathon submission and is no longer updated.
+
 From recycled eyeglass lenses to a 3D-printed frame. CodeML 2026 Challenge, Santé Numérique Sans Frontières.
 
 - **Application:** https://optiframe.app
